@@ -1,0 +1,32 @@
+- title: 0. Setup
+  sections:
+  - local: chapter0/1
+    title: Introduction
+
+- title: 1. Transformers can hear
+  new: true
+  sections:
+  - local: chapter1/1
+    title: Introduction
+  - local: chapter1/2
+    title: A tour of audio applications
+  - local: chapter1/3
+    title: Transformer architectures for audio
+  - local: chapter1/4
+    title: Classifying audio
+  - local: chapter1/5
+    title: Automatically recognizing speech
+  - local: chapter1/6
+    title: Converting text to speech
+  - local: chapter1/7
+    title: Audio to audio
+  - local: chapter1/8
+    title: Audio transformers, check!
+  - local: chapter1/9
+    title: End-of-chapter quiz
+    quiz: 1
+
+- title: Course Events
+  sections:
+  - local: events/1
+    title: Live sessions and workshops
