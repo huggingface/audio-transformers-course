@@ -8,7 +8,6 @@
     title: Join the community
 
 - title: Unit 1. Working with audio data
-  new: true
   sections:
   - local: chapter1/intro
     title: What you'll learn
@@ -27,7 +26,6 @@
     title: Supplemental reading and resources
 
 - title: Unit 2. A gentle introduction to audio applications
-  new: true
   sections:
   - local: chapter2/audio_applications
     title: Tour of audio applications
@@ -39,7 +37,6 @@
     title: Hands-on exercise
 
 - title: Unit 3. Transformer architectures for audio
-  new: true
   sections:
   - local: chapter3/intro
     title: What you'll learn
@@ -53,12 +50,11 @@
     title: RNN-T
   - local: chapter3/quiz
     title: Quiz
-    quiz: 1
+    quiz: 3
   - local: chapter3/supplemental_reading
     title: Supplemental reading and resources
 
 - title: Unit 4. Build a music genre classifier
-  new: true
   sections:
   - local: chapter4/intro
     title: What you'll learn and what you'll build
@@ -78,7 +74,6 @@
     title: Hands-on exercise
 
 - title: Unit 5. Transcribe a meeting recording
-  new: true
   sections:
   - local: chapter5/intro
     title: What you'll learn and what you'll build
@@ -96,14 +91,13 @@
     title: Automatic speech recognition with speaker diarization
   - local: chapter5/quiz
     title: Quiz
-    quiz: 1
+    quiz: 5
   - local: chapter5/hands_on
     title: Hands-on exercise
   - local: chapter5/supplemental_reading
     title: Supplemental reading and resources
 
 - title: Unit 6. From text to speech
-  new: true
   sections:
   - local: chapter6/intro
     title: What you'll learn and what you'll build
@@ -121,14 +115,13 @@
     title: Fine-tuning SpeechT5
   - local: chapter6/quiz
     title: Quiz
-    quiz: 1
+    quiz: 6
   - local: chapter6/hands_on
     title: Hands-on exercise
   - local: chapter6/supplemental_reading
     title: Supplemental reading and resources
 
 - title: Unit 7. Audio to audio
-  new: true
   sections:
   - local: chapter7/intro
     title: What you'll learn and what you'll build
@@ -144,14 +137,13 @@
     title: Fine-tuning the model
   - local: chapter7/quiz
     title: Quiz
-    quiz: 1
+    quiz: 7
   - local: chapter7/hands_on
     title: Hands-on exercise
   - local: chapter7/supplemental_reading
     title: Supplemental reading and resources
 
 - title: Unit 8. Finish line
-  new: true
   sections:
   - local: chapter8/congratulations
     title: Congratulations!
@@ -161,7 +153,6 @@
     title: Stay in touch
 
 - title: Bonus unit. Diffusion models for audio
-  new: true
   sections:
   - local: chapter9/music_generation
     title: Music generation
