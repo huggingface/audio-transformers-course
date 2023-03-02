@@ -26,7 +26,7 @@
   - local: chapter1/supplemental_reading
     title: Supplemental reading and resources
 
-- title: Unit 2. Gentle introduction to audio applications
+- title: Unit 2. A gentle introduction to audio applications
   new: true
   sections:
   - local: chapter2/audio_applications
