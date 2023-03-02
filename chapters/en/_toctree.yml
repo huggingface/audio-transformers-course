@@ -1,30 +1,167 @@
-- title: 0. Setup
+- title: Unit 0. Welcome to the course!
   sections:
-  - local: chapter0/1
-    title: Introduction
+  - local: chapter0/what_to_expect
+    title: What to expect from the course
+  - local: chapter0/get_ready
+    title: Get ready
+  - local: chapter0/community
+    title: Join the community
 
-- title: 1. Transformers can hear
-  new: true
+- title: Unit 1. Working with audio data
   sections:
-  - local: chapter1/1
-    title: Introduction
-  - local: chapter1/2
-    title: A tour of audio applications
-  - local: chapter1/3
-    title: Transformer architectures for audio
-  - local: chapter1/4
-    title: Classifying audio
-  - local: chapter1/5
-    title: Automatically recognizing speech
-  - local: chapter1/6
-    title: Converting text to speech
-  - local: chapter1/7
-    title: Audio to audio
-  - local: chapter1/8
-    title: Audio transformers, check!
-  - local: chapter1/9
-    title: End-of-chapter quiz
+  - local: chapter1/intro
+    title: What you'll learn
+  - local: chapter1/audio_data
+    title: Introduction to audio data
+  - local: chapter1/load_and_explore
+    title: Load and explore an audio dataset
+  - local: chapter1/preprocessing
+    title: Preprocessing audio data
+  - local: chapter1/streaming
+    title: Streaming audio data
+  - local: chapter1/quiz
+    title: Quiz
     quiz: 1
+  - local: chapter1/supplemental_reading
+    title: Supplemental reading and resources
+
+- title: Unit 2. A gentle introduction to audio applications
+  sections:
+  - local: chapter2/audio_applications
+    title: Tour of audio applications
+  - local: chapter2/audio_classification_pipeline
+    title: Audio classification with a pipeline
+  - local: chapter2/asr_pipeline
+    title: Automatic speech recognition with a pipeline
+  - local: chapter2/hands_on
+    title: Hands-on exercise
+
+- title: Unit 3. Transformer architectures for audio
+  sections:
+  - local: chapter3/intro
+    title: What you'll learn
+  - local: chapter3/ctc
+    title: CTC architectures
+  - local: chapter3/seq2seq
+    title: Seq2Seq architectures
+  - local: chapter3/ast
+    title: Audio Spectrogram Transformer
+  - local: chapter3/rnn-t
+    title: RNN-T
+  - local: chapter3/quiz
+    title: Quiz
+    quiz: 3
+  - local: chapter3/supplemental_reading
+    title: Supplemental reading and resources
+
+- title: Unit 4. Build a music genre classifier
+  sections:
+  - local: chapter4/intro
+    title: What you'll learn and what you'll build
+  - local: chapter4/choosing_dataset
+    title: Choosing a dataset
+  - local: chapter4/classification_models
+    title: Pre-trained models for audio classification
+  - local: chapter4/preprocessing_data
+    title: Preprocessing data
+  - local: chapter4/evaluation
+    title: Evaluation metrics for audio classification
+  - local: chapter4/fine-tuning
+    title: Fine-tuning the model
+  - local: chapter4/demo
+    title: Creating a Gradio demo
+  - local: chapter4/hands_on
+    title: Hands-on exercise
+
+- title: Unit 5. Transcribe a meeting recording
+  sections:
+  - local: chapter5/intro
+    title: What you'll learn and what you'll build
+  - local: chapter5/choosing_dataset
+    title: Choosing a dataset
+  - local: chapter5/asr_models
+    title: Pre-trained models for automatic speech recognition
+  - local: chapter5/preprocessing_data
+    title: Loading and preprocessing data
+  - local: chapter5/evaluation
+    title: Evaluation metrics for ASR
+  - local: chapter5/fine-tuning
+    title: Fine-tuning the ASR model
+  - local: chapter5/speaker_diarization
+    title: Automatic speech recognition with speaker diarization
+  - local: chapter5/quiz
+    title: Quiz
+    quiz: 5
+  - local: chapter5/hands_on
+    title: Hands-on exercise
+  - local: chapter5/supplemental_reading
+    title: Supplemental reading and resources
+
+- title: Unit 6. From text to speech
+  sections:
+  - local: chapter6/intro
+    title: What you'll learn and what you'll build
+  - local: chapter6/overview
+    title: How to synthesize human speech from text?
+  - local: chapter6/choosing_dataset
+    title: Choosing a dataset
+  - local: chapter6/preprocessing
+    title: Loading and preprocessing data
+  - local: chapter6/pre-trained_models
+    title: Pre-trained models for text-to-speech
+  - local: chapter6/evaluation
+    title: Evaluation metrics for text-to-speech
+  - local: chapter6/fine-tuning
+    title: Fine-tuning SpeechT5
+  - local: chapter6/quiz
+    title: Quiz
+    quiz: 6
+  - local: chapter6/hands_on
+    title: Hands-on exercise
+  - local: chapter6/supplemental_reading
+    title: Supplemental reading and resources
+
+- title: Unit 7. Audio to audio
+  sections:
+  - local: chapter7/intro
+    title: What you'll learn and what you'll build
+  - local: chapter7/tasks
+    title: Examples of audio-to-audio tasks
+  - local: chapter7/choosing_dataset
+    title: Choosing a dataset
+  - local: chapter7/preprocessing
+    title: Loading and preprocessing data
+  - local: chapter7/evaluation
+    title: Evaluation metrics for audio-to-audio
+  - local: chapter7/fine-tuning
+    title: Fine-tuning the model
+  - local: chapter7/quiz
+    title: Quiz
+    quiz: 7
+  - local: chapter7/hands_on
+    title: Hands-on exercise
+  - local: chapter7/supplemental_reading
+    title: Supplemental reading and resources
+
+- title: Unit 8. Finish line
+  sections:
+  - local: chapter8/congratulations
+    title: Congratulations!
+  - local: chapter8/certification
+    title: Get your certification of completion
+  - local: chapter8/stay_in_touch
+    title: Stay in touch
+
+- title: Bonus unit. Diffusion models for audio
+  sections:
+  - local: chapter9/music_generation
+    title: Music generation
+  - local: chapter9/riffusion
+    title: Riffusion
+  - local: chapter9/audioldm
+    title: AudioLDM
+  - local: chapter9/dance_diffusion
+    title: Dance Diffusion
 
 - title: Course Events
   sections:
