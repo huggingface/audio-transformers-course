@@ -17,7 +17,7 @@
   - local: chapter1/load_and_explore
     title: Load and explore an audio dataset
   - local: chapter1/preprocessing
-    title: Preprocessing audio dataset
+    title: Preprocessing audio data
   - local: chapter1/streaming
     title: Streaming audio data
   - local: chapter1/quiz
