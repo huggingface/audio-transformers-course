@@ -1,1 +1,94 @@
 # Load and explore an audio dataset
+
+<!--  TODO: rework this section of the blog post -->
+
+One of the key defining features of 🤗 Datasets is the ability to download and prepare a dataset in just one line of Python code. This is made possible through the load_dataset function. Conventionally, loading a dataset involves: i) downloading the raw data, ii) extracting it from its compressed format, and iii) preparing individual samples and splits. Using load_dataset, all of the heavy lifting is done under the hood.
+
+Let's take the example of loading the GigaSpeech dataset from Speech Colab. GigaSpeech is a relatively recent speech recognition dataset for benchmarking academic speech systems and is one of many audio datasets available on the Hugging Face Hub.
+
+To load the GigaSpeech dataset, we simply take the dataset's identifier on the Hub (speechcolab/gigaspeech) and specify it to the load_dataset function. GigaSpeech comes in five configurations of increasing size, ranging from xs (10 hours) to xl(10,000 hours). For the purpose of this tutorial, we'll load the smallest of these configurations. The dataset's identifier and the desired configuration are all that we require to download the dataset:
+
+from datasets import load_dataset
+
+gigaspeech = load_dataset("speechcolab/gigaspeech", "xs")
+
+print(gigaspeech)
+
+Print Output:
+
+DatasetDict({
+    train: Dataset({
+        features: ['segment_id', 'speaker', 'text', 'audio', 'begin_time', 'end_time', 'audio_id', 'title', 'url', 'source', 'category', 'original_full_path'],
+        num_rows: 9389
+    })
+    validation: Dataset({
+        features: ['segment_id', 'speaker', 'text', 'audio', 'begin_time', 'end_time', 'audio_id', 'title', 'url', 'source', 'category', 'original_full_path'],
+        num_rows: 6750
+    })
+    test: Dataset({
+        features: ['segment_id', 'speaker', 'text', 'audio', 'begin_time', 'end_time', 'audio_id', 'title', 'url', 'source', 'category', 'original_full_path'],
+        num_rows: 25619
+    })
+})
+
+And just like that, we have the GigaSpeech dataset ready! There simply is no easier way of loading an audio dataset. We can see that we have the training, validation and test splits pre-partitioned, with the corresponding information for each.
+
+The object gigaspeech returned by the load_dataset function is a DatasetDict. We can treat it in much the same way as an ordinary Python dictionary. To get the train split, we pass the corresponding key to the gigaspeech dictionary:
+
+print(gigaspeech["train"])
+
+Print Output:
+
+Dataset({
+    features: ['segment_id', 'speaker', 'text', 'audio', 'begin_time', 'end_time', 'audio_id', 'title', 'url', 'source', 'category', 'original_full_path'],
+    num_rows: 9389
+})
+
+This returns a Dataset object, which contains the data for the training split. We can go one level deeper and get the first item of the split. Again, this is possible through standard Python indexing:
+
+print(gigaspeech["train"][0])
+
+Print Output:
+
+{'segment_id': 'YOU0000000315_S0000660',
+ 'speaker': 'N/A',
+ 'text': "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+ 'audio': {'path': '/home/sanchit_huggingface_co/.cache/huggingface/datasets/downloads/extracted/7f8541f130925e9b2af7d37256f2f61f9d6ff21bf4a94f7c1a3803ec648d7d79/xs_chunks_0000/YOU0000000315_S0000660.wav',
+           'array': array([0.0005188 , 0.00085449, 0.00012207, ..., 0.00125122, 0.00076294,
+       0.00036621], dtype=float32),
+           'sampling_rate': 16000
+           },
+ 'begin_time': 2941.889892578125,
+ 'end_time': 2945.070068359375,
+ 'audio_id': 'YOU0000000315',
+ 'title': 'Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43',
+ 'url': 'https://www.youtube.com/watch?v=zr2n1fLVasU',
+ 'source': 2,
+ 'category': 24,
+ 'original_full_path': 'audio/youtube/P0004/YOU0000000315.opus',
+ }
+
+We can see that there are a number of features returned by the training split, including segment_id, speaker, text, audio and more. For speech recognition, we'll be concerned with the text and audio columns.
+
+Using 🤗 Datasets' remove_columns method, we can remove the dataset features not required for speech recognition:
+
+COLUMNS_TO_KEEP = ["text", "audio"]
+all_columns = gigaspeech["train"].column_names
+columns_to_remove = set(all_columns) - set(COLUMNS_TO_KEEP)
+
+gigaspeech = gigaspeech.remove_columns(columns_to_remove)
+
+Let's check that we've successfully retained the text and audio columns:
+
+print(gigaspeech["train"][0])
+
+Print Output:
+
+{'text': "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+ 'audio': {'path': '/home/sanchit_huggingface_co/.cache/huggingface/datasets/downloads/extracted/7f8541f130925e9b2af7d37256f2f61f9d6ff21bf4a94f7c1a3803ec648d7d79/xs_chunks_0000/YOU0000000315_S0000660.wav',
+           'array': array([0.0005188 , 0.00085449, 0.00012207, ..., 0.00125122, 0.00076294,
+       0.00036621], dtype=float32),
+           'sampling_rate': 16000}}
+
+Great! We can see that we've got the two required columns text and audio. The text is a string with the sample transcription and the audio a 1-dimensional array of amplitude values at a sampling rate of 16KHz. That's our dataset loaded!
+

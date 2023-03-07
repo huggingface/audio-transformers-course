@@ -1,3 +1,67 @@
 # Introduction to audio data
 
-difference between waveform, spectrogram, mel, MFCC etc representation of audio, what the pros and cons are, all of the essential terminology
+<!-- From feedback: explain difference between waveform, spectrogram, mel, MFCC etc representation of audio, what the pros and cons are, all of the essential terminology -->
+
+An audio dataset consists of files with sound excerpts, e.g. text narration, or music. You may encounter `.wav` (Waveform Audio File),
+`.flac` (Free Lossless Audio Codec), `.mp3` (MPEG-1 Audio Layer 3) and many other formats that differ mainly in how they
+compress the digital representation of the audio signal. The files can contain a few seconds of sound, or hours.
+
+By nature, a sound wave is a continuous signal, but to work with it digitally, it needs to be converted into as a series of
+discrete values first. This is achieved through sampling.
+
+## Sampling and sampling rate
+
+Audio sampling is the process of transforming an audio source into a digital file by reducing
+a continuous signal into a series of samples. A sample is a value of the signal at a point in time.
+
+<!--  Add an illustration of sampling -->
+
+The sampling rate (also called sampling frequency) is the number of samples taken in one second. The higher the sampling
+rate, the more information from the sound wave is obtained. However, it also leads to increase in the computational cost
+of processing such files. On the other hand, files with low sampling rates result in higher information loss but are faster and
+cheaper to compute with.
+
+Crucially, when working on any audio task, you must make sure that all of the examples in your dataset have the same
+sampling rate. And if you plan to use audio data to fine-tune a pre-trained model, the sampling rate of your data should
+match the sampling rate of the data the model was pre-trained on.
+
+The sampling rate is measured in Hertz (Hz). For example, CD-quality audio has a sampling rate of 44,100 Hz meaning
+samples are taken 44,100 times per second. For comparison, high-fidelity audio has a sampling rate of 192,000 Hz.
+A common sampling rate used in pre-training is 16,000 Hz.
+
+## Amplitude and bit depth
+
+While the sampling rate tells you how often the samples are taken, what exactly is measured in each sample?
+
+One of the audio wave attributes is amplitude. Amplitude is the relative strength of sound waves, which we perceive as
+volume. It is measured in decibels (dB), which refer to the sound pressure level or intensity. To give you an example,
+a normal speaking voice is under 60 dB, and a rock concert can be at around 125 dB, pushing the limits of human hearing
+capabilities.
+
+To make sure that the digital representation closely approximates the original continuous sound wave, for each audio
+sample a number of possible amplitude values is recorded. This number is called audio bit depth. The higher the bit depth,
+the more amplitude values per sample are captured to recreate the original audio signal.
+
+The most common audio bit depths are 16-bit, 24-bit, and 32-bit. Each is a binary term, representing a number of possible
+values. Systems of higher audio bit depths are able to express more possible values:
+
+* 16-bit: 65,536 amplitude values
+* 24-bit: 16,777,216 amplitude values
+* 32-bit: 4,294,967,296 amplitude values
+
+## Spectrogram
+
+A spectrogram is a detailed visual representation of audio. It allows you to see time, frequency, and amplitude all on one graph.
+It is one of the most informative audio tools available to you.
+
+When visualizing a waveform, we see changes in a signal's amplitude over time. A spectrogram, however, displays changes
+in the frequencies in a signal over time. Amplitude is then represented on a third dimension with variable brightness or color.
+
+
+
+<!--  Illustrate a waveform for an audio example -->
+
+<!--  Illustrate spectrogram for an audio example -->
+
+
+
