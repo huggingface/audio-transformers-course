@@ -1,88 +1,113 @@
 # Preprocessing audio dataset
 
-<!--  TODO: rework the audio preprocessing part -->
+Loading a dataset with 🤗 Datasets is just half of the fun. It is now time to pre-process the data and make it ready for
+model training or inference. In this section, you'll learn how to perform three stages of preparing audio data for training:
 
-Loading a dataset with 🤗 Datasets is just half of the fun. We can now use the suite of tools available to efficiently pre-process our data ready for model training or inference. In this Section, we'll perform three stages of data pre-processing:
+* Resampling the audio data
+* Pre-processing audio data
+* Filtering data
 
-Resampling the Audio Data
-Pre-Processing Function
-Filtering Function
-1. Resampling the Audio Data
-The load_dataset function prepares audio samples with the sampling rate that they were published with. This is not always the sampling rate expected by our model. In this case, we need to resample the audio to the correct sampling rate.
+## Resampling the Audio Data
 
-We can set the audio inputs to our desired sampling rate using 🤗 Datasets' cast_column method. This operation does not change the audio in-place, but rather signals to datasets to resample the audio samples on the fly when they are loaded. The following code cell will set the sampling rate to 8kHz:
+The `load_dataset` function downloads audio samples with the sampling rate that they were published with. This is not
+always the sampling rate expected by a model you plan to train. If there's a discrepancy between the sampling rates,
+you can resample the audio to the model's expected sampling rate.
 
-from datasets import Audio
+Most of the available pretrained models have been pretrained on audio datasets at a sampling rate of 16 kHz.
+When we were exploring MINDS-14 dataset, you may have noticed that it is sampled at 8 kHz, which means we will liekly need
+to upsample it, if we want to use it for fine-tuning a model.
 
-gigaspeech = gigaspeech.cast_column("audio", Audio(sampling_rate=8000))
+To do so, use 🤗 Datasets' `cast_column` method. This operation does not change the audio in-place, but rather signals
+to datasets to resample the audio samples on the fly when they are loaded. The following code cell will set the sampling
+rate to 16kHz:
 
-Re-loading the first audio sample in the GigaSpeech dataset will resample it to the desired sampling rate:
+```py
+>>> from datasets import Audio
 
-print(gigaspeech["train"][0])
+>>> minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
+```
 
-Print Output:
+Re-load the first audio example in the MINDS-14 dataset, and check that it has been resampled to the desired `sampling rate`:
 
-{'text': "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
- 'audio': {'path': '/home/sanchit_huggingface_co/.cache/huggingface/datasets/downloads/extracted/7f8541f130925e9b2af7d37256f2f61f9d6ff21bf4a94f7c1a3803ec648d7d79/xs_chunks_0000/YOU0000000315_S0000660.wav',
-           'array': array([ 0.00046338,  0.00034808, -0.00086153, ...,  0.00099299,
-        0.00083484,  0.00080221], dtype=float32),
-           'sampling_rate': 8000}
- }
+```py
+>>> minds[0]
+{'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav',
+ 'audio': {'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav',
+  'array': array([2.0634243e-05, 1.9437837e-04, 2.2419340e-04, ..., 9.3852862e-04,
+         1.1302452e-03, 7.1531429e-04], dtype=float32),
+  'sampling_rate': 16000},
+ 'transcription': 'I would like to pay my electricity bill using my card can you please assist',
+ 'intent_class': 13}
+```
 
-We can see that the sampling rate has been downsampled to 8kHz. The array values are also different, as we've now only got approximately one amplitude value for every two that we had before. Let's set the dataset sampling rate back to 16kHz, the sampling rate expected by most speech recognition models:
+You may notice that the array values are now also different. This is because we've now got twice the amplitude value for
+every one that we had before.
 
-gigaspeech = gigaspeech.cast_column("audio", Audio(sampling_rate=16000))
+## Pre-processing audio data
 
-print(gigaspeech["train"][0])
+<!--  TODO: it is unclear what kind of preprocessing happens under the hood. For a course it'd be great to explain it here -->
+One of the most challenging aspects of working with audio datasets is preparing the data in the right format for model
+training. Using 🤗 Datasets' map method, you can write a function to pre-process a single sample of the dataset, and
+then apply it to every sample without any code changes.
 
-Print Output:
+First, let's load a processor object from 🤗 Transformers. This processor pre-processes the audio to input features and
+tokenises the target text to labels. The AutoProcessor class is used to load a processor from a given model checkpoint.
+In the example, we load the processor from OpenAI's Whisper medium.en checkpoint, but you can change this to any model
+identifier on the Hugging Face Hub:
 
-{'text': "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
- 'audio': {'path': '/home/sanchit_huggingface_co/.cache/huggingface/datasets/downloads/extracted/7f8541f130925e9b2af7d37256f2f61f9d6ff21bf4a94f7c1a3803ec648d7d79/xs_chunks_0000/YOU0000000315_S0000660.wav',
-           'array': array([0.0005188 , 0.00085449, 0.00012207, ..., 0.00125122, 0.00076294,
-       0.00036621], dtype=float32),
-           'sampling_rate': 16000}
- }
+<!--  TODO re-write the preprocessing part -->
+```py
+>>> from transformers import AutoProcessor
 
-Easy! cast_column provides a straightforward mechanism for resampling audio datasets as and when required.
+>>> processor = AutoProcessor.from_pretrained("anton-l/xtreme_s_xlsr_300m_minds14")
+```
 
-2. Pre-Processing Function
-One of the most challenging aspects of working with audio datasets is preparing the data in the right format for our model. Using 🤗 Datasets' map method, we can write a function to pre-process a single sample of the dataset, and then apply it to every sample without any code changes.
+Now we can write a function that takes a single training sample and passes it through the processor to prepare it for our model.
+We'll also compute the input length of each audio sample, information that we'll need for the next data preparation step:
 
-First, let's load a processor object from 🤗 Transformers. This processor pre-processes the audio to input features and tokenises the target text to labels. The AutoProcessor class is used to load a processor from a given model checkpoint. In the example, we load the processor from OpenAI's Whisper medium.en checkpoint, but you can change this to any model identifier on the Hugging Face Hub:
+```py
+>>> def prepare_dataset(batch):
+...     audio = batch["audio"]
+...     batch = processor(audio["array"], sampling_rate=audio["sampling_rate"], text=batch["text"])
 
-from transformers import AutoProcessor
+...     batch["input_length"] = len(audio["array"]) / audio["sampling_rate"]
+...     return batch
+```
 
-processor = AutoProcessor.from_pretrained("openai/whisper-medium.en")
+We can apply the data preparation function to all of our training examples using 🤗 Datasets' map method. Here, we also
+remove the text and audio columns, since we have pre-processed the audio to input features and tokenised the text to labels:
 
-Great! Now we can write a function that takes a single training sample and passes it through the processor to prepare it for our model. We'll also compute the input length of each audio sample, information that we'll need for the next data preparation step:
+```py
+minds = minds.map(prepare_dataset, remove_columns=minds.column_names)
+```
 
-def prepare_dataset(batch):
-    audio = batch["audio"]
-    batch = processor(audio["array"], sampling_rate=audio["sampling_rate"], text=batch["text"])
+## Filtering audio data
 
-    batch["input_length"] = len(audio["array"]) / audio["sampling_rate"]
-    return batch
+<!--  It's probably worth elaborating on reasons one may need to filter  -->
+Prior to training, we might have a heuristic for filtering the training data. For instance, we might want to filter any
+audio samples longer than 30s to prevent truncating the audio samples or risking out-of-memory errors.
+We can do this in much the same way that we prepared the data for our model in the previous step.
 
-We can apply the data preparation function to all of our training examples using 🤗 Datasets' map method. Here, we also remove the text and audio columns, since we have pre-processed the audio to input features and tokenised the text to labels:
+We start by writing a function that indicates which samples to keep and which to discard. This function, `is_audio_length_in_range`,
+returns a boolean mask where a value is: `True` if a sample is shorter than 30s, and `False` if it is longer than 30s.
 
-gigaspeech = gigaspeech.map(prepare_dataset, remove_columns=gigaspeech["train"].column_names)
+```py
+>>> MAX_DURATION_IN_SECONDS = 30.0
 
-3. Filtering Function
-Prior to training, we might have a heuristic for filtering our training data. For instance, we might want to filter any audio samples longer than 30s to prevent truncating the audio samples or risking out-of-memory errors. We can do this in much the same way that we prepared the data for our model in the previous step.
+>>> def is_audio_length_in_range(input_length):
+...     return input_length < MAX_DURATION_IN_SECONDS
+```
 
-We start by writing a function that indicates which samples to keep and which to discard. This function, is_audio_length_in_range, returns a boolean: samples that are shorter than 30s return True, and those that are longer False.
+We can apply this filtering function to all of our training examples using 🤗 Datasets' filter method, keeping all
+samples that are shorter than 30s (True) and discarding those that are longer (False):
 
-MAX_DURATION_IN_SECONDS = 30.0
+```py
+>>> gigaspeech["train"] = gigaspeech["train"].filter(is_audio_length_in_range, input_columns=["input_length"])
+```
 
-def is_audio_length_in_range(input_length):
-    return input_length < MAX_DURATION_IN_SECONDS
-
-We can apply this filtering function to all of our training examples using 🤗 Datasets' filter method, keeping all samples that are shorter than 30s (True) and discarding those that are longer (False):
-
-gigaspeech["train"] = gigaspeech["train"].filter(is_audio_length_in_range, input_columns=["input_length"])
-
-And with that, we have the GigaSpeech dataset fully prepared for our model! In total, this process required 13 lines of Python code, right from loading the dataset to the final filtering step.
-
-Keeping the notebook as general as possible, we only performed the fundamental data preparation steps. However, there is no restriction to the functions you can apply to your audio dataset. You can extend the function prepare_dataset to perform much more involved operations, such as data augmentation, voice activity detection or noise reduction. With 🤗 Datasets, if you can write it in a Python function, you can apply it to your dataset!
+And with that, we have the GigaSpeech dataset fully prepared for our model!
+These are only the fundamental data preparation steps, and, of course, custom data may require more complex preprocessing.
+However, you can extend the function `prepare_dataset` to perform much more involved operations, such as data augmentation,
+voice activity detection or noise reduction. With 🤗 Datasets, if you can write it as a Python function, you can apply
+it to your dataset!
 

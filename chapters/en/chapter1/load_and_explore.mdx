@@ -1,94 +1,132 @@
 # Load and explore an audio dataset
 
-<!--  TODO: rework this section of the blog post -->
+<!--  The content here is adapted from a blog post https://huggingface.co/blog/audio-datasets -->
+<!--  It requires some work -->
 
-One of the key defining features of 🤗 Datasets is the ability to download and prepare a dataset in just one line of Python code. This is made possible through the load_dataset function. Conventionally, loading a dataset involves: i) downloading the raw data, ii) extracting it from its compressed format, and iii) preparing individual samples and splits. Using load_dataset, all of the heavy lifting is done under the hood.
+In this course we will use 🤗 Datasets library to work with audio datasets. 🤗 Datasets is an open-source library for
+downloading and preparing datasets from all modalities including audio. The library offers easy access to an unparalleled
+selection of machine learning datasets publicly available on Hugging Face Hub. Moreover, 🤗 Datasets includes multiple
+features tailored to audio datasets that simplify working with such datasets for both researchers and practitioners.
 
-Let's take the example of loading the GigaSpeech dataset from Speech Colab. GigaSpeech is a relatively recent speech recognition dataset for benchmarking academic speech systems and is one of many audio datasets available on the Hugging Face Hub.
+To begin working with audio datasets, make sure you have the 🤗 Datasets library installed:
 
-To load the GigaSpeech dataset, we simply take the dataset's identifier on the Hub (speechcolab/gigaspeech) and specify it to the load_dataset function. GigaSpeech comes in five configurations of increasing size, ranging from xs (10 hours) to xl(10,000 hours). For the purpose of this tutorial, we'll load the smallest of these configurations. The dataset's identifier and the desired configuration are all that we require to download the dataset:
+```bash
+pip install datasets
+```
 
-from datasets import load_dataset
+One of the key defining features of 🤗 Datasets is the ability to download and prepare a dataset in just one line of
+Python code using the `load_dataset` function.
 
-gigaspeech = load_dataset("speechcolab/gigaspeech", "xs")
+Let's load and explore and audio dataset called [MINDS-14](https://huggingface.co/datasets/PolyAI/minds14), which contains
+recordings of people asking an e-banking system questions in several languages and dialects.
 
-print(gigaspeech)
+To load the MINDS-14 dataset, we need to copy the dataset's identifier on the Hub (`PolyAI/minds14`) and pass it
+to the `load_dataset` function. We'll also specify that we're only interested in the Australian subset (`en-AU`) of
+the data, and limit it to the training split:
 
-Print Output:
+```py
+>>> from datasets import load_dataset
 
-DatasetDict({
-    train: Dataset({
-        features: ['segment_id', 'speaker', 'text', 'audio', 'begin_time', 'end_time', 'audio_id', 'title', 'url', 'source', 'category', 'original_full_path'],
-        num_rows: 9389
-    })
-    validation: Dataset({
-        features: ['segment_id', 'speaker', 'text', 'audio', 'begin_time', 'end_time', 'audio_id', 'title', 'url', 'source', 'category', 'original_full_path'],
-        num_rows: 6750
-    })
-    test: Dataset({
-        features: ['segment_id', 'speaker', 'text', 'audio', 'begin_time', 'end_time', 'audio_id', 'title', 'url', 'source', 'category', 'original_full_path'],
-        num_rows: 25619
-    })
-})
-
-And just like that, we have the GigaSpeech dataset ready! There simply is no easier way of loading an audio dataset. We can see that we have the training, validation and test splits pre-partitioned, with the corresponding information for each.
-
-The object gigaspeech returned by the load_dataset function is a DatasetDict. We can treat it in much the same way as an ordinary Python dictionary. To get the train split, we pass the corresponding key to the gigaspeech dictionary:
-
-print(gigaspeech["train"])
-
-Print Output:
-
+>>> minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+>>> minds
 Dataset({
-    features: ['segment_id', 'speaker', 'text', 'audio', 'begin_time', 'end_time', 'audio_id', 'title', 'url', 'source', 'category', 'original_full_path'],
-    num_rows: 9389
+    features: ['path', 'audio', 'transcription', 'english_transcription', 'intent_class', 'lang_id'],
+    num_rows: 654
 })
+```
 
-This returns a Dataset object, which contains the data for the training split. We can go one level deeper and get the first item of the split. Again, this is possible through standard Python indexing:
+The dataset contains 654 audio files, each of which is accompanied by a transcription, an English translation, and a label
+indicating the intent behind the person's query. The audio column contains the raw audio data. Let's take a closer look
+at one of the examples:
 
-print(gigaspeech["train"][0])
+```py
+>>> example = minds[0]
+>>> example
+{'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav',
+ 'audio': {'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav',
+  'array': array([ 0.        ,  0.00024414, -0.00024414, ..., -0.00024414,
+          0.00024414,  0.0012207 ], dtype=float32),
+  'sampling_rate': 8000},
+ 'transcription': 'I would like to pay my electricity bill using my card can you please assist',
+ 'english_transcription': 'I would like to pay my electricity bill using my card can you please assist',
+ 'intent_class': 13,
+ 'lang_id': 2}
+```
 
-Print Output:
+You may notice that the audio column contains several features. Here's what they are:
+* `path`: the path to the audio file (`*.wav` in this case).
+* `array`: The decoded audio data, represented as a 1-dimensional NumPy array.
+* `sampling_rate`. The sampling rate of the audio file (8,000 Hz in this example).
 
-{'segment_id': 'YOU0000000315_S0000660',
- 'speaker': 'N/A',
- 'text': "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
- 'audio': {'path': '/home/sanchit_huggingface_co/.cache/huggingface/datasets/downloads/extracted/7f8541f130925e9b2af7d37256f2f61f9d6ff21bf4a94f7c1a3803ec648d7d79/xs_chunks_0000/YOU0000000315_S0000660.wav',
-           'array': array([0.0005188 , 0.00085449, 0.00012207, ..., 0.00125122, 0.00076294,
-       0.00036621], dtype=float32),
-           'sampling_rate': 16000
-           },
- 'begin_time': 2941.889892578125,
- 'end_time': 2945.070068359375,
- 'audio_id': 'YOU0000000315',
- 'title': 'Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43',
- 'url': 'https://www.youtube.com/watch?v=zr2n1fLVasU',
- 'source': 2,
- 'category': 24,
- 'original_full_path': 'audio/youtube/P0004/YOU0000000315.opus',
- }
+The `intent_class` is a classification category of the audio recording. To convert this number into a meaningful string,
+we can use the `int2str()`:
 
-We can see that there are a number of features returned by the training split, including segment_id, speaker, text, audio and more. For speech recognition, we'll be concerned with the text and audio columns.
+```py
+>>> id2label = minds.features["intent_class"].int2str
+>>> id2label(example["intent_class"])
+'pay_bill'
+```
 
-Using 🤗 Datasets' remove_columns method, we can remove the dataset features not required for speech recognition:
+If you look at the transcription feature, you can see that the audio file indeed has recorded a person asking a question
+about paying a bill.
 
-COLUMNS_TO_KEEP = ["text", "audio"]
-all_columns = gigaspeech["train"].column_names
-columns_to_remove = set(all_columns) - set(COLUMNS_TO_KEEP)
+If you plan to train an audio classifier on this subset of data, you may not necessarily need all of the features. For example,
+the `lang_id` is going to have the same value for all examples, and won't be useful. The `english_transcription` will likely
+duplicate the `transcription` in this subset, so we can safely remove them.
 
-gigaspeech = gigaspeech.remove_columns(columns_to_remove)
+You can easily remove irrelevant features using 🤗 Datasets' `remove_columns` method:
 
-Let's check that we've successfully retained the text and audio columns:
+```py
+>>> columns_to_remove = ["lang_id", "english_transcription"]
+>>> minds = minds.remove_columns(columns_to_remove)
+>>> minds
+Dataset({
+    features: ['path', 'audio', 'transcription', 'intent_class'],
+    num_rows: 654
+})
+```
 
-print(gigaspeech["train"][0])
+Now that we've loaded and inspected the raw contents of the dataset, let's listen to a few examples! We'll use the `Blocks`
+and `Audio` features from `Gradio` to decode a few random samples from the dataset:
 
-Print Output:
+```py
+>>> import gradio as gr
 
-{'text': "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
- 'audio': {'path': '/home/sanchit_huggingface_co/.cache/huggingface/datasets/downloads/extracted/7f8541f130925e9b2af7d37256f2f61f9d6ff21bf4a94f7c1a3803ec648d7d79/xs_chunks_0000/YOU0000000315_S0000660.wav',
-           'array': array([0.0005188 , 0.00085449, 0.00012207, ..., 0.00125122, 0.00076294,
-       0.00036621], dtype=float32),
-           'sampling_rate': 16000}}
+>>> def generate_audio():
+...     example = minds.shuffle()[0]
+...     audio = example["audio"]
+...     return (
+...         audio["sampling_rate"],
+...         audio["array"],
+...     ), id2label(example["intent_class"])
 
-Great! We can see that we've got the two required columns text and audio. The text is a string with the sample transcription and the audio a 1-dimensional array of amplitude values at a sampling rate of 16KHz. That's our dataset loaded!
 
+>>> with gr.Blocks() as demo:
+...     with gr.Column():
+...         for _ in range(4):
+...             audio, label = generate_audio()
+...             output = gr.Audio(audio, label=label)
+
+>>> demo.launch(debug=True)
+```
+
+<!-- Insert the demo -->
+
+If you'd like to, you can also visualize some of the examples. Let's plot the waveform for the first example.
+
+```py
+>>> import librosa
+>>> import matplotlib.pyplot as plt
+>>> import librosa.display
+
+>>> y = example["audio"]["array"]
+>>> sr = example["audio"]["sampling_rate"]
+
+>>> plt.figure().set_figwidth(12)
+>>> librosa.display.waveshow(y, sr=sr)
+```
+
+![waveform_unit1.png](../../assets/img/waveform_unit1.png)
+
+Try it out! Download another dialect or language of the MINDS-14 dataset, listen and visualize some examples to get a sense
+of the variation in the whole dataset. You can find the full list of available languages [here](https://huggingface.co/datasets/PolyAI/minds14).
