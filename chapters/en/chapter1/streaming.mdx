@@ -1,27 +1,20 @@
 # Streaming audio data
 
-<!--  The content here is adapted from a blog post https://huggingface.co/blog/audio-datasets -->
-<!--  It requires some work -->
-
 One of the biggest challenges faced with audio datasets is their sheer size. A single minute of CD-quality audio (44.1kHz, 16-bit)
 takes up  a bit more than 5 MB of storage. Typically, an audio dataset would contains hours of recordings.
 
-The xs (smallest) configuration of GigaSpeech contains only 10 hours of training data, but amassed over 13GB of storage
-space for download and preparation. So what happens when we want to train on a larger split? The full xl configuration
-contains 10,000 hours of training data, requiring over 1TB of storage space. For most of us, this well
-exceeds the specifications of a typical hard drive disk. Do we need to fork out and buy additional storage? Or is there
-a way we can train on these datasets with no disk space constraints?
+In the previous sections we used a very small subset of MINDS-14 audio dataset, however, typical audio datasets are much larger.
+For example, the xs (smallest) configuration of [GigaSpeech from SpeechColab](https://huggingface.co/datasets/speechcolab/gigaspeech)
+contains only 10 hours of training data, but takes over 13GB of storage space for download and preparation. So what
+happens when we want to train on a larger split? The full xl configuration of the same dataset contains 10,000 hours of
+training data, requiring over 1TB of storage space. For most of us, this well exceeds the specifications of a typical
+hard drive disk. Do we need to fork out and buy additional storage? Or is there a way we can train on these datasets with no disk space constraints?
 
- 🤗 Datasets allow us to do just this. It is made possible through the use of streaming mode, depicted graphically in Figure 1.
-
-
-Streaming allows us to load the data progressively as we iterate over the dataset. Rather than downloading the whole
-dataset at once, we load the dataset one example at a time. We iterate over the dataset, loading and preparing examples
-on the fly when they are needed. This way, we only ever load the examples that we're using, and not the ones that we're not!
+ 🤗 Datasets comes to the rescue by offering the streaming mode. Streaming allows us to load the data progressively as
+ we iterate over the dataset. Rather than downloading the whole dataset at once, we load the dataset one example at a time.
+ We iterate over the dataset, loading and preparing examples on the fly when they are needed. This way, we only ever
+ load the examples that we're using, and not the ones that we're not!
 Once we're done with an example sample, we continue iterating over the dataset and load the next one.
-
-[image]
-Figure 1: Streaming mode. The dataset is loaded progressively as we iterate over the dataset.
 
 Streaming mode has three primary advantages over downloading the entire dataset at once:
 
@@ -49,9 +42,12 @@ care for you:
 >>> gigaspeech = load_dataset("speechcolab/gigaspeech", "xs", streaming=True)
 ```
 
-All the preprocessing steps covered in the previous article can be applied to the streaming dataset without any code changes.
+Just like we applied preprocessing steps to a downloaded subset of MINDS-14, you can do the same preprocessing with a
+streaming dataset in the exactly the same manner.
+
 The only difference is that you can no longer access individual samples using Python indexing (i.e. `gigaspeech["train"][sample_idx]``).
 Instead, you have to iterate over the dataset, using a for loop for example.
+
 Streaming mode can take your research to the next level: not only are the biggest datasets accessible to you, but you
 can easily evaluate systems over multiple datasets in one go without worrying about your disk space. Compared to
 evaluating on a single dataset, multi-dataset evaluation gives a better metric for the generalisation abilities of a
