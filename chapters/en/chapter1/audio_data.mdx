@@ -20,13 +20,18 @@ rate, the more information from the sound wave is obtained. However, it also lea
 of processing such files. On the other hand, files with low sampling rates result in higher information loss but are faster and
 cheaper to compute with.
 
-Crucially, when working on any audio task, you must make sure that all of the examples in your dataset have the same
-sampling rate. And if you plan to use audio data to fine-tune a pre-trained model, the sampling rate of your data should
-match the sampling rate of the data the model was pre-trained on.
-
 The sampling rate is measured in Hertz (Hz). To give you a point of reference, CD-quality audio has a sampling rate of 44,100 Hz, meaning
 samples are taken 44,100 times per second. For comparison, high-fidelity audio has a sampling rate of 192,000 Hz.
 A common sampling rate used in pre-training is 16,000 Hz.
+
+It's important to ensure that all audio examples in your dataset have the same sampling rate when working on any audio task.
+If you plan to use custom audio data to fine-tune a pre-trained model, the sampling rate of your data should match the
+sampling rate of the data the model was pre-trained on. The sampling rate determines the time interval between successive
+audio samples, which impacts the temporal resolution of the audio data. Consider an example: a 5-second sound at a sampling
+rate of 16,000 Hz will be represented as a series of 80,000 values, while the same 5-second sound at a sampling rate of
+8,000 Hz will be represented as a series of 40,000 values. Transformer models that solve audio tasks treat examples as
+sequences and rely on attention mechanisms to learn audio or multimodal representation. Since sequences are different for
+audio examples at different sampling rates, it will be challenging for models to generalize between sampling rates.
 
 ## Amplitude and bit depth
 
@@ -89,6 +94,8 @@ ways, such as normalization, resampling, or filtering, you can visually confirm 
 After training a model, you can also visualize samples where errors occur (e.g. in audio classification task) to debug
 the issue.
 
+<!--  TODO: in the audio classification section we can add this (visualize errors)-->
+
 ### Spectrogram
 
 Another way to visualize audio data is called a **spectrogram**. A spectrogram is a visual representation of the frequency
@@ -102,9 +109,17 @@ different vowel sounds.
 
 Let's plot a spectrogram for the same trumpet sound.The spectrogram is created by taking short segments of the audio signal,
 typically lasting a few milliseconds, and calculating the Fourier transform of each segment to obtain its frequency spectrum.
+
+<!--  TODO: @hollance please add an explanation here of what a Fourier transform is.-->
+
 The resulting spectra are then stacked together over time to create the spectrogram.
 
-We need to use `librosa.stft()` function to create the short-time Fourier transform before we can plot the spectrogram.
+To do so, we first need to use `librosa.stft()` function to create the short-time Fourier transform before we can plot the spectrogram.
+You'll rarely see the result of STFT plotted directly as it can be difficult to interpret. A common practice is to
+convert the amplitude spectrogram to a to decibel-scaled spectrogram with `librosa.amplitude_to_db()` function that will
+scale the amplitude absolute value scaled relative to `ref`.
+The decibel scale compresses the dynamic range of the amplitude spectrogram, making it easier to see the finer
+details in the spectrogram.
 
 ```py
 >>> import numpy as np
@@ -119,6 +134,7 @@ We need to use `librosa.stft()` function to create the short-time Fourier transf
 
 ![spectrogram_plot.png](../../assets/img/waveform_plot.png)
 
+Now that we know what a spectrogram is, let's take a look at a variant of it widely used for signal processing: the Mel-spectrogram.
 
 ### Mel-spectrogram
 
@@ -145,6 +161,12 @@ Let's see how we can plot a mel-spectrogram:
 ```
 
 ![mel-spectrogram.png](../../assets/img/mel-spectrogram.png)
+
+In the example above, `n_mels` stands for number of Mel bands to generate. Mel bands refer to a set of frequency ranges
+that are used to divide the spectrum of a sound signal into perceptually meaningful components. Mel bands are typically
+defined by a set of triangular filters that are evenly spaced in the Mel scale. These filters are designed to respond to
+different frequency ranges, and their shape and spacing are chosen to mimic the way the human ear responds to different
+frequencies. Common values for `n_mels` are 32, 64, 128. `fmax` indicates the highest frequency (in Hz).
 
 Compared to a standard spectrogram, a Mel-spectrogram can capture more meaningful features of the audio signal for human
 perception, making it a popular choice in tasks such as speech recognition, speaker identification, and music genre classification.

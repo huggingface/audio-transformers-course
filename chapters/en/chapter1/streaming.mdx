@@ -46,7 +46,64 @@ Just like we applied preprocessing steps to a downloaded subset of MINDS-14, you
 streaming dataset in the exactly the same manner.
 
 The only difference is that you can no longer access individual samples using Python indexing (i.e. `gigaspeech["train"][sample_idx]``).
-Instead, you have to iterate over the dataset, using a for loop for example.
+Instead, you have to iterate over the dataset. Here's how you can access an example when streaming a dataset:
+
+```py
+>>> next(iter(gigaspeech["train"]))
+{'segment_id': 'YOU0000000315_S0000660',
+ 'speaker': 'N/A',
+ 'text': "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+ 'audio': {'path': 'xs_chunks_0000/YOU0000000315_S0000660.wav',
+  'array': array([0.0005188 , 0.00085449, 0.00012207, ..., 0.00125122, 0.00076294,
+         0.00036621]),
+  'sampling_rate': 16000},
+ 'begin_time': 2941.89,
+ 'end_time': 2945.07,
+ 'audio_id': 'YOU0000000315',
+ 'title': 'Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43',
+ 'url': 'https://www.youtube.com/watch?v=zr2n1fLVasU',
+ 'source': 2,
+ 'category': 24,
+ 'original_full_path': 'audio/youtube/P0004/YOU0000000315.opus'}
+```
+
+If you'd like to preview several examples from a large dataset, use the `take()` to get the first n elements. Let's grab
+the first two examples in the gigaspeech dataset:
+
+```py
+>>> gigaspeech_head = gigaspeech["train"].take(2)
+>>> list(gigaspeech_head)
+[{'segment_id': 'YOU0000000315_S0000660',
+  'speaker': 'N/A',
+  'text': "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+  'audio': {'path': 'xs_chunks_0000/YOU0000000315_S0000660.wav',
+   'array': array([0.0005188 , 0.00085449, 0.00012207, ..., 0.00125122, 0.00076294,
+          0.00036621]),
+   'sampling_rate': 16000},
+  'begin_time': 2941.89,
+  'end_time': 2945.07,
+  'audio_id': 'YOU0000000315',
+  'title': 'Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43',
+  'url': 'https://www.youtube.com/watch?v=zr2n1fLVasU',
+  'source': 2,
+  'category': 24,
+  'original_full_path': 'audio/youtube/P0004/YOU0000000315.opus'},
+ {'segment_id': 'AUD0000001043_S0000775',
+  'speaker': 'N/A',
+  'text': 'SIX TOMATOES <PERIOD>',
+  'audio': {'path': 'xs_chunks_0000/AUD0000001043_S0000775.wav',
+   'array': array([ 1.43432617e-03,  1.37329102e-03,  1.31225586e-03, ...,
+          -6.10351562e-05, -1.22070312e-04, -1.83105469e-04]),
+   'sampling_rate': 16000},
+  'begin_time': 3673.96,
+  'end_time': 3675.26,
+  'audio_id': 'AUD0000001043',
+  'title': 'Asteroid of Fear',
+  'url': 'http//www.archive.org/download/asteroid_of_fear_1012_librivox/asteroid_of_fear_1012_librivox_64kb_mp3.zip',
+  'source': 0,
+  'category': 28,
+  'original_full_path': 'audio/audiobook/P0011/AUD0000001043.opus'}]
+```
 
 Streaming mode can take your research to the next level: not only are the biggest datasets accessible to you, but you
 can easily evaluate systems over multiple datasets in one go without worrying about your disk space. Compared to

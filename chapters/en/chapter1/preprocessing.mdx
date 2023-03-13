@@ -18,6 +18,8 @@ Most of the available pretrained models have been pretrained on audio datasets a
 When we explored MINDS-14 dataset, you may have noticed that it is sampled at 8 kHz, which means we will likely need
 to upsample it.
 
+<!--  TODO: @hollance please add an explanation of what happens when we upsample-->
+
 To do so, use 🤗 Datasets' `cast_column` method. This operation does not change the audio in-place, but rather signals
 to datasets to resample the audio samples on the fly when they are loaded. The following code cell will set the sampling
 rate to 16kHz:
