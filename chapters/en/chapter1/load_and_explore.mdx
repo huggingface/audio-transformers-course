@@ -3,7 +3,7 @@
 <!--  The content here is adapted from a blog post https://huggingface.co/blog/audio-datasets -->
 <!--  It requires some work -->
 
-In this course we will use 🤗 Datasets library to work with audio datasets. 🤗 Datasets is an open-source library for
+In this course we will use the 🤗 Datasets library to work with audio datasets. 🤗 Datasets is an open-source library for
 downloading and preparing datasets from all modalities including audio. The library offers easy access to an unparalleled
 selection of machine learning datasets publicly available on Hugging Face Hub. Moreover, 🤗 Datasets includes multiple
 features tailored to audio datasets that simplify working with such datasets for both researchers and practitioners.
@@ -15,7 +15,7 @@ pip install datasets
 ```
 
 One of the key defining features of 🤗 Datasets is the ability to download and prepare a dataset in just one line of
-Python code using the `load_dataset` function.
+Python code using the `load_dataset()` function.
 
 Let's load and explore and audio dataset called [MINDS-14](https://huggingface.co/datasets/PolyAI/minds14), which contains
 recordings of people asking an e-banking system questions in several languages and dialects.
@@ -59,7 +59,7 @@ You may notice that the audio column contains several features. Here's what they
 * `sampling_rate`. The sampling rate of the audio file (8,000 Hz in this example).
 
 The `intent_class` is a classification category of the audio recording. To convert this number into a meaningful string,
-we can use the `int2str()`:
+we can use the `int2str()` method:
 
 ```py
 >>> id2label = minds.features["intent_class"].int2str
