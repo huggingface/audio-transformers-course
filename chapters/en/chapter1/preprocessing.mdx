@@ -88,43 +88,90 @@ We can verify that dataset has been filtered down from 654 examples to 624.
 ## Pre-processing audio data
 
 One of the most challenging aspects of working with audio datasets is preparing the data in the right format for model
-training. As you saw, the raw audio data comes as an array of values.
+training. As you saw, the raw audio data comes as an array of values. However, pre-trained models, whether you use them
+for inference, or want to fine-tune them for your task, expect the raw data to be converted into input features. The
+requirements for the input features may vary from one model to another - they depend on the model's architecture, and the data it was
+pre-trained with. The good news is, for every supported audio model, 🤗 Transformers offer a feature extractor class
+that can convert raw audio data into the input features the model expects.
 
-<!--  TODO: add a section explaining what feature extractor does exactly -->
-<!--  Mention text tokenizers as well and link to NLP course for explanations -->
+So what does a feature extractor do with the raw audio data? Let's take a look at [Whisper](https://cdn.openai.com/papers/whisper.pdf)'s
+feature extractor to understand some common feature extraction transformations. Whisper is a pre-trained model for
+automatic speech recognition (ASR) published in September 2022 by Alec Radford et al. from OpenAI.
 
-Luckily you do not have to worry about manually converting your raw audio data into the model's acceptable input format,
-as 🤗 Transformers offer model-specific processors that can take care of the necessary transformations, such as normalisation and log-mel.
+First, the Whisper feature extractor pads/truncates a batch of audio samples such that all
+samples have an input length of 30s. Samples shorter than 30s are padded to 30s by appending zeros to the end of the
+sequence (zeros in an audio signal corresponding to no signal or silence). Samples longer than 30s are truncated to 30s.
+Since all elements in the batch are padded/truncated to a maximum length in the input space, there is no need for an attention
+mask. Whisper is unique in this regard, most other audio models require an attention mask that details
+where sequences have been padded, and thus where they should be ignored in the self-attention mechanism. Whisper is
+trained to operate without an attention mask and infer directly from the speech signals where to ignore the inputs.
 
-To illustrate this, let's load a processor object from 🤗 Transformers. Let's pretend that we plan to fine-tune the Wav2Vec2
-model here, specifically the [`facebook/wav2vec2-base`](https://huggingface.co/facebook/wav2vec2-base) checkpoint from
-the 🤗 Hub. This means that we need to load the corresponding processor.
+The second operation that the Whisper feature extractor performs is converting the padded audio arrays to log-mel spectrograms.
+As you recall, these spectrograms are a visual representation of the frequencies of a signal. Ultimately, the log-mel
+spectrogram is the form of input expected by the Whisper model.
 
-We can use the `AutoProcessor` class to identify and load a correct processor from a given model checkpoint:
+<!--  TODO: not sure if the values are normalized or not -->
+Finally, zero-mean unit-variance normalization is applied to the values.
+
+All these transformations can be applied to your raw audio data with a couple of lines of code. Let's go ahead and load
+the feature extractor from the pre-trained Whisper checkpoint to have ready for our audio data:
 
 ```py
->>> from transformers import AutoProcessor
+>>> from transformers import WhisperFeatureExtractor
 
->>> processor = AutoProcessor.from_pretrained("facebook/wav2vec2-base")
+>>> feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
 ```
 
-Next you can write a function to pre-process a batch of examples of the dataset by passing them through the processor.
+Next you can write a function to pre-process a batch of examples of the dataset by passing them through the `feature_extractor`.
 
 ```py
 >>> def prepare_dataset(batch):
 ...     audio = batch["audio"]
-...     batch = processor(audio["array"], sampling_rate=audio["sampling_rate"], text=batch["transcription"], padding = True)
+...     batch = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"], padding = True)
 ...     return batch
 ```
 
 We can apply the data preparation function to all of our training examples using 🤗 Datasets' map method:
 
 ```py
-minds = minds.map(prepare_dataset)
+>>> minds = minds.map(prepare_dataset)
+>>> minds
+Dataset({
+    features: ['path', 'audio', 'transcription', 'intent_class', 'input_features'],
+    num_rows: 624
+})
 ```
 
-And with that, we now could use the MINDS-14 dataset for training with a Wav2Vec2 model if we wanted to.
+As you can see, we now have log-mel spectrogram as `input_features` in the dataset. Let's visualize it for one of the examples:
 
-Here we have illustrated the fundamental data preparation steps, and, of course, custom data may require more complex preprocessing.
-However, you can extend the function `prepare_dataset` to perform any sort of custom data transformations. With 🤗 Datasets,
+```py
+>>> import matplotlib.pyplot as plt
+>>> import librosa.display
+
+>>> example = minds[0]
+>>> input_features = example["input_features"]
+
+>>> plt.figure().set_figwidth(12)
+>>> librosa.display.specshow(np.asarray(input_features[0]), x_axis='time', y_axis='mel', sr=16000)
+>>> plt.colorbar()
+```
+
+![log_mel_whisper.png](../../assets/img/log_mel_whisper.png)
+
+The model's feature extractor class takes care of transforming raw audio data to the format that the model expects. However,
+many tasks involving audio are multimodal, e.g. speech recognition. In such cases 🤗 Transformers also offer model-specific
+tokenizers to process the text inputs. For a deep dive into tokenizers, please refer to our [NLP course](https://huggingface.co/course/chapter2/4).
+
+You can load feature extractor and tokenizer for Whisper and other multimodal models separately, or you can load both via
+so-called processor. To make things even simpler, use AutoProcessor to load a model's feature extractor and processor from a
+checkpoint, like this:
+
+```py
+>>> from transformers import AutoProcessor
+
+>>> processor = AutoProcessor.from_pretrained("openai/whisper-small")
+```
+
+Here we have illustrated the fundamental data preparation steps. Of course, custom data may require more complex preprocessing.
+In this case, you can extend the function `prepare_dataset` to perform any sort of custom data transformations. With 🤗 Datasets,
 if you can write it as a Python function, you can apply it to your dataset!
