@@ -14,20 +14,23 @@ Analog-to-Digital Converter to get the digital representation through sampling.
 
 ## Sampling and sampling rate
 
-Sampling is the process of measuring the value of a continuous audio signal at fixed time steps. The sampled waveform is _discrete_, since it contains a finite number of signal values at uniform intervals. 
-a continuous signal into a series of samples. A sample is a value of the signal at a point in time.
+Sampling is the process of measuring the value of a continuous signal at fixed time steps. The sampled waveform is _discrete_,
+since it contains a finite number of signal values at uniform intervals.
 
 ![Signal_Sampling.png](../../assets/img/Signal_Sampling.png)
 *Illustration from Wikipedia article: [Sampling (signal processing)](https://en.wikipedia.org/wiki/Sampling_(signal_processing))*
 
-The **sampling rate** (also called sampling frequency) is the number of samples taken in one second. The higher the sampling
-rate, the more information from the sound wave is obtained. However, it also leads to increase in the computational cost
-of processing such files. On the other hand, files with low sampling rates result in higher information loss but are faster and
-cheaper to compute with.
+The **sampling rate** (also called sampling frequency) is the number of samples taken in one second and is measured in
+hertz (Hz). To give you a point of reference, CD-quality audio has a sampling rate of 44,100 Hz, meaning samples are taken
+44,100 times per second. For comparison, high-resolution audio has a sampling rate of 192,000 Hz or 192 kHz. A common
+sampling rate used in training speech models is 16,000 Hz or 16 kHz.
 
-The sampling rate is measured in hertz (Hz). To give you a point of reference, CD-quality audio has a sampling rate of 44,100 Hz, meaning
-samples are taken 44,100 times per second. For comparison, high-fidelity audio has a sampling rate of 192,000 Hz.
-A common sampling rate used in pre-training is 16,000 Hz.
+The choice of sampling rate primarily determines the highest frequency that can be captured from the signal. This is also
+known as the Nyquist limit and is exactly half the sampling rate. The audible frequencies in human speech are below 8 kHz
+and therefore sampling speech at 16 kHz is sufficient. Using a higher sampling rate will not capture more information and
+merely leads to an increase in the computational cost of processing such files. On the other hand, sampling audio at too
+low a sampling rate will result in information loss. Speech sampled at 8 kHz will sound muffled, as the higher frequencies
+cannot be captured at this rate.
 
 It's important to ensure that all audio examples in your dataset have the same sampling rate when working on any audio task.
 If you plan to use custom audio data to fine-tune a pre-trained model, the sampling rate of your data should match the
@@ -42,31 +45,36 @@ audio examples at different sampling rates, it will be challenging for models to
 
 While the sampling rate tells you how often the samples are taken, what exactly are the values in each sample?
 
-One of the audio wave attributes is amplitude. **Amplitude** is the relative strength of sound waves, which we perceive as
-volume. It is measured in decibels (dB), which refer to the sound pressure level or intensity. To give you an example,
-a normal speaking voice is under 60 dB, and a rock concert can be at around 125 dB, pushing the limits of human hearing.
+Sound is made by changes in air pressure at frequencies that are audible to humans. The **amplitude** of a sound describes
+the sound pressure level at any given instant and is measured in decibels (dB). We perceive the amplitude as loudness.
+To give you an example, a normal speaking voice is under 60 dB, and a rock concert can be at around 125 dB, pushing the
+limits of human hearing.
 
-To make sure that the digital representation closely approximates the original continuous sound wave, for each audio
-sample a number of possible amplitude values is recorded. This number is called **audio bit depth**. The higher the bit depth,
-the more amplitude values per sample are captured to recreate the original audio signal.
+In digital audio, each audio sample records the amplitude of the audio wave at a point in time. The **bit depth** of the
+sample determines with how much precision this amplitude value can describe. The higher the bit depth, the more
+faithfully the digital representation approximates the original continuous sound wave.
 
-The most common audio bit depths are 16-bit, 24-bit, and 32-bit. Each is a binary term, representing a number of possible
-values. Systems of higher audio bit depths are able to express more possible values:
+The most common audio bit depths are 16-bit and 24-bit. Each is a binary term, representing the number of possible steps
+to which the amplitude value can be quantized when it's converted from continuous to discrete: 65,536 steps for 16-bit audio,
+a whopping 16,777,216 steps for 24-bit audio. Because quantizing involves rounding off the continuous value to a discrete
+value, the sampling process introduces noise. The higher the bit depth, the smaller this quantization noise. In practice,
+the quantization noise of 16-bit audio is already small enough to be inaudible, and using higher bit depths is generally
+not necessary.
 
-* 16-bit: 65,536 amplitude values
-* 24-bit: 16,777,216 amplitude values
-* 32-bit: 4,294,967,296 amplitude values
+You may also come across 32-bit audio. This stores the samples as floating-point values, whereas 16-bit and 24-bit audio
+use integer samples. The precision of a 32-bit floating-point value is 24 bits, giving it the same bit depth as 24-bit audio.
+Floating-point audio samples are expected to lie within the [-1.0, 1.0] range. Since machine learning models naturally
+work on floating-point data, the audio must first be converted into floating-point format before it can be used to train the model.
 
-## Looking at the sound
+## Audio as a Waveform
 
-### Waveform
+You may have seen sounds visualized as a waveform, which plots the sample values over time and illustrates the changes
+in the sound's amplitude. The is also known as the *time domain* representation of sound.
 
-You may have seen sounds visualized as a waveform. A waveform is an abstract representation of sound waves that illustrates
-the changes in a signal's amplitude over time (this change is also often referred to as amplitude envelope).
 This type of visualization is useful for identifying specific features of the audio signal such as the timing of individual
 sound events, the overall loudness of the signal, and any irregularities or noise present in the audio.
 
-Let's take a look at one. To plot a waveform for an audio example, we can use a Python library called `librosa`:
+To plot the waveform for an audio signal, we can use a Python library called `librosa`:
 
 ```bash
 pip install librosa
@@ -93,8 +101,11 @@ Let's take a look at this sound's waveform by using librosa's `waveshow()` funct
 
 ![waveform_plot.png](../../assets/img/waveform_plot.png)
 
-The y-axis of the plot shows the amplitude values of the signal while the the x-axis represents the time.
-Visualizing audio data along with listening to it can be a useful tool for understanding the data you are working with.
+This plots the amplitude of the signal on the y-axis and time along the x-axis. In other words, each point corresponds
+to a single sample value that was taken when this sound was sampled. Also note that librosa returns the audio as
+floating-point values already, and that the amplitude values are indeed within the [-1.0, 1.0] range.
+
+Visualizing the audio along with listening to it can be a useful tool for understanding the data you are working with.
 You can see the shape of the signal, observe patterns, learn to spot noise or distortion. If you preprocess data in some
 ways, such as normalization, resampling, or filtering, you can visually confirm that preprocessing steps have been applied as expected.
 After training a model, you can also visualize samples where errors occur (e.g. in audio classification task) to debug
@@ -102,27 +113,17 @@ the issue.
 
 <!--  TODO: in the audio classification section we can add this (visualize errors)-->
 
-### Spectrogram
+## Spectrogram
 
-Another way to visualize audio data is called a **spectrogram**. A spectrogram is a visual representation of the frequency
-content of an audio signal as it changes over time. It allows you to see time, frequency, and amplitude all on one graph.
+Another way to visualize audio data is called a **spectrogram**. A spectrogram plots the frequency content of an audio
+signal as it changes over time, also known as the *frequency domain* representation. It allows you to see time, frequency,
+and amplitude all on one graph.
 
-It is one of the most informative audio tools available to you. For example, when working with a music recording, you can
-see the various instruments and vocal tracks and how they contribute to the overall sound. In speech, you can identify
-different vowel sounds.
+The spectrogram is one of the most informative audio tools available to you. For example, when working with a music recording,
+you can see the various instruments and vocal tracks and how they contribute to the overall sound. In speech, you can
+identify different vowel sounds as each vowel is characterized by particular frequencies.
 
-Let's plot a spectrogram for the same trumpet sound.The spectrogram is created by taking short segments of the audio signal,
-typically lasting a few milliseconds, and calculating the Fourier transform of each segment to obtain its frequency spectrum.
-
-<!--  TODO: @hollance please add an explanation here of what a Fourier transform is.-->
-
-The resulting spectra are then stacked together over time to create the spectrogram.
-
-To do so, we first need to use `librosa.stft()` function to create the short-time Fourier transform before we can plot the spectrogram.
-You'll rarely see the result of STFT plotted directly as it can be difficult to interpret. A common practice is to
-convert the amplitude spectrogram to a to decibel-scaled spectrogram with `librosa.amplitude_to_db()` function that will
-scale the amplitude absolute value scaled relative to `ref`. The decibel scale compresses the dynamic range of the
-amplitude spectrogram, making it easier to see the finer details in the spectrogram.
+Let's plot a spectrogram for the same trumpet sound, using librosa's `specshow()` function:
 
 ```py
 >>> import numpy as np
@@ -135,27 +136,74 @@ amplitude spectrogram, making it easier to see the finer details in the spectrog
 >>> plt.colorbar()
 ```
 
-![spectrogram_plot.png](../../assets/img/waveform_plot.png)
+![spectrogram_plot.png](../../assets/img/spectrogram_plot.png)
 
-In this plot the x-axis represents time, the y-axis represents frequency, and the intensity of the color
-represents the amplitude or power of the frequency component at each point in time.
+In this plot, the x-axis represents time like before but now the y-axis represents frequency in Hz. The intensity of the
+color gives the amplitude or power of the frequency component at each point in time, measured in decibels (dB).
 
-Now that we know what a spectrogram is, let's take a look at a variant of it widely used for signal processing: the mel-spectrogram.
+Spectrograms aren't just used for visualization. Many machine learning models will take spectrograms as input — as opposed
+to waveforms — and produce spectrograms as output.
 
-### Mel-spectrogram
+### How a spectrogram is made
 
-A mel-spectrogram is a variation of the spectrogram that is commonly used in audio processing and machine learning tasks.
-It is similar to a spectrogram in that it shows the frequency content of an audio signal over time, but it is computed
-differently and has a different frequency axis.
+The spectrogram is created by taking short segments of the audio signal, typically lasting a few milliseconds, and calculating
+the discrete Fourier transform of each segment to obtain its frequency spectrum. The resulting spectra are then stacked
+together on the time axis to create the  spectrogram.
+
+The discrete Fourier transform or DFT of a single audio segment looks like this:
+
+<!-- TODO: image -->
+
+This plots the strength of the various frequency components that make up this audio segment. The frequency values are on
+the x-axis, while their amplitudes are on the y-axis. While the waveform plot looks at the amplitude of the entire audio
+signal at once, the spectrum visualizes the amplitudes of the individual frequencies. Sometimes people use the **power**
+spectrum, which measures energy rather than amplitude; this is simply a spectrum with the amplitude values squared.
+
+The frequency spectrum of an audio signal contains the exact same information as its waveform. The difference is that
+the spectrum makes it easier to see the frequencies that are in the signal, while the waveform makes it easier to see
+how the signal changes over time. But what if we want to have both, and see how the frequencies change? The problem is
+that the spectrum only shows a frozen snapshot of the frequencies.
+
+The solution is to take multiple DFTs, each covering only a small slice of time. The algorithm that performs this
+computation is the STFT or Short Time Fourier Transform. That's why you used the `librosa.stft()` function to make the
+spectrogram. By default, this splits the audio signal into segments of 2048 samples, which gives a good trade-off between
+frequency resolution and time resolution.
+
+The output of the DFT and therefore STFT is an array of complex numbers, made up of real and imaginary components. Taking
+the magnitude with `np.abs(D)` extracts the amplitude information from the spectrogram. The angle between the real and
+imaginary components provides the so-called phase information, but this is often discarded in machine learning applications.
+
+You also used `librosa.amplitude_to_db()` to convert the amplitude values to the decibel scale, making it easier to see
+the finer details in the spectrogram. Since human hearing is logarithmic in nature — our ears are more sensitive to small
+fluctuations in quiet sounds than in loud sounds — the frequency spectrum is easier to interpret if the amplitudes are
+expressed in decibels. By convention, for digital audio signals, 0 dB means the loudest possible amplitude, while all
+other amplitudes are negative numbers. As a quick rule of thumb: every -6 dB is a halving of the amplitude, and anything
+below -60 dB is generally inaudible unless you really crank up the volume.
+
+Since the spectrogram and the waveform are different views of the same data, it's possible to turn the spectrogram back
+into the original waveform using the inverse STFT. However, this requires the phase information in addition to the amplitude
+information. If the spectrogram was generated by a machine learning model, it typically only outputs the amplitudes. In
+that case, we can use a phase reconstruction algorithm such as the classic Griffin-Lim algorithm, or using a neural network
+called a vocoder, to reconstruct a waveform from the spectrogram.
+
+[NOTE] In practice, people use the term FFT interchangeably with DFT, as the FFT or Fast Fourier Transform is the only efficient way to calculate the DFT on a computer.
+
+Now that we know what a spectrogram is and how it's made, let's take a look at a variant of it widely used for speech processing: the mel spectrogram.
+
+## Mel spectrogram
+
+A mel spectrogram is a variation of the spectrogram that is commonly used in speech processing and machine learning tasks.
+It is similar to a spectrogram in that it shows the frequency content of an audio signal over time, but on a different frequency axis.
 
 In a standard spectrogram, the frequency axis is linear and is measured in hertz (Hz). However, the human auditory system
-is more sensitive to changes in lower frequencies than higher frequencies, and this sensitivity decreases logarithmically as
-frequency increases. The mel-scale is a perceptual scale that approximates the non-linear frequency response of the human ear.
+is more sensitive to changes in lower frequencies than higher frequencies, and this sensitivity decreases logarithmically
+as frequency increases. The mel scale is a perceptual scale that approximates the non-linear frequency response of the human ear.
 
-To create a mel-spectrogram, the audio signal is first divided into short overlapping windows, and a Fourier transform
-is applied to each window to obtain the frequency spectrum. Then, the power spectrum according to the mel-scale.
+To create a mel spectrogram, the STFT is used just like before, splitting the audio into short segments to obtain a sequence
+of frequency spectrums. Additionally, each spectrum is sent through a set of filters, the so-called mel filterbank, to
+transform the frequencies to the mel scale.
 
-Let's see how we can plot a mel-spectrogram:
+Let's see how we can plot a mel spectrogram using librosa's `melspectrogram()` function, which performs all of those steps for us:
 
 ```py
 >>> S = librosa.feature.melspectrogram(y=array, sr=sampling_rate, n_mels=128, fmax=8000)
@@ -168,13 +216,30 @@ Let's see how we can plot a mel-spectrogram:
 
 ![mel-spectrogram.png](../../assets/img/mel-spectrogram.png)
 
-In the example above, `n_mels` stands for number of mel bands to generate. Mel bands refer to a set of frequency ranges
-that are used to divide the spectrum of a sound signal into perceptually meaningful components. Mel bands are typically
-defined by a set of triangular filters that are evenly spaced in the mel scale. These filters are designed to respond to
-different frequency ranges, and their shape and spacing are chosen to mimic the way the human ear responds to different
-frequencies. Common values for `n_mels` are 32, 64, 128. `fmax` indicates the highest frequency (in Hz).
+In the example above, `n_mels` stands for the number of mel bands to generate. The mel bands define a set of frequency
+ranges that divide the spectrum into perceptually meaningful components, using a set of filters whose shape and spacing
+are chosen to mimic the way the human ear responds to different frequencies. Common values for `n_mels` are 40 or 80. `fmax`
+indicates the highest frequency (in Hz) we care about.
 
-Compared to a standard spectrogram, a mel-spectrogram can capture more meaningful features of the audio signal for human
-perception, making it a popular choice in tasks such as speech recognition, speaker identification, and music genre classification.
+Just as with a regular spectrogram, it's common practice to express the strength of the mel frequency components in
+decibels. This is commonly referred to as a **log-mel spectrogram**, because the conversion to decibels involves a
+logarithmic operation. The above example used `librosa.power_to_db()` as `librosa.feature.melspectrogram()` creates a power spectrogram.
 
-Now that you know how to visualize audio data examples, go ahead and try to see what your favorite sounds look like :)
+Note that not all mel spectrograms are the same! There are two different mel scales in common use ("htk" and "slaney"),
+and instead of the power spectrogram the amplitude spectrogram may be used. The conversion to a log-mel spectrogram doesn't
+always compute decibels but may simply take the `log`. Therefore, if a machine learning model expects a mel spectrogram
+as input, double check to make sure you're computing it the same way.
+
+Creating a mel spectrogram is a lossy operation as it involves filtering the signal. Converting a mel spectrogram back
+into a waveform is more difficult than doing this for a regular spectrogram, as it requires estimating the frequencies
+that were thrown away. This is why machine learning models such as HiFiGAN are needed to produce a waveform from a mel
+spectrogram.
+
+Compared to a standard spectrogram, a mel spectrogram can capture more meaningful features of the audio signal for
+human perception, making it a popular choice in tasks such as speech recognition, speaker identification, and music genre classification.
+
+Now that you know how to visualize audio data examples, go ahead and try to see what your favorite sounds look like. :)
+
+## MFCC (Mel-Frequency Cepstral Coefficients)
+
+TODO: should we mention these?
