@@ -1,11 +1,16 @@
 # Introduction to audio data
 
-An audio dataset consists of files with sound excerpts, e.g. text narration, or music. You may encounter `.wav` (Waveform Audio File),
-`.flac` (Free Lossless Audio Codec), `.mp3` (MPEG-1 Audio Layer 3) and many other formats that differ mainly in how they
-compress the digital representation of the audio signal. The files can contain a few seconds of sound, minutes or hours.
+By nature, a sound wave is a continuous signal, meaning it contains an infinite number of signal values in a given time.
+This poses problems for digital devices which expect finite arrays. To be processed, stored, and transmitted by digital
+devices, it needs to be converted into a series of discrete values, known as a digital representation.
 
-By nature, a sound wave is a continuous signal, meaning it contains an infinite number of signal values in a given time. This poses problems for computer devices which expect finite arrays. To work with it digitally, it needs to be converted into as a series of
-discrete values first. This is achieved through sampling.
+If you look at any audio dataset, you'll find digital files with sound excerpts, such as text narration or music.
+You may encounter `.wav` (Waveform Audio File), `.flac` (Free Lossless Audio Codec), `.mp3` (MPEG-1 Audio Layer 3), and
+many other formats. These formats mainly differ in how they compress the digital representation of the audio signal.
+
+Let's take a look at how we arrive from a continuous signal to this representation. The analog signal is first captured by
+a microphone, which converts the sound waves into an electrical signal. The electrical signal is then digitized by an
+Analog-to-Digital Converter to get the digital representation through sampling.
 
 ## Sampling and sampling rate
 
@@ -20,7 +25,7 @@ rate, the more information from the sound wave is obtained. However, it also lea
 of processing such files. On the other hand, files with low sampling rates result in higher information loss but are faster and
 cheaper to compute with.
 
-The sampling rate is measured in Hertz (Hz). To give you a point of reference, CD-quality audio has a sampling rate of 44,100 Hz, meaning
+The sampling rate is measured in hertz (Hz). To give you a point of reference, CD-quality audio has a sampling rate of 44,100 Hz, meaning
 samples are taken 44,100 times per second. For comparison, high-fidelity audio has a sampling rate of 192,000 Hz.
 A common sampling rate used in pre-training is 16,000 Hz.
 
@@ -75,7 +80,7 @@ Let's take an example sound called "trumpet" that comes with the library:
 >>> array, sampling_rate = librosa.load(librosa.ex('trumpet'))
 ```
 
-The example is loaded as a tuple of audio time series (here we call it `y`), and sampling rate (`sr`).
+The example is loaded as a tuple of audio time series (here we call it `array`), and sampling rate (`sampling_rate`).
 Let's take a look at this sound's waveform by using librosa's `waveshow()` function:
 
 ```py
@@ -83,11 +88,12 @@ Let's take a look at this sound's waveform by using librosa's `waveshow()` funct
 >>> import librosa.display
 
 >>> plt.figure().set_figwidth(12)
->>> librosa.display.waveshow(y, sr=sr)
+>>> librosa.display.waveshow(array, sr=sampling_rate)
 ```
 
 ![waveform_plot.png](../../assets/img/waveform_plot.png)
 
+The y-axis of the plot shows the amplitude values of the signal while the the x-axis represents the time.
 Visualizing audio data along with listening to it can be a useful tool for understanding the data you are working with.
 You can see the shape of the signal, observe patterns, learn to spot noise or distortion. If you preprocess data in some
 ways, such as normalization, resampling, or filtering, you can visually confirm that preprocessing steps have been applied as expected.
@@ -100,8 +106,6 @@ the issue.
 
 Another way to visualize audio data is called a **spectrogram**. A spectrogram is a visual representation of the frequency
 content of an audio signal as it changes over time. It allows you to see time, frequency, and amplitude all on one graph.
-It is a plot where the x-axis represents time, the y-axis represents frequency, and the intensity of the color
-represents the amplitude or power of the frequency component at each point in time.
 
 It is one of the most informative audio tools available to you. For example, when working with a music recording, you can
 see the various instruments and vocal tracks and how they contribute to the overall sound. In speech, you can identify
@@ -117,14 +121,13 @@ The resulting spectra are then stacked together over time to create the spectrog
 To do so, we first need to use `librosa.stft()` function to create the short-time Fourier transform before we can plot the spectrogram.
 You'll rarely see the result of STFT plotted directly as it can be difficult to interpret. A common practice is to
 convert the amplitude spectrogram to a to decibel-scaled spectrogram with `librosa.amplitude_to_db()` function that will
-scale the amplitude absolute value scaled relative to `ref`.
-The decibel scale compresses the dynamic range of the amplitude spectrogram, making it easier to see the finer
-details in the spectrogram.
+scale the amplitude absolute value scaled relative to `ref`. The decibel scale compresses the dynamic range of the
+amplitude spectrogram, making it easier to see the finer details in the spectrogram.
 
 ```py
 >>> import numpy as np
 
->>> D = librosa.stft(y)
+>>> D = librosa.stft(array)
 >>> S_db = librosa.amplitude_to_db(np.abs(D), ref=np.max)
 
 >>> plt.figure().set_figwidth(12)
@@ -134,41 +137,44 @@ details in the spectrogram.
 
 ![spectrogram_plot.png](../../assets/img/waveform_plot.png)
 
-Now that we know what a spectrogram is, let's take a look at a variant of it widely used for signal processing: the Mel-spectrogram.
+In this plot the x-axis represents time, the y-axis represents frequency, and the intensity of the color
+represents the amplitude or power of the frequency component at each point in time.
+
+Now that we know what a spectrogram is, let's take a look at a variant of it widely used for signal processing: the mel-spectrogram.
 
 ### Mel-spectrogram
 
-A Mel-spectrogram is a variation of the spectrogram that is commonly used in audio processing and machine learning tasks.
+A mel-spectrogram is a variation of the spectrogram that is commonly used in audio processing and machine learning tasks.
 It is similar to a spectrogram in that it shows the frequency content of an audio signal over time, but it is computed
 differently and has a different frequency axis.
 
-In a standard spectrogram, the frequency axis is linear and is measured in Hertz (Hz). However, the human auditory system
+In a standard spectrogram, the frequency axis is linear and is measured in hertz (Hz). However, the human auditory system
 is more sensitive to changes in lower frequencies than higher frequencies, and this sensitivity decreases logarithmically as
-frequency increases. The Mel-scale is a perceptual scale that approximates the non-linear frequency response of the human ear.
+frequency increases. The mel-scale is a perceptual scale that approximates the non-linear frequency response of the human ear.
 
-To create a Mel-spectrogram, the audio signal is first divided into short overlapping windows, and a Fourier transform
-is applied to each window to obtain the frequency spectrum. Then, the power spectrum according to the Mel-scale.
+To create a mel-spectrogram, the audio signal is first divided into short overlapping windows, and a Fourier transform
+is applied to each window to obtain the frequency spectrum. Then, the power spectrum according to the mel-scale.
 
 Let's see how we can plot a mel-spectrogram:
 
 ```py
->>> S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
+>>> S = librosa.feature.melspectrogram(y=array, sr=sampling_rate, n_mels=128, fmax=8000)
 >>> S_dB = librosa.power_to_db(S, ref=np.max)
 
 >>> plt.figure().set_figwidth(12)
->>> librosa.display.specshow(S_dB, x_axis='time', y_axis='mel', sr=sr, fmax=8000)
+>>> librosa.display.specshow(S_dB, x_axis='time', y_axis='mel', sr=sampling_rate, fmax=8000)
 >>> plt.colorbar()
 ```
 
 ![mel-spectrogram.png](../../assets/img/mel-spectrogram.png)
 
-In the example above, `n_mels` stands for number of Mel bands to generate. Mel bands refer to a set of frequency ranges
+In the example above, `n_mels` stands for number of mel bands to generate. Mel bands refer to a set of frequency ranges
 that are used to divide the spectrum of a sound signal into perceptually meaningful components. Mel bands are typically
-defined by a set of triangular filters that are evenly spaced in the Mel scale. These filters are designed to respond to
+defined by a set of triangular filters that are evenly spaced in the mel scale. These filters are designed to respond to
 different frequency ranges, and their shape and spacing are chosen to mimic the way the human ear responds to different
 frequencies. Common values for `n_mels` are 32, 64, 128. `fmax` indicates the highest frequency (in Hz).
 
-Compared to a standard spectrogram, a Mel-spectrogram can capture more meaningful features of the audio signal for human
+Compared to a standard spectrogram, a mel-spectrogram can capture more meaningful features of the audio signal for human
 perception, making it a popular choice in tasks such as speech recognition, speaker identification, and music genre classification.
 
 Now that you know how to visualize audio data examples, go ahead and try to see what your favorite sounds look like :)

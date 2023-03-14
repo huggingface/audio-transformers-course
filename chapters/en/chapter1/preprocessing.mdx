@@ -94,7 +94,7 @@ training. As you saw, the raw audio data comes as an array of values.
 <!--  Mention text tokenizers as well and link to NLP course for explanations -->
 
 Luckily you do not have to worry about manually converting your raw audio data into the model's acceptable input format,
-as 🤗 Transformers offer model-specific processors that can take care of the necessary transformations.
+as 🤗 Transformers offer model-specific processors that can take care of the necessary transformations, such as normalisation and log-mel.
 
 To illustrate this, let's load a processor object from 🤗 Transformers. Let's pretend that we plan to fine-tune the Wav2Vec2
 model here, specifically the [`facebook/wav2vec2-base`](https://huggingface.co/facebook/wav2vec2-base) checkpoint from
@@ -126,6 +126,5 @@ minds = minds.map(prepare_dataset)
 And with that, we now could use the MINDS-14 dataset for training with a Wav2Vec2 model if we wanted to.
 
 Here we have illustrated the fundamental data preparation steps, and, of course, custom data may require more complex preprocessing.
-However, you can extend the function `prepare_dataset` to perform much more involved operations, such as data augmentation,
-voice activity detection or noise reduction. With 🤗 Datasets, if you can write it as a Python function, you can apply
-it to your dataset!
+However, you can extend the function `prepare_dataset` to perform any sort of custom data transformations. With 🤗 Datasets,
+if you can write it as a Python function, you can apply it to your dataset!

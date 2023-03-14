@@ -1,8 +1,5 @@
 # Load and explore an audio dataset
 
-<!--  The content here is adapted from a blog post https://huggingface.co/blog/audio-datasets -->
-<!--  It requires some work -->
-
 In this course we will use the 🤗 Datasets library to work with audio datasets. 🤗 Datasets is an open-source library for
 downloading and preparing datasets from all modalities including audio. The library offers easy access to an unparalleled
 selection of machine learning datasets publicly available on Hugging Face Hub. Moreover, 🤗 Datasets includes multiple
@@ -11,7 +8,7 @@ features tailored to audio datasets that simplify working with such datasets for
 To begin working with audio datasets, make sure you have the 🤗 Datasets library installed:
 
 ```bash
-pip install datasets
+pip install datasets[audio]
 ```
 
 One of the key defining features of 🤗 Datasets is the ability to download and prepare a dataset in just one line of
@@ -119,11 +116,11 @@ If you'd like to, you can also visualize some of the examples. Let's plot the wa
 >>> import matplotlib.pyplot as plt
 >>> import librosa.display
 
->>> y = example["audio"]["array"]
->>> sr = example["audio"]["sampling_rate"]
+>>> array = example["audio"]["array"]
+>>> sampling_rate = example["audio"]["sampling_rate"]
 
 >>> plt.figure().set_figwidth(12)
->>> librosa.display.waveshow(y, sr=sr)
+>>> librosa.display.waveshow(array, sr=sampling_rate)
 ```
 
 ![waveform_unit1.png](../../assets/img/waveform_unit1.png)
