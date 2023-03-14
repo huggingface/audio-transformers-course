@@ -4,12 +4,12 @@ An audio dataset consists of files with sound excerpts, e.g. text narration, or 
 `.flac` (Free Lossless Audio Codec), `.mp3` (MPEG-1 Audio Layer 3) and many other formats that differ mainly in how they
 compress the digital representation of the audio signal. The files can contain a few seconds of sound, minutes or hours.
 
-By nature, a sound wave is a continuous signal, but to work with it digitally, it needs to be converted into as a series of
+By nature, a sound wave is a continuous signal, meaning it contains an infinite number of signal values in a given time. This poses problems for computer devices which expect finite arrays. To work with it digitally, it needs to be converted into as a series of
 discrete values first. This is achieved through sampling.
 
 ## Sampling and sampling rate
 
-Audio sampling is the process of transforming an audio source into a digital file by reducing
+Sampling is the process of measuring the value of a continuous audio signal at fixed time steps. The sampled waveform is _discrete_, since it contains a finite number of signal values at uniform intervals. 
 a continuous signal into a series of samples. A sample is a value of the signal at a point in time.
 
 ![Signal_Sampling.png](../../assets/img/Signal_Sampling.png)
@@ -72,7 +72,7 @@ Let's take an example sound called "trumpet" that comes with the library:
 ```py
 >>> import librosa
 
->>> y, sr = librosa.load(librosa.ex('trumpet'))
+>>> array, sampling_rate = librosa.load(librosa.ex('trumpet'))
 ```
 
 The example is loaded as a tuple of audio time series (here we call it `y`), and sampling rate (`sr`).
