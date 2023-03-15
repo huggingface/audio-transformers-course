@@ -4,7 +4,7 @@ Loading a dataset with 🤗 Datasets is just half of the fun. If you plan to use
 inference, you will need to pre-process the data first. In general, this will involve the following steps:
 
 * Resampling the audio data
-* Filtering data
+* Filtering the dataset
 * Converting audio data to model's expected input
 
 
@@ -46,7 +46,7 @@ Re-load the first audio example in the MINDS-14 dataset, and check that it has b
 You may notice that the array values are now also different. This is because we've now got twice the number of amplitude values for
 every one that we had before.
 
-## Filtering audio data
+## Filtering the dataset
 
 You may need to filter the data based on some criteria. One of the common cases involves limiting the audio examples to a
 certain duration. For instance, we might want to filter out any examples longer than 30s to prevent out-of-memory errors
