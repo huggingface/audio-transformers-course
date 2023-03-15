@@ -107,11 +107,10 @@ where sequences have been padded, and thus where they should be ignored in the s
 trained to operate without an attention mask and infer directly from the speech signals where to ignore the inputs.
 
 The second operation that the Whisper feature extractor performs is converting the padded audio arrays to log-mel spectrograms.
-As you recall, these spectrograms are a visual representation of the frequencies of a signal. Ultimately, the log-mel
-spectrogram is the form of input expected by the Whisper model.
-
-<!--  TODO: not sure if the values are normalized or not -->
-Finally, zero-mean unit-variance normalization is applied to the values.
+As you recall, these spectrograms are a visual representation of the frequencies of a signal. Compared to mel-spectrogram
+that you have seen in the previous sections, log-mel involves three more calculation steps: taking log10,
+applying a max op, and normalization. So the scale for log-mel spectrogram is different from mel-spectrogram.
+Ultimately, the log-mel spectrogram is the form of input expected by the Whisper model.
 
 All these transformations can be applied to your raw audio data with a couple of lines of code. Let's go ahead and load
 the feature extractor from the pre-trained Whisper checkpoint to have ready for our audio data:
@@ -142,21 +141,44 @@ Dataset({
 })
 ```
 
-As you can see, we now have log-mel spectrogram as `input_features` in the dataset. Let's visualize it for one of the examples:
+As easy as that, we now have log-mel spectrograms as `input_features` in the dataset.
+
+Let's visualize it for one of the examples in the `minds` dataset and see how a log-mel spectrogram differs from a regular
+mel-spectrogram.
+First, we'll take an example, define constants used in Whisper, and plot a mel-spectrogram using these constants, and the
+raw audio data (in `minds[0]["audio"]["array"]`):
 
 ```py
->>> import matplotlib.pyplot as plt
->>> import librosa.display
-
 >>> example = minds[0]
+>>> hop_length = 160
+>>> n_fft = 400
+>>> n_mels = 80
+>>> norm = "slaney"
+>>> sampling_rate = 16000
+
+>>> S = librosa.feature.melspectrogram(y=minds[0]["audio"]["array"], sr=sampling_rate, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels, norm=norm)
+>>> S_dB = librosa.power_to_db(S, ref=np.max)
+
+>>> plt.figure().set_figwidth(12)
+>>> librosa.display.specshow(S_dB, x_axis='time', y_axis='mel', sr=sampling_rate, hop_length=hop_length)
+>>> plt.colorbar()
+```
+
+![mel_minds_example.png](../../assets/img/mel_minds_example.png)
+
+Now, let's plot the `input_features` for the same example:
+
+```py
 >>> input_features = example["input_features"]
 
 >>> plt.figure().set_figwidth(12)
->>> librosa.display.specshow(np.asarray(input_features[0]), x_axis='time', y_axis='mel', sr=16000)
+>>> librosa.display.specshow(np.asarray(input_features[0]), x_axis='time', y_axis='mel', sr=sampling_rate, hop_length=hop_length)
 >>> plt.colorbar()
 ```
 
 ![log_mel_whisper.png](../../assets/img/log_mel_whisper.png)
+
+Now you can see that the audio input to the Whisper model looks like after preprocessing.
 
 The model's feature extractor class takes care of transforming raw audio data to the format that the model expects. However,
 many tasks involving audio are multimodal, e.g. speech recognition. In such cases 🤗 Transformers also offer model-specific
