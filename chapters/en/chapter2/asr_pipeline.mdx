@@ -12,7 +12,7 @@ different modalities of input and extract meaningful representations that captur
 In this section, we'll use the `automatic-speech-recognition` pipeline to transcribe an audio recording of a person
 asking a question about paying a bill using the same MINDS-14 dataset as before.
 
-Load the dataset and upsample it to 16kHz as described in [Audio classification with a pipeline](audio_applications.mdx),
+To get started, load the dataset and upsample it to 16kHz as described in [Audio classification with a pipeline](audio_applications.mdx),
 if you haven't done that yet.
 
 To transcribe an audio recording, we can use the `automatic-speech-recognition` pipeline from 🤗 Transformers. Let's
@@ -24,7 +24,7 @@ instantiate the pipeline:
 >>> asr = pipeline("automatic-speech-recognition")
 ```
 
-Take an example from the dataset and pass its raw data to the pipeline:
+Next, we'll take an example from the dataset and pass its raw data to the pipeline:
 
 ```py
 >>> example = minds[0]
@@ -32,7 +32,7 @@ Take an example from the dataset and pass its raw data to the pipeline:
 {'text': 'I WOULD LIKE TO PAY MY ELECTRICITY BILL USING MY COD CAN YOU PLEASE ASSIST'}
 ```
 
-Let's compare to what the actual transcription for this example is:
+Let's compare this output to what the actual transcription for this example is:
 
 ```py
 >>> example['english_transcription']
