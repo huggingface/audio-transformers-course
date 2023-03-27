@@ -4,15 +4,10 @@ Automatic Speech Recognition (ASR) is a task that involves transcribing speech a
 This task has has numerous practical applications, from creating closed captions for videos to enabling voice commands
 for virtual assistants like Siri and Alexa.
 
-ASR is a multimodal task that relies on audio signals and language context to transcribe speech. The multimodal nature
-of ASR makes it a challenging task, as it requires integrating and processing multiple modalities of input. This is where
-sequence-to-sequence transformer models have demonstrated significant advancements. These models can learn to combine
-different modalities of input and extract meaningful representations that capture the nuances of speech and language.
-
 In this section, we'll use the `automatic-speech-recognition` pipeline to transcribe an audio recording of a person
 asking a question about paying a bill using the same MINDS-14 dataset as before.
 
-To get started, load the dataset and upsample it to 16kHz as described in [Audio classification with a pipeline](audio_applications.mdx),
+To get started, load the datas  et and upsample it to 16kHz as described in [Audio classification with a pipeline](audio_applications.mdx),
 if you haven't done that yet.
 
 To transcribe an audio recording, we can use the `automatic-speech-recognition` pipeline from 🤗 Transformers. Let's
@@ -49,9 +44,41 @@ ASR model [on the 🤗 Hub](https://huggingface.co/models?pipeline_tag=automatic
 You can filter the models list by task first, then by language. Once you have found the model you like, pass it's name as
 the `model` argument to the pipeline.
 
+Let's try this for the German split of the MINDS-14. Load the "de-DE" subset:
+
+```py
+>>> from datasets import load_dataset
+>>> from datasets import Audio
+
+>>> minds = load_dataset("PolyAI/minds14", name="de-DE", split="train")
+>>> minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
+```
+
+Get an example and see what the transcription is supposed to be:
+
+```py
+>>> example = minds[0]
+>>> example["transcription"]
+'ich möchte gerne Geld auf mein Konto einzahlen'
+```
+
+Find a pre-trained ASR model for German language on hub, instantiate a pipeline, and transcribe the example:
+
+```py
+>>> from transformers import pipeline
+
+>>> asr = pipeline("automatic-speech-recognition", model = "maxidl/wav2vec2-large-xlsr-german")
+>>> asr(example["audio"]["array"])
+{'text': 'ich möchte gerne geld auf mein konto einzallen'}
+```
+
+Also, stimmt's!
+
 When working on solving your own task, starting with a simple pipeline like the ones we've shown in this unit is a valuable
 tool that offers several benefits:
 - a pre-trained model may exist that already solves your task really well, saving you plenty of time
+- pipeline() takes care of all the pre/post-processing for you, so you don't have to worry about getting the data into
+the right format for a model
 - if the result isn't ideal, this still gives you a quick baseline for future fine-tuning
 - once you fine-tune a model on your custom data and share it on Hub, the whole community will be able to use it quickly
 and effortlessly via the `pipeline()` method making AI more accessible.

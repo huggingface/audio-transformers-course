@@ -4,11 +4,6 @@ Audio classification involves assigning one or more labels to an audio recording
 could correspond to different sound categories, such as music, speech, or noise, or more specific categories like
 bird song or car engine sounds.
 
-In NLP, pre-trained transformer models, such as the ones based on the BERT or GPT architectures, have proven to be highly
-effective in natural language processing tasks such as text classification, question answering, and language translation.
-It turns out that transformer architectures can also be applied to audio and multimodal tasks by treating audio as sequences of data and
-leveraging the transformer's ability to learn from sequential data.
-
 Before diving into details on how the most popular audio transformers work, and before fine-tuning a custom model, let's
 see how you can use an off-the-shelf pre-trained model for audio classification with only a few lines of code with 🤗 Transformers.
 
@@ -28,8 +23,7 @@ sampling rate which is what most speech models require.
 ```
 
 To classify an audio recording into a set of classes, we can use the `audio-classification` pipeline from 🤗 Transformers.
-By default, this pipeline uses a model trained for a task known as _keyword spotting_, which involves detecting a specific word in
-an audio recording. In our case, we need a model that's been fine-tuned for intent classification, and specifically on
+In our case, we need a model that's been fine-tuned for intent classification, and specifically on
 the MINDS-14 dataset. Luckily for us, the Hub has a model that does just that! Let's load it by using the `pipeline()` function:
 
 ```py
