@@ -15,11 +15,11 @@ Just as before, let's start by loading the `en-AU` subset of the data to try out
 sampling rate which is what most speech models require.
 
 ```py
->>> from datasets import load_dataset
->>> from datasets import Audio
+from datasets import load_dataset
+from datasets import Audio
 
->>> minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
->>> minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
+minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
 ```
 
 To classify an audio recording into a set of classes, we can use the `audio-classification` pipeline from 🤗 Transformers.
@@ -27,40 +27,42 @@ In our case, we need a model that's been fine-tuned for intent classification, a
 the MINDS-14 dataset. Luckily for us, the Hub has a model that does just that! Let's load it by using the `pipeline()` function:
 
 ```py
->>> from transformers import pipeline
+from transformers import pipeline
 
->>> classifier = pipeline(
-...     "audio-classification",
-...     model="anton-l/xtreme_s_xlsr_300m_minds14",
->>> )
+classifier = pipeline(
+    "audio-classification",
+    model="anton-l/xtreme_s_xlsr_300m_minds14",
+)
 ```
 
 This pipeline expects the audio data as a NumPy array. All the preprocessing of the raw audio data will be conveniently
 handled for us by the pipeline. Let's pick an example to try it out:
 
 ```py
->>> example = minds[0]
+example = minds[0]
 ```
 
 If you recall the structure of the dataset, the raw audio data is stored in a NumPy array under `["audio"]["array"]`, let's
 pass is straight to the `classifier`:
 
 ```py
->>> classifier(example["audio"]["array"])
-[{'score': 0.9631525278091431, 'label': 'pay_bill'},
- {'score': 0.02819698303937912, 'label': 'freeze'},
- {'score': 0.0032787492964416742, 'label': 'card_issues'},
- {'score': 0.0019414445850998163, 'label': 'abroad'},
- {'score': 0.0008378693601116538, 'label': 'high_value_payment'}]
+classifier(example["audio"]["array"])
+[
+    {"score": 0.9631525278091431, "label": "pay_bill"},
+    {"score": 0.02819698303937912, "label": "freeze"},
+    {"score": 0.0032787492964416742, "label": "card_issues"},
+    {"score": 0.0019414445850998163, "label": "abroad"},
+    {"score": 0.0008378693601116538, "label": "high_value_payment"},
+]
 ```
 
 The model is very confident that the caller intended to learn about paying their bill. Let's see what the actual label for
 this example is:
 
 ```py
->>> id2label = minds.features["intent_class"].int2str
->>> id2label(example["intent_class"])
-'pay_bill'
+id2label = minds.features["intent_class"].int2str
+id2label(example["intent_class"])
+"pay_bill"
 ```
 
 Hooray! The predicted label was correct! Here we were lucky to find a model that can classify the exact labels that we need.
