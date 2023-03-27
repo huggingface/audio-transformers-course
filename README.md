@@ -1,46 +1,55 @@
 # The Audio Transformers Course
 
-This repo contains the content that's used to create Hugging Face's Audio Transformers Course [ADD LINK TO hf.co when live]. The course teaches you about applying Transformers to various tasks in audio and speech processing.It's completely free and open-source!
+This repo contains the content that's used to create [Hugging Face's Audio Transformers Course](https://huggingface.co/audio-course). 
+The course teaches you about applying Transformers to various tasks in audio and speech processing.It's completely free and open-source!
 
 
 ### Translating the course into your language
 
-As part of our mission to democratise machine learning, we'd love to have the course available in many more languages! Please follow the steps below if you'd like to help translate the course into your language 🙏.
+As part of our mission to democratise machine learning, we'd love to have the course available in many more languages! 
+Please follow the steps below if you'd like to help translate the course into your language 🙏.
 
 **🗞️ Open an issue**
 
-To get started, navigate to the [_Issues_](https://github.com/huggingface/course/issues) page of this repo and check if anyone else has opened an issue for your language. If not, open a new issue by selecting the _Translation template_ from the _New issue_ button.
+To get started, navigate to the [_Issues_](https://github.com/huggingface/audio-transformers-course/issues) page of 
+this repo and check if anyone else has opened an issue for your language. If not, open a new issue by selecting 
+the _Translation template_ from the _New issue_ button.
 
 Once an issue is created, post a comment to indicate which chapters you'd like to work on and we'll add your name to the list.
 
 **🗣 Join our Discord**
 
-Since it can be difficult to discuss translation details quickly over GitHub issues, we have created dedicated channels for each language on our Discord server. If you'd like to jon, just following the instructions at this channel 👉: [https://discord.gg/JfAtkvEtRb](https://discord.gg/JfAtkvEtRb)
+Since it can be difficult to discuss translation details quickly over GitHub issues, we have created dedicated channels 
+for each language on our Discord server. If you'd like to jon, just following the instructions at 
+this channel 👉: [https://discord.gg/WYBxFfGCyz](https://discord.gg/WYBxFfGCyz)
 
 **🍴 Fork the repository**
 
-Next, you'll need to [fork this repo](https://docs.github.com/en/get-started/quickstart/fork-a-repo). You can do this by clicking on the **Fork** button on the top-right corner of this repo's page.
+Next, you'll need to [fork this repo](https://docs.github.com/en/get-started/quickstart/fork-a-repo). You can do this 
+by clicking on the **Fork** button on the top-right corner of this repo's page.
 
 Once you've forked the repo, you'll want to get the files on your local machine for editing. You can do that by cloning the fork with Git as follows:
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/course
+git clone https://github.com/YOUR-USERNAME/audio-transformers-course
 ```
 
 **📋 Copy-paste the English files with a new language code**
 
 The course files are organised under a main directory:
 
-* [`chapters`](https://github.com/huggingface/course/tree/main/chapters): all the text and code snippets associated with the course.
+* [`chapters`](https://github.com/huggingface/audio-transformers-course/tree/main/chapters): all the text and code snippets associated with the course.
 
-You'll only need to copy the files in the [`chapters/en`](https://github.com/huggingface/course/tree/main/chapters/en) directory, so first navigate to your fork of the repo and run the following:
+You'll only need to copy the files in the [`chapters/en`](https://github.com/huggingface/audio-transformers-course/tree/main/chapters/en) 
+directory, so first navigate to your fork of the repo and run the following:
 
 ```bash
-cd ~/path/to/course
+cd ~/path/to/audio-transformers-course
 cp -r chapters/en/CHAPTER-NUMBER chapters/LANG-ID/CHAPTER-NUMBER
 ```
 
-Here, `CHAPTER-NUMBER` refers to the chapter you'd like to work on and `LANG-ID` should be one of the ISO 639-1 or ISO 639-2 language codes -- see [here](https://www.loc.gov/standards/iso639-2/php/code_list.php) for a handy table.
+Here, `CHAPTER-NUMBER` refers to the chapter you'd like to work on and `LANG-ID` should be one of the ISO 639-1 or ISO 639-2 
+language codes -- see [here](https://www.loc.gov/standards/iso639-2/php/code_list.php) for a handy table.
 
 **✍️ Start translating**
 
@@ -110,12 +119,12 @@ This script extracts all the code snippets from the chapters and stores them as 
 Adding a new chapter to the course is quite simple:
 
 1. Create a new directory under `chapters/en/chapterX`, where `chapterX` is the chapter you'd like to add.
-2. Add numbered MDX files `sectionX.mdx` for each section. If you need to include images, place them in the [huggingface-course/documentation-images](https://huggingface.co/datasets/huggingface-course/documentation-images) repository and use the [HTML Images Syntax](https://www.w3schools.com/html/html_images.asp) with the path `https://huggingface.co/datasets/huggingface-course/documentation-images/resolve/main/{langY}/{chapterX}/{your-image.png}`.
+2. Add numbered MDX files `sectionX.mdx` for each section. 
 3. Update the `_toctree.yml` file to include your chapter sections -- this information will render the table of contents on the website. If your section involves both the PyTorch and TensorFlow APIs of `transformers`, make sure you include links to both Colabs in the `colab` field.
 
 If you get stuck, check out one of the existing chapters -- this will often show you the expected syntax.
 
-Once you are happy with the content, open a pull request and tag [@lewtun](https://github.com/lewtun) for a review. We recommend adding the first chapter draft as a single pull request -- the team will then provide feedback internally to iterate on the content 🤗!
+Once you are happy with the content, open a pull request and tag [@MKhalusova](https://github.com/MKhalusova) or [@lewtun](https://github.com/lewtun) for a review. We recommend adding the first chapter draft as a single pull request -- the team will then provide feedback internally to iterate on the content 🤗!
 
 ## 🙌 Acknowledgements
 
