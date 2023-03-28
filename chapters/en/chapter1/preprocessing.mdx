@@ -7,10 +7,9 @@ inference, you will need to pre-process the data first. In general, this will in
 * Filtering the dataset
 * Converting audio data to model's expected input
 
+## Resampling the audio data
 
-## Resampling the Audio Data
-
-The `load_dataset` function downloads audio samples with the sampling rate that they were published with. This is not
+The `load_dataset` function downloads audio examples with the sampling rate that they were published with. This is not
 always the sampling rate expected by a model you plan to train, or use for inference. If there's a discrepancy between
 the sampling rates, you can resample the audio to the model's expected sampling rate.
 
@@ -18,10 +17,8 @@ Most of the available pretrained models have been pretrained on audio datasets a
 When we explored MINDS-14 dataset, you may have noticed that it is sampled at 8 kHz, which means we will likely need
 to upsample it.
 
-<!--  TODO: @hollance please add an explanation of what happens when we upsample-->
-
 To do so, use 🤗 Datasets' `cast_column` method. This operation does not change the audio in-place, but rather signals
-to datasets to resample the audio samples on the fly when they are loaded. The following code cell will set the sampling
+to datasets to resample the audio examples on the fly when they are loaded. The following code will set the sampling
 rate to 16kHz:
 
 ```py
@@ -46,15 +43,26 @@ Re-load the first audio example in the MINDS-14 dataset, and check that it has b
 You may notice that the array values are now also different. This is because we've now got twice the number of amplitude values for
 every one that we had before.
 
+<Tip>
+💡 Some background on resampling: If an audio signal has been sampled at 8 kHz, so that it has 8000 sample readings per
+second, we know that the audio does not contain any frequencies over 4 kHz. This is guaranteed by the Nyquist sampling
+theorem. Because of this, we can be certain that in between the sampling points the original continuous signal always
+makes a smooth curve. Upsampling to a higher sampling rate is then a matter of calculating additional sample values that go in between
+the existing ones, by approximating this curve. Downsampling, however, requires that we first filter out any frequencies
+that would be higher than the new Nyquist limit, before estimating the new sample points. In other words, you can't
+downsample by a factor 2x by simply throwing away every other sample — this will create distortions in the signal called
+aliases. Doing resampling correctly is tricky and best left to well-tested libraries such as librosa or 🤗 Datasets.
+</Tip>
+
 ## Filtering the dataset
 
 You may need to filter the data based on some criteria. One of the common cases involves limiting the audio examples to a
-certain duration. For instance, we might want to filter out any examples longer than 30s to prevent out-of-memory errors
+certain duration. For instance, we might want to filter out any examples longer than 20s to prevent out-of-memory errors
 when training a model.
 
 We can do this by using the  🤗 Datasets' `filter` method and passing a function with filtering logic to it. Let's start by writing a
 function that indicates which examples to keep and which to discard. This function, `is_audio_length_in_range`,
-returns a boolean mask where a value is `True` if a sample is shorter than 20s, and `False` if it is longer than 20s.
+returns `True` if a sample is shorter than 20s, and `False` if it is longer than 20s.
 
 ```py
 >>> MAX_DURATION_IN_SECONDS = 20.0
@@ -88,9 +96,9 @@ We can verify that dataset has been filtered down from 654 examples to 624.
 ## Pre-processing audio data
 
 One of the most challenging aspects of working with audio datasets is preparing the data in the right format for model
-training. As you saw, the raw audio data comes as an array of values. However, pre-trained models, whether you use them
+training. As you saw, the raw audio data comes as an array of sample values. However, pre-trained models, whether you use them
 for inference, or want to fine-tune them for your task, expect the raw data to be converted into input features. The
-requirements for the input features may vary from one model to another - they depend on the model's architecture, and the data it was
+requirements for the input features may vary from one model to another — they depend on the model's architecture, and the data it was
 pre-trained with. The good news is, for every supported audio model, 🤗 Transformers offer a feature extractor class
 that can convert raw audio data into the input features the model expects.
 
@@ -98,19 +106,17 @@ So what does a feature extractor do with the raw audio data? Let's take a look a
 feature extractor to understand some common feature extraction transformations. Whisper is a pre-trained model for
 automatic speech recognition (ASR) published in September 2022 by Alec Radford et al. from OpenAI.
 
-First, the Whisper feature extractor pads/truncates a batch of audio samples such that all
-samples have an input length of 30s. Samples shorter than 30s are padded to 30s by appending zeros to the end of the
-sequence (zeros in an audio signal corresponding to no signal or silence). Samples longer than 30s are truncated to 30s.
+First, the Whisper feature extractor pads/truncates a batch of audio examples such that all
+examples have an input length of 30s. Examples shorter than this are padded to 30s by appending zeros to the end of the
+sequence (zeros in an audio signal correspond to no signal or silence). Examples longer than 30s are truncated to 30s.
 Since all elements in the batch are padded/truncated to a maximum length in the input space, there is no need for an attention
 mask. Whisper is unique in this regard, most other audio models require an attention mask that details
 where sequences have been padded, and thus where they should be ignored in the self-attention mechanism. Whisper is
 trained to operate without an attention mask and infer directly from the speech signals where to ignore the inputs.
 
 The second operation that the Whisper feature extractor performs is converting the padded audio arrays to log-mel spectrograms.
-As you recall, these spectrograms are a visual representation of the frequencies of a signal. Compared to mel-spectrogram
-that you have seen in the previous sections, log-mel involves three more calculation steps: taking log10,
-applying a max op, and normalization. So the scale for log-mel spectrogram is different from mel-spectrogram.
-Ultimately, the log-mel spectrogram is the form of input expected by the Whisper model.
+As you recall, these spectrograms describe how the frequencies of a signal change over time, expressed on the mel scale
+and measured in decibels (the log part) to make the frequencies and amplitudes more representative of human hearing.
 
 All these transformations can be applied to your raw audio data with a couple of lines of code. Let's go ahead and load
 the feature extractor from the pre-trained Whisper checkpoint to have ready for our audio data:
@@ -121,13 +127,13 @@ the feature extractor from the pre-trained Whisper checkpoint to have ready for 
 >>> feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
 ```
 
-Next you can write a function to pre-process a batch of examples of the dataset by passing them through the `feature_extractor`.
+Next, you can write a function to pre-process a single audio example by passing it through the `feature_extractor`.
 
 ```py
->>> def prepare_dataset(batch):
-...     audio = batch["audio"]
-...     batch = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"], padding = True)
-...     return batch
+>>> def prepare_dataset(example):
+...     audio = example["audio"]
+...     features = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"], padding = True)
+...     return features
 ```
 
 We can apply the data preparation function to all of our training examples using 🤗 Datasets' map method:
@@ -166,7 +172,7 @@ raw audio data (in `minds[0]["audio"]["array"]`):
 
 ![mel_minds_example.png](../../assets/img/mel_minds_example.png)
 
-Now, let's plot the `input_features` for the same example:
+Now let's plot the `input_features` for the same example:
 
 ```py
 >>> input_features = example["input_features"]
@@ -178,14 +184,14 @@ Now, let's plot the `input_features` for the same example:
 
 ![log_mel_whisper.png](../../assets/img/log_mel_whisper.png)
 
-Now you can see that the audio input to the Whisper model looks like after preprocessing.
+Now you can see what the audio input to the Whisper model looks like after preprocessing.
 
 The model's feature extractor class takes care of transforming raw audio data to the format that the model expects. However,
 many tasks involving audio are multimodal, e.g. speech recognition. In such cases 🤗 Transformers also offer model-specific
 tokenizers to process the text inputs. For a deep dive into tokenizers, please refer to our [NLP course](https://huggingface.co/course/chapter2/4).
 
-You can load feature extractor and tokenizer for Whisper and other multimodal models separately, or you can load both via
-so-called processor. To make things even simpler, use AutoProcessor to load a model's feature extractor and processor from a
+You can load the feature extractor and tokenizer for Whisper and other multimodal models separately, or you can load both via
+a so-called processor. To make things even simpler, use `AutoProcessor` to load a model's feature extractor and processor from a
 checkpoint, like this:
 
 ```py
