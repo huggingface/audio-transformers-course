@@ -22,14 +22,23 @@ to the `load_dataset` function. We'll also specify that we're only interested in
 the data, and limit it to the training split:
 
 ```py
->>> from datasets import load_dataset
+from datasets import load_dataset
 
->>> minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
->>> minds
-Dataset({
-    features: ['path', 'audio', 'transcription', 'english_transcription', 'intent_class', 'lang_id'],
-    num_rows: 654
-})
+minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+minds
+Dataset(
+    {
+        features: [
+            "path",
+            "audio",
+            "transcription",
+            "english_transcription",
+            "intent_class",
+            "lang_id",
+        ],
+        num_rows: 654,
+    }
+)
 ```
 
 The dataset contains 654 audio files, each of which is accompanied by a transcription, an English translation, and a label
@@ -37,17 +46,23 @@ indicating the intent behind the person's query. The audio column contains the r
 at one of the examples:
 
 ```py
->>> example = minds[0]
->>> example
-{'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav',
- 'audio': {'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav',
-  'array': array([ 0.        ,  0.00024414, -0.00024414, ..., -0.00024414,
-          0.00024414,  0.0012207 ], dtype=float32),
-  'sampling_rate': 8000},
- 'transcription': 'I would like to pay my electricity bill using my card can you please assist',
- 'english_transcription': 'I would like to pay my electricity bill using my card can you please assist',
- 'intent_class': 13,
- 'lang_id': 2}
+example = minds[0]
+example
+{
+    "path": "/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav",
+    "audio": {
+        "path": "/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav",
+        "array": array(
+            [0.0, 0.00024414, -0.00024414, ..., -0.00024414, 0.00024414, 0.0012207],
+            dtype=float32,
+        ),
+        "sampling_rate": 8000,
+    },
+    "transcription": "I would like to pay my electricity bill using my card can you please assist",
+    "english_transcription": "I would like to pay my electricity bill using my card can you please assist",
+    "intent_class": 13,
+    "lang_id": 2,
+}
 ```
 
 You may notice that the audio column contains several features. Here's what they are:
@@ -59,9 +74,9 @@ The `intent_class` is a classification category of the audio recording. To conve
 we can use the `int2str()` method:
 
 ```py
->>> id2label = minds.features["intent_class"].int2str
->>> id2label(example["intent_class"])
-'pay_bill'
+id2label = minds.features["intent_class"].int2str
+id2label(example["intent_class"])
+"pay_bill"
 ```
 
 If you look at the transcription feature, you can see that the audio file indeed has recorded a person asking a question
@@ -74,37 +89,35 @@ duplicate the `transcription` in this subset, so we can safely remove them.
 You can easily remove irrelevant features using 🤗 Datasets' `remove_columns` method:
 
 ```py
->>> columns_to_remove = ["lang_id", "english_transcription"]
->>> minds = minds.remove_columns(columns_to_remove)
->>> minds
-Dataset({
-    features: ['path', 'audio', 'transcription', 'intent_class'],
-    num_rows: 654
-})
+columns_to_remove = ["lang_id", "english_transcription"]
+minds = minds.remove_columns(columns_to_remove)
+minds
+Dataset({features: ["path", "audio", "transcription", "intent_class"], num_rows: 654})
 ```
 
 Now that we've loaded and inspected the raw contents of the dataset, let's listen to a few examples! We'll use the `Blocks`
 and `Audio` features from `Gradio` to decode a few random samples from the dataset:
 
 ```py
->>> import gradio as gr
-
->>> def generate_audio():
-...     example = minds.shuffle()[0]
-...     audio = example["audio"]
-...     return (
-...         audio["sampling_rate"],
-...         audio["array"],
-...     ), id2label(example["intent_class"])
+import gradio as gr
 
 
->>> with gr.Blocks() as demo:
-...     with gr.Column():
-...         for _ in range(4):
-...             audio, label = generate_audio()
-...             output = gr.Audio(audio, label=label)
+def generate_audio():
+    example = minds.shuffle()[0]
+    audio = example["audio"]
+    return (
+        audio["sampling_rate"],
+        audio["array"],
+    ), id2label(example["intent_class"])
 
->>> demo.launch(debug=True)
+
+with gr.Blocks() as demo:
+    with gr.Column():
+        for _ in range(4):
+            audio, label = generate_audio()
+            output = gr.Audio(audio, label=label)
+
+demo.launch(debug=True)
 ```
 
 <!-- Add a Gradio demo -->
@@ -112,15 +125,15 @@ and `Audio` features from `Gradio` to decode a few random samples from the datas
 If you'd like to, you can also visualize some of the examples. Let's plot the waveform for the first example.
 
 ```py
->>> import librosa
->>> import matplotlib.pyplot as plt
->>> import librosa.display
+import librosa
+import matplotlib.pyplot as plt
+import librosa.display
 
->>> array = example["audio"]["array"]
->>> sampling_rate = example["audio"]["sampling_rate"]
+array = example["audio"]["array"]
+sampling_rate = example["audio"]["sampling_rate"]
 
->>> plt.figure().set_figwidth(12)
->>> librosa.display.waveshow(array, sr=sampling_rate)
+plt.figure().set_figwidth(12)
+librosa.display.waveshow(array, sr=sampling_rate)
 ```
 
 ![waveform_unit1.png](../../assets/img/waveform_unit1.png)

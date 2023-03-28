@@ -93,20 +93,20 @@ pip install librosa
 Let's take an example sound called "trumpet" that comes with the library:
 
 ```py
->>> import librosa
+import librosa
 
->>> array, sampling_rate = librosa.load(librosa.ex('trumpet'))
+array, sampling_rate = librosa.load(librosa.ex("trumpet"))
 ```
 
 The example is loaded as a tuple of audio time series (here we call it `array`), and sampling rate (`sampling_rate`).
 Let's take a look at this sound's waveform by using librosa's `waveshow()` function:
 
 ```py
->>> import matplotlib.pyplot as plt
->>> import librosa.display
+import matplotlib.pyplot as plt
+import librosa.display
 
->>> plt.figure().set_figwidth(12)
->>> librosa.display.waveshow(array, sr=sampling_rate)
+plt.figure().set_figwidth(12)
+librosa.display.waveshow(array, sr=sampling_rate)
 ```
 
 ![waveform_plot.png](../../../assets/img/waveform_plot.png)
@@ -132,27 +132,27 @@ is possible to plot the spectrum of the entire sound, it's more useful to look a
 the DFT over the first 4096 samples, which is roughly the length of the first note being played:
 
 ```py
->>> import numpy as np
+import numpy as np
 
->>> dft_input = array[:4096]
+dft_input = array[:4096]
 
->>> # calculate the DFT
->>> window = np.hanning(len(dft_input))
->>> windowed_input = dft_input * window
->>> dft = np.fft.rfft(windowed_input)
+# calculate the DFT
+window = np.hanning(len(dft_input))
+windowed_input = dft_input * window
+dft = np.fft.rfft(windowed_input)
 
->>> # get the amplitude spectrum in decibels
->>> amplitude = np.abs(dft)
->>> amplitude_db = librosa.amplitude_to_db(amplitude, ref=np.max)
+# get the amplitude spectrum in decibels
+amplitude = np.abs(dft)
+amplitude_db = librosa.amplitude_to_db(amplitude, ref=np.max)
 
->>> # get the frequency bins
->>> frequency = librosa.fft_frequencies(sr=sampling_rate, n_fft=len(dft_input))
+# get the frequency bins
+frequency = librosa.fft_frequencies(sr=sampling_rate, n_fft=len(dft_input))
 
->>> plt.figure().set_figwidth(12)
->>> plt.plot(frequency, amplitude_db)
->>> plt.xlabel("Frequency (Hz)")
->>> plt.ylabel("Amplitude (dB)")
->>> plt.xscale("log")
+plt.figure().set_figwidth(12)
+plt.plot(frequency, amplitude_db)
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Amplitude (dB)")
+plt.xscale("log")
 ```
 
 ![spectrum_plot.png](../../../assets/img/spectrum_plot.png)
@@ -197,14 +197,14 @@ identify different vowel sounds as each vowel is characterized by particular fre
 Let's plot a spectrogram for the same trumpet sound, using librosa's `stft()` and `specshow()` functions:
 
 ```py
->>> import numpy as np
+import numpy as np
 
->>> D = librosa.stft(array)
->>> S_db = librosa.amplitude_to_db(np.abs(D), ref=np.max)
+D = librosa.stft(array)
+S_db = librosa.amplitude_to_db(np.abs(D), ref=np.max)
 
->>> plt.figure().set_figwidth(12)
->>> librosa.display.specshow(S_db, x_axis='time', y_axis='hz')
->>> plt.colorbar()
+plt.figure().set_figwidth(12)
+librosa.display.specshow(S_db, x_axis="time", y_axis="hz")
+plt.colorbar()
 ```
 
 ![spectrogram_plot.png](../../../assets/img/spectrogram_plot.png)
@@ -245,12 +245,12 @@ transform the frequencies to the mel scale.
 Let's see how we can plot a mel spectrogram using librosa's `melspectrogram()` function, which performs all of those steps for us:
 
 ```py
->>> S = librosa.feature.melspectrogram(y=array, sr=sampling_rate, n_mels=128, fmax=8000)
->>> S_dB = librosa.power_to_db(S, ref=np.max)
+S = librosa.feature.melspectrogram(y=array, sr=sampling_rate, n_mels=128, fmax=8000)
+S_dB = librosa.power_to_db(S, ref=np.max)
 
->>> plt.figure().set_figwidth(12)
->>> librosa.display.specshow(S_dB, x_axis='time', y_axis='mel', sr=sampling_rate, fmax=8000)
->>> plt.colorbar()
+plt.figure().set_figwidth(12)
+librosa.display.specshow(S_dB, x_axis="time", y_axis="mel", sr=sampling_rate, fmax=8000)
+plt.colorbar()
 ```
 
 ![mel-spectrogram.png](../../../assets/img/mel-spectrogram.png)

@@ -22,22 +22,36 @@ to datasets to resample the audio examples on the fly when they are loaded. The 
 rate to 16kHz:
 
 ```py
->>> from datasets import Audio
+from datasets import Audio
 
->>> minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
+minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
 ```
 
 Re-load the first audio example in the MINDS-14 dataset, and check that it has been resampled to the desired `sampling rate`:
 
 ```py
->>> minds[0]
-{'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav',
- 'audio': {'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav',
-  'array': array([2.0634243e-05, 1.9437837e-04, 2.2419340e-04, ..., 9.3852862e-04,
-         1.1302452e-03, 7.1531429e-04], dtype=float32),
-  'sampling_rate': 16000},
- 'transcription': 'I would like to pay my electricity bill using my card can you please assist',
- 'intent_class': 13}
+minds[0]
+{
+    "path": "/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav",
+    "audio": {
+        "path": "/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav",
+        "array": array(
+            [
+                2.0634243e-05,
+                1.9437837e-04,
+                2.2419340e-04,
+                ...,
+                9.3852862e-04,
+                1.1302452e-03,
+                7.1531429e-04,
+            ],
+            dtype=float32,
+        ),
+        "sampling_rate": 16000,
+    },
+    "transcription": "I would like to pay my electricity bill using my card can you please assist",
+    "intent_class": 13,
+}
 ```
 
 You may notice that the array values are now also different. This is because we've now got twice the number of amplitude values for
@@ -65,30 +79,28 @@ function that indicates which examples to keep and which to discard. This functi
 returns `True` if a sample is shorter than 20s, and `False` if it is longer than 20s.
 
 ```py
->>> MAX_DURATION_IN_SECONDS = 20.0
+MAX_DURATION_IN_SECONDS = 20.0
 
->>> def is_audio_length_in_range(input_length):
-...     return input_length < MAX_DURATION_IN_SECONDS
+
+def is_audio_length_in_range(input_length):
+    return input_length < MAX_DURATION_IN_SECONDS
 ```
 
 The filtering function can be applied to a dataset's column but we do not have a column with audio track duration in this
 dataset. However, we can create one, filter based on the values in that column, and then remove it.
 
 ```py
->>> # use librosa to get example's duration from the audio file
->>> new_column = [librosa.get_duration(filename=x) for x in minds["path"]]
->>> minds = minds.add_column("duration", new_column)
+# use librosa to get example's duration from the audio file
+new_column = [librosa.get_duration(filename=x) for x in minds["path"]]
+minds = minds.add_column("duration", new_column)
 
->>> # use 🤗 Datasets' `filter` method to apply the filtering function
->>> minds = minds.filter(is_audio_length_in_range, input_columns=["duration"])
+# use 🤗 Datasets' `filter` method to apply the filtering function
+minds = minds.filter(is_audio_length_in_range, input_columns=["duration"])
 
->>> # remove the temporary helper column
->>> minds = minds.remove_columns(["duration"])
->>> minds
-Dataset({
-    features: ['path', 'audio', 'transcription', 'intent_class'],
-    num_rows: 624
-})
+# remove the temporary helper column
+minds = minds.remove_columns(["duration"])
+minds
+Dataset({features: ["path", "audio", "transcription", "intent_class"], num_rows: 624})
 ```
 
 We can verify that dataset has been filtered down from 654 examples to 624.
@@ -122,29 +134,33 @@ All these transformations can be applied to your raw audio data with a couple of
 the feature extractor from the pre-trained Whisper checkpoint to have ready for our audio data:
 
 ```py
->>> from transformers import WhisperFeatureExtractor
+from transformers import WhisperFeatureExtractor
 
->>> feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
+feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
 ```
 
 Next, you can write a function to pre-process a single audio example by passing it through the `feature_extractor`.
 
 ```py
->>> def prepare_dataset(example):
-...     audio = example["audio"]
-...     features = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"], padding = True)
-...     return features
+def prepare_dataset(example):
+    audio = example["audio"]
+    features = feature_extractor(
+        audio["array"], sampling_rate=audio["sampling_rate"], padding=True
+    )
+    return features
 ```
 
 We can apply the data preparation function to all of our training examples using 🤗 Datasets' map method:
 
 ```py
->>> minds = minds.map(prepare_dataset)
->>> minds
-Dataset({
-    features: ['path', 'audio', 'transcription', 'intent_class', 'input_features'],
-    num_rows: 624
-})
+minds = minds.map(prepare_dataset)
+minds
+Dataset(
+    {
+        features: ["path", "audio", "transcription", "intent_class", "input_features"],
+        num_rows: 624,
+    }
+)
 ```
 
 As easy as that, we now have log-mel spectrograms as `input_features` in the dataset.
@@ -155,19 +171,28 @@ First, we'll take an example, define constants used in Whisper, and plot a mel-s
 raw audio data (in `minds[0]["audio"]["array"]`):
 
 ```py
->>> example = minds[0]
->>> hop_length = 160
->>> n_fft = 400
->>> n_mels = 80
->>> norm = "slaney"
->>> sampling_rate = 16000
+example = minds[0]
+hop_length = 160
+n_fft = 400
+n_mels = 80
+norm = "slaney"
+sampling_rate = 16000
 
->>> S = librosa.feature.melspectrogram(y=minds[0]["audio"]["array"], sr=sampling_rate, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels, norm=norm)
->>> S_dB = librosa.power_to_db(S, ref=np.max)
+S = librosa.feature.melspectrogram(
+    y=minds[0]["audio"]["array"],
+    sr=sampling_rate,
+    n_fft=n_fft,
+    hop_length=hop_length,
+    n_mels=n_mels,
+    norm=norm,
+)
+S_dB = librosa.power_to_db(S, ref=np.max)
 
->>> plt.figure().set_figwidth(12)
->>> librosa.display.specshow(S_dB, x_axis='time', y_axis='mel', sr=sampling_rate, hop_length=hop_length)
->>> plt.colorbar()
+plt.figure().set_figwidth(12)
+librosa.display.specshow(
+    S_dB, x_axis="time", y_axis="mel", sr=sampling_rate, hop_length=hop_length
+)
+plt.colorbar()
 ```
 
 ![mel_minds_example.png](../../assets/img/mel_minds_example.png)
@@ -175,11 +200,17 @@ raw audio data (in `minds[0]["audio"]["array"]`):
 Now let's plot the `input_features` for the same example:
 
 ```py
->>> input_features = example["input_features"]
+input_features = example["input_features"]
 
->>> plt.figure().set_figwidth(12)
->>> librosa.display.specshow(np.asarray(input_features[0]), x_axis='time', y_axis='mel', sr=sampling_rate, hop_length=hop_length)
->>> plt.colorbar()
+plt.figure().set_figwidth(12)
+librosa.display.specshow(
+    np.asarray(input_features[0]),
+    x_axis="time",
+    y_axis="mel",
+    sr=sampling_rate,
+    hop_length=hop_length,
+)
+plt.colorbar()
 ```
 
 ![log_mel_whisper.png](../../assets/img/log_mel_whisper.png)
@@ -195,9 +226,9 @@ a so-called processor. To make things even simpler, use `AutoProcessor` to load 
 checkpoint, like this:
 
 ```py
->>> from transformers import AutoProcessor
+from transformers import AutoProcessor
 
->>> processor = AutoProcessor.from_pretrained("openai/whisper-small")
+processor = AutoProcessor.from_pretrained("openai/whisper-small")
 ```
 
 Here we have illustrated the fundamental data preparation steps. Of course, custom data may require more complex preprocessing.
