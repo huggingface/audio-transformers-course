@@ -1,3 +1,102 @@
 # CTC architectures
 
-Wav2Vec2 + HuBERT and XLSR
+CTC or Connectionist Temporal Classification is a technique that is used with encoder-only transformer models for automatic speech recognition. Examples of such models are **Wav2Vec2**, **HuBERT**, and **XLSR**. An encoder-only transformer is the simplest kind of transformer because it only uses the encoder portion of the model. The encoder reads the input sequence and makes a prediction for each element in the sequence.
+
+TODO: picture of encoder-only transformer that takes waveform as input and has a CTC head on top
+
+## Dude, where's my alignment?
+
+Automatic speech recognition or ASR involves taking audio as input and producing text as output. We have a few choices for how to predict the text:
+
+- as individual characters
+- as phonemes
+- as word tokens
+
+An ASR model is trained on a dataset consisting of (audio, text) pairs where the text is a human-made transcription of the audio file. But generally the dataset does not have any timing information that says which word or syllable occurs where in the audio file. Since we don't have that timing information, we can't rely on it during training, and so we don't have any idea how the input and output sequences should be aligned.
+
+In addition, the model works on small snippets of audio input at a time. For example, in **Wav2Vec2**, if the input is an eight-second audio file, the sequence that the transformer sees is of shape `(768, 400)` where 768 is the size of the transformer's feature vectors and 400 is the sequence length.
+
+The original waveform had a shape of `(128000,)` samples, and this has been downsampled by the model to a sequence of 400 blocks that each describes representations for a 25 millisecond snippet in the input audio. The model will make a prediction for each step in this `(768, 400)` sequence. Since each of these steps covers 25 ms of time, which is shorter than the duration of a phoneme, it makes sense to predict individual phonemes or characters but not entire words.
+
+TODO: maybe an image of how these 25ms snippets of audio get mapped to a shorter sequence, which then gets fed into the CTC layer to get the sequence of logits
+
+However, if we predict one character every 25 ms, our output sequence might look something like this:
+
+```text
+BRIIONSAWWSOMEETHINGCLOSETOPANICONHHISOPPONENT'SSFAACEWHENTHEMANNFINALLLYRREECOGGNNIIZEDHHISSERRRRORR
+```
+
+If you look closely, it somewhat resembles English but a lot of the characters have been duplicated. That's because the model needs to output *something* for every 25 ms of audio in the input sequence, and if a character is spread out over a period longer than 25 ms then it will appear multiple times in the output. There's no way to avoid this, especially since we don't know what the timing of the transcript is during training. CTC is a way to filter out these duplicates.
+
+<Tip>
+💡 What actually happens is that the model predicts a `(400, 32)` tensor containing the logits, where 400 is the sequence length and 32 is the number of tokens in the model's vocabulary. This is the letters from the alphabet (uppercase) and a few other tokens. If we take the argmax of each 32-element vector in this sequence, we get the text shown above. If you're wondering why the sequence has fewer than 400 tokens in it, it's because the model also predicts a lot of padding tokens and we removed them for clarity.
+
+You may also be wondering why each timestep corresponds to a span of 25 ms, since 400 timesteps x 25 ms = 10 seconds and not 8. The reason for this is that the elements from the input sequence partially overlap, making their receptive field 25 ms instead of 20 ms. This partial overlap is another reason why characters get duplicated in the output.
+</Tip>
+
+## The CTC algorithm
+
+The key to make the transformer work is using a special token, often called the **blank token**. This is just another token that the model will predict and it's part of the vocabulary. In this example, the blank token is shown as `_`. This special token serves as a hard boundary between groups of characters.
+
+The full output from the CTC model is actually the following:
+
+```text
+B_R_II_O_N_||_S_AWW_|||||_S_OMEE_TH_ING_||_C_L_O_S_E||TO|_P_A_N_I_C_||_ON||HHI_S||_OP_P_O_N_EN_T_'SS||_F_AA_C_E||_W_H_EN||THE||M_A_NN_||||_F_I_N_AL_LL_Y||||_RREE_C_O_GG_NN_II_Z_ED|||HHISS|||_ER_RRR_ORR||||
+```
+
+The `|` token is the word separator character. This model uses `|` instead of a space so it's easier to spot where the word breaks are, but it serves the same purpose.
+
+The CTC blank character makes it possible to filter out the duplicate characters. For example let's look at the last word from the predicted sequence. Without the CTC blank token, the word looked like this:
+
+```text
+ERRRRORR
+```
+
+If we were to simply remove duplicate characters, this would become `EROR`. That's clearly not the correct spelling. But with the CTC blank token we can remove the duplicates in each group, so that:
+
+```text
+_ER_RRR_ORR
+```
+
+becomes:
+
+```text
+_ER_R_OR
+```
+
+and now we remove the `_` blank token to get the final word:
+
+```text
+ERROR
+```
+
+If we apply this logic to the entire text, and replace the `|` characters by spaces, the final CTC-decoded output is:
+
+```text
+BRION SAW SOMETHING CLOSE TO PANIC ON HIS OPPONENT'S FACE WHEN THE MAN FINALLY RECOGNIZED HIS ERROR
+```
+
+To recap, the model predicts one token (character) for every 25 ms of (partially overlapping) audio from the input waveform. This gives a lot of duplicates. Thanks to the CTC blank token, we can easily remove these duplicates without destroying the proper spelling of the words. This approach is a very simple and convenient way to solve the problem of aligning the output text with the input audio.
+
+Adding CTC to a transformer encoder model is easy: the output sequence from the encoder goes into a linear layer that projects the acoustic features to the vocabulary. The model is trained with a special CTC loss.
+
+<Tip>
+💡 In the actual Wav2Vec2 model, the CTC blank token is the same as the padding token `<pad>`. The model will predict many of these `<pad>` tokens, for example when there isn't a clear character to predict for the current 25 ms of audio. Using the same token for padding as for CTC blanking, simplifies the decoding algorithm and it keeps the vocab small. [TODO: is that the real reason?]
+</Tip>
+
+## What's the difference between Wav2Vec2, HuBERT, and XLSR?
+
+These three models use the exact same architecture [TODO: verify], so why do they have different names?
+
+
+TODO: anything from these blog posts?
+
+https://huggingface.co/blog/fine-tune-wav2vec2-english
+
+https://huggingface.co/blog/fine-tune-xlsr-wav2vec2
+
+https://huggingface.co/blog/wav2vec2-with-ngram
+
+https://huggingface.co/blog/asr-chunking
+
+TODO: note about adding a language model to fix spelling errors?

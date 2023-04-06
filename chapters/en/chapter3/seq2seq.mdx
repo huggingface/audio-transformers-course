@@ -1,3 +1,13 @@
 # Seq2Seq architectures
 
+encoder-decoder, autoregressive, cross-attention between encoder and decoder, encoder runs just once over the entire input sequence; decoder goes step-by-step but is causal
+
+With encoder-only transformer models, the encoder makes a prediction for each element in the input sequence. This works quite well for [TODO], but we can make the model even more powerful by adding a second transformer, the decoder. The architecture of a decoder is very similar to that of an encoder, and both use similar layers with self-attention as the main feature. However, the purpose of the decoder is different than the purpose of the encoder.
+
+
+Whisper: encoder creates intermediate state over the spectrogram (which covers 30 seconds of audio); decoder runs autoregressively until endoftext or maximum number of tokens emitted. Here we can output entire words although whisper uses the GPT-2 tokenizer that used BPE and has 50k+ unique tokens.
+
+
+https://huggingface.co/blog/fine-tune-whisper
+
 Whisper + XLS-R and SpeechT5

@@ -39,7 +39,7 @@
 - title: Unit 3. Transformer architectures for audio
   sections:
   - local: chapter3/introduction
-    title: What you'll learn
+    title: Refresher on transformer models
   - local: chapter3/ctc
     title: CTC architectures
   - local: chapter3/seq2seq
