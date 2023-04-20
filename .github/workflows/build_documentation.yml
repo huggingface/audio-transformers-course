@@ -12,6 +12,7 @@ jobs:
     with:
       commit_sha: ${{ github.sha }}
       package: audio-transformers-course
+      package_name: audio-course
       path_to_docs: audio-transformers-course/chapters/
       additional_args: --not_python_module
       languages: en
