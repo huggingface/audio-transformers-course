@@ -14,6 +14,7 @@ jobs:
       commit_sha: ${{ github.event.pull_request.head.sha }}
       pr_number: ${{ github.event.number }}
       package: audio-transformers-course
+      package_name: audio-course
       path_to_docs: audio-transformers-course/chapters/
       additional_args: --not_python_module
       languages: en
