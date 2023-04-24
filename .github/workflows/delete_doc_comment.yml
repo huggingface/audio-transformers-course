@@ -11,4 +11,4 @@ jobs:
     with:
       pr_number: ${{ github.event.number }}
       package: audio-transformers-course
-      package_name: audio-course
+      package_name: learn/audio-course
