@@ -44,10 +44,8 @@
     title: CTC architectures
   - local: chapter3/seq2seq
     title: Seq2Seq architectures
-  - local: chapter3/ast
-    title: Audio Spectrogram Transformer
-  - local: chapter3/rnn-t
-    title: RNN-T
+  - local: chapter3/classification
+    title: Audio classification architectures
   - local: chapter3/quiz
     title: Quiz
     quiz: 3
