@@ -30,6 +30,8 @@ For audio tasks, the input and/or output sequences may be audio instead of text:
 
 - Speech synthesis (TTS): The input is text, the output is audio.
 
+- Audio classification: The input is audio, the output is a class probability — one for each element in the sequence or a single class probability for the entire sequence.
+
 - Voice conversion or speech enhancement: Both the input and output are audio.
 
 There are a few different ways to handle audio so it can be used with a transformer. The main consideration is whether to use the audio in its raw form — as a waveform — or to process it as a spectrogram instead.
