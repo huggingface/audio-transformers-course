@@ -32,7 +32,7 @@ The transformer encoder predicts one feature representation for each of these hi
 
 To make text predictions, we map each of the 768-dimensional encoder outputs to our character labels using a linear layer (the "CTC head"). The model then predicts a `(50, 32)` tensor containing the logits, where 32 is the number of tokens in the vocabulary. Since we make one prediction for each of the features in the sequence, we end up with a total of 50 character predictions for each second of audio.
 
-TODO: maybe an image of how these 25ms snippets of audio get mapped to a shorter sequence, which then gets fed into the CTC layer to get the sequence of logits
+![The audio waveform gets mapped to a shorter sequence of hidden-states](../../../assets/img/cnn-feature-encoder.png)
 
 However, if we simply predict one character every 25 ms, our output sequence might look something like this:
 
@@ -98,18 +98,10 @@ One downside of CTC is that it may output words that *sound* correct, but are no
 
 ## What's the difference between Wav2Vec2, HuBERT, M-CTC-T, ...?
 
-In general, transformer-based CTC models are all very much alike in architecture: they use the transformer encoder (but not the decoder) with a CTC head on top. The difference between Wav2Vec2 and M-CTC-T is that the former works on raw audio waveforms while the latter uses spectrograms (TODO: other diffs?)
+All transformer-based CTC models have a very similar architecture: they use the transformer encoder (but not the decoder) with a CTC head on top. Architecture-wise they are more alike than different.
 
-Wav2Vec2 & HuBERT use the exact same architecture [TODO: verify], so why do they have different names? TODO: trained differently
+One difference between Wav2Vec2 and M-CTC-T is that the former works on raw audio waveforms while the latter uses mel spectrograms as input. The models also have been trained for different purposes. M-CTC-T, for example, is trained for multilingual speech recognition, and therefore has a relatively large CTC head that includes Chinese characters in addition to other alphabets.
 
+Wav2Vec2 & HuBERT use the exact same architecture but are trained in very different ways. Wav2Vec2 is pre-trained like BERT's masked language modeling, by predicting speech units for masked parts of the audio. HuBERT takes the BERT inspiration a step further and learns to predict "discrete speech units", which are analogous to tokens in a text sentence, so that speech can be treated using established NLP techniques.
 
-HubertForCTC
-MCTCTForCTC
-SEWForCTC
-SEWDForCTC
-UniSpeechForCTC
-UniSpeechSatForCTC
-Wav2Vec2ForCTC
-Wav2Vec2ConformerForCTC
-WavLMForCTC
-Data2VecAudioForCTC
+To clarify, the models highlighted here aren't the only transformer-based CTC models. There are many others, but now you know they all work in a similar way.
