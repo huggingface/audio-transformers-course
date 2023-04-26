@@ -1,6 +1,6 @@
 - title: Unit 0. Welcome to the course!
   sections:
-  - local: chapter0/what_to_expect
+  - local: chapter0/introduction
     title: What to expect from the course
   - local: chapter0/get_ready
     title: Get ready
@@ -9,7 +9,7 @@
 
 - title: Unit 1. Working with audio data
   sections:
-  - local: chapter1/intro
+  - local: chapter1/introduction
     title: What you'll learn
   - local: chapter1/audio_data
     title: Introduction to audio data
@@ -27,7 +27,7 @@
 
 - title: Unit 2. A gentle introduction to audio applications
   sections:
-  - local: chapter2/audio_applications
+  - local: chapter2/introduction
     title: Tour of audio applications
   - local: chapter2/audio_classification_pipeline
     title: Audio classification with a pipeline
@@ -38,7 +38,7 @@
 
 - title: Unit 3. Transformer architectures for audio
   sections:
-  - local: chapter3/intro
+  - local: chapter3/introduction
     title: What you'll learn
   - local: chapter3/ctc
     title: CTC architectures
@@ -56,7 +56,7 @@
 
 - title: Unit 4. Build a music genre classifier
   sections:
-  - local: chapter4/intro
+  - local: chapter4/introduction
     title: What you'll learn and what you'll build
   - local: chapter4/choosing_dataset
     title: Choosing a dataset
@@ -75,7 +75,7 @@
 
 - title: Unit 5. Transcribe a meeting recording
   sections:
-  - local: chapter5/intro
+  - local: chapter5/introduction
     title: What you'll learn and what you'll build
   - local: chapter5/choosing_dataset
     title: Choosing a dataset
@@ -99,7 +99,7 @@
 
 - title: Unit 6. From text to speech
   sections:
-  - local: chapter6/intro
+  - local: chapter6/introduction
     title: What you'll learn and what you'll build
   - local: chapter6/overview
     title: How to synthesize human speech from text?
@@ -123,7 +123,7 @@
 
 - title: Unit 7. Audio to audio
   sections:
-  - local: chapter7/intro
+  - local: chapter7/introduction
     title: What you'll learn and what you'll build
   - local: chapter7/tasks
     title: Examples of audio-to-audio tasks
@@ -145,7 +145,7 @@
 
 - title: Unit 8. Finish line
   sections:
-  - local: chapter8/congratulations
+  - local: chapter8/introduction
     title: Congratulations!
   - local: chapter8/certification
     title: Get your certification of completion
@@ -154,6 +154,8 @@
 
 - title: Bonus unit. Diffusion models for audio
   sections:
+  - local: chapter9/introduction
+    title: Introduction
   - local: chapter9/music_generation
     title: Music generation
   - local: chapter9/riffusion
@@ -165,5 +167,5 @@
 
 - title: Course Events
   sections:
-  - local: events/1
+  - local: events/introduction
     title: Live sessions and workshops
