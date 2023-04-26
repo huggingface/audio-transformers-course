@@ -26,21 +26,21 @@ Automatic speech recognition or ASR involves taking audio as input and producing
 
 An ASR model is trained on a dataset consisting of `(audio, text)` pairs where the text is a human-made transcription of the audio file. Generally the dataset does not include any timing information that says which word or syllable occurs where in the audio file. Since we can't rely on timing information during training, we don't have any idea how the input and output sequences should be aligned.
 
-Let's suppose our input is a one-second audio file. In **Wav2Vec2**, the model first downsamples the audio input using the CNN feature encoder to a shorter sequence of hidden-states, where each hidden-state represents 25 milliseconds of audio. For one second of audio, we forward a sequence of 50 hidden-states to the transformer encoder. (The elements from the input sequence partially overlap, which is why there are 50 timesteps instead of 16000 × 0.025 = 40 timesteps.)
+Let's suppose our input is a one-second audio file. In **Wav2Vec2**, the model first downsamples the audio input using the CNN feature encoder to a shorter sequence of hidden-states, where there is one hidden-state vector for every 20 milliseconds of audio. For one second of audio, we then forward a sequence of 50 hidden-states to the transformer encoder.  (The audio segments extracted from the input sequence partially overlap, so even though one hidden-state vector is emitted every 20 ms, each hidden-state actually represent 25 ms of audio.)
 
-The transformer encoder predicts one feature representation for each of these hidden-states, meaning we receive a sequence of 50 outputs from the transformer. Each of these outputs has a dimensionality of 768. The output sequence of the transformer encoder therefore has shape `(768, 50)`. As each of these predictions covers 25 ms of time, which is shorter than the duration of a phoneme, it makes sense to predict individual phonemes or characters but not entire words. CTC works best with a small vocabulary, so we'll predict characters.
-
-To make text predictions, we map each of the 768-dimensional encoder outputs to our character labels using a linear layer (the "CTC head"). The model then predicts a `(50, 32)` tensor containing the logits, where 32 is the number of tokens in the vocabulary. Since we make one prediction for each of the features in the sequence, we end up with a total of 50 character predictions for each second of audio.
+The transformer encoder predicts one feature representation for each of these hidden-states, meaning we receive a sequence of 50 outputs from the transformer. Each of these outputs has a dimensionality of 768. The output sequence of the transformer encoder in this example therefore has shape `(768, 50)`. As each of these predictions covers 25 ms of time, which is shorter than the duration of a phoneme, it makes sense to predict individual phonemes or characters but not entire words. CTC works best with a small vocabulary, so we'll predict characters.
 
 ![The audio waveform gets mapped to a shorter sequence of hidden-states](../../../assets/img/cnn-feature-encoder.png)
 
-However, if we simply predict one character every 25 ms, our output sequence might look something like this:
+To make text predictions, we map each of the 768-dimensional encoder outputs to our character labels using a linear layer (the "CTC head"). The model then predicts a `(50, 32)` tensor containing the logits, where 32 is the number of tokens in the vocabulary. Since we make one prediction for each of the features in the sequence, we end up with a total of 50 character predictions for each second of audio.
+
+However, if we simply predict one character every 20 ms, our output sequence might look something like this:
 
 ```text
 BRIIONSAWWSOMEETHINGCLOSETOPANICONHHISOPPONENT'SSFAACEWHENTHEMANNFINALLLYRREECOGGNNIIZEDHHISSERRRRORR ...
 ```
 
-If you look closely, it somewhat resembles English but a lot of the characters have been duplicated. That's because the model needs to output *something* for every 25 ms of audio in the input sequence, and if a character is spread out over a period longer than 25 ms then it will appear multiple times in the output. There's no way to avoid this, especially since we don't know what the timing of the transcript is during training. CTC is a way to filter out these duplicates.
+If you look closely, it somewhat resembles English but a lot of the characters have been duplicated. That's because the model needs to output *something* for every 20 ms of audio in the input sequence, and if a character is spread out over a period longer than 20 ms then it will appear multiple times in the output. There's no way to avoid this, especially since we don't know what the timing of the transcript is during training. CTC is a way to filter out these duplicates.
 
 (In reality, the predicted sequence also contains a lot of padding tokens for when the model isn't quite sure what the sound represents, or for the empty space between characters. We removed these padding tokens from the example for clarity. The partial overlap between audio segments is another reason characters get duplicated in the output.)
 
@@ -86,10 +86,10 @@ If we apply this logic to the entire text, including `|`, and replace the surviv
 BRION SAW SOMETHING CLOSE TO PANIC ON HIS OPPONENT'S FACE WHEN THE MAN FINALLY RECOGNIZED HIS ERROR
 ```
 
-To recap, the model predicts one token (character) for every 25 ms of (partially overlapping) audio from the input waveform. This gives a lot of duplicates. Thanks to the CTC blank token, we can easily remove these duplicates without destroying the proper spelling of the words. This is a very simple and convenient way to solve the problem of aligning the output text with the input audio.
+To recap, the model predicts one token (character) for every 20 ms of (partially overlapping) audio from the input waveform. This gives a lot of duplicates. Thanks to the CTC blank token, we can easily remove these duplicates without destroying the proper spelling of the words. This is a very simple and convenient way to solve the problem of aligning the output text with the input audio.
 
 <Tip>
-💡 In the actual Wav2Vec2 model, the CTC blank token is the same as the padding token `<pad>`. The model will predict many of these `<pad>` tokens, for example when there isn't a clear character to predict for the current 25 ms of audio. Using the same token for padding as for CTC blanking simplifies the decoding algorithm and it helps keep the vocab small.
+💡 In the actual Wav2Vec2 model, the CTC blank token is the same as the padding token `<pad>`. The model will predict many of these `<pad>` tokens, for example when there isn't a clear character to predict for the current 20 ms of audio. Using the same token for padding as for CTC blanking simplifies the decoding algorithm and it helps keep the vocab small.
 </Tip>
 
 Adding CTC to a transformer encoder model is easy: the output sequence from the encoder goes into a linear layer that projects the acoustic features to the vocabulary. The model is trained with a special CTC loss.
