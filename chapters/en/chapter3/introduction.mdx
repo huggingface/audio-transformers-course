@@ -56,7 +56,7 @@ After normalizing, the sequence of audio samples is turned into an embedding usi
 
 ### Spectrogram input
 
-One downside of using the raw waveform as input is that they tend to have long sequence lengths. For example, thirty seconds of audio at a sampling rate of 16 kHz gives an input of length `30 * 16000 = 48000`. Longer sequence lengths require more computations in the transformer model, and so higher memory usage.
+One downside of using the raw waveform as input is that they tend to have long sequence lengths. For example, thirty seconds of audio at a sampling rate of 16 kHz gives an input of length `30 * 16000 = 480000`. Longer sequence lengths require more computations in the transformer model, and so higher memory usage.
 
 Because of this, raw audio waveforms are not usually the most efficient form of representing an audio input. By using a spectrogram, we get the same amount of information but in a more compressed form.
 
