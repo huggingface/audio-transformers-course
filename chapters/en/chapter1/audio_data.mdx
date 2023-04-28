@@ -17,7 +17,9 @@ Analog-to-Digital Converter to get the digital representation through sampling.
 Sampling is the process of measuring the value of a continuous signal at fixed time steps. The sampled waveform is _discrete_,
 since it contains a finite number of signal values at uniform intervals.
 
-![Signal_Sampling.png](../../../assets/img/Signal_Sampling.png)
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/Signal_Sampling.png" alt="Signal sampling illustration">
+</div>
 *Illustration from Wikipedia article: [Sampling (signal processing)](https://en.wikipedia.org/wiki/Sampling_(signal_processing))*
 
 The **sampling rate** (also called sampling frequency) is the number of samples taken in one second and is measured in
@@ -109,7 +111,9 @@ plt.figure().set_figwidth(12)
 librosa.display.waveshow(array, sr=sampling_rate)
 ```
 
-![waveform_plot.png](../../../assets/img/waveform_plot.png)
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/waveform_plot.png" alt="Waveform plot">
+</div>
 
 This plots the amplitude of the signal on the y-axis and time along the x-axis. In other words, each point corresponds
 to a single sample value that was taken when this sound was sampled. Also note that librosa returns the audio as
@@ -155,7 +159,9 @@ plt.ylabel("Amplitude (dB)")
 plt.xscale("log")
 ```
 
-![spectrum_plot.png](../../../assets/img/spectrum_plot.png)
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/spectrum_plot.png" alt="Spectrum plot">
+</div>
 
 This plots the strength of the various frequency components that are present in this audio segment. The frequency values are on
 the x-axis, usually plotted on a logarithmic scale, while their amplitudes are on the y-axis.
@@ -207,7 +213,9 @@ librosa.display.specshow(S_db, x_axis="time", y_axis="hz")
 plt.colorbar()
 ```
 
-![spectrogram_plot.png](../../../assets/img/spectrogram_plot.png)
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/spectrogram_plot.png" alt="Spectrogram plot">
+</div>
 
 In this plot, the x-axis represents time as in the waveform visualization but now the y-axis represents frequency in Hz.
 The intensity of the color gives the amplitude or power of the frequency component at each point in time, measured in decibels (dB).
@@ -253,7 +261,10 @@ librosa.display.specshow(S_dB, x_axis="time", y_axis="mel", sr=sampling_rate, fm
 plt.colorbar()
 ```
 
-![mel-spectrogram.png](../../../assets/img/mel-spectrogram.png)
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/mel-spectrogram.png" alt="Mel spectrogram plot">
+</div>
+
 
 In the example above, `n_mels` stands for the number of mel bands to generate. The mel bands define a set of frequency
 ranges that divide the spectrum into perceptually meaningful components, using a set of filters whose shape and spacing
