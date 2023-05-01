@@ -12,7 +12,9 @@ The architecture of a decoder is very similar to that of an encoder, and both us
 
 The architecture of **Whisper** is as follows (figure courtesy of [OpenAI Whisper blog](https://openai.com/blog/whisper/)):
 
-![Whisper is a transformer encoder-decoder model](https://huggingface.co/blog/assets/111_fine_tune_whisper/whisper_architecture.svg)
+<div class="flex justify-center">
+    <img src="https://huggingface.co/blog/assets/111_fine_tune_whisper/whisper_architecture.svg" alt="Whisper is a transformer encoder-decoder model">
+</div>
 
 This should look quite familiar. On the left is the **transformer encoder**. This takes as input a log-mel spectrogram and encodes that spectrogram to form a sequence of encoder hidden states that extract important features from the spoken speech. This hidden-states tensor represents the input sequence as a whole and effectively encodes the "meaning" of the input speech.
 
@@ -45,7 +47,9 @@ It may not surprise you: A seq2seq model for TTS works essentially the same as d
 
 With the ASR model, the decoder was kickstarted using a sequence that just has the special "start" token in it. For the TTS model, we can start the decoding with a spectrogram of length one that is all zeros that acts as the "start token". Given this initial spectrogram and the cross-attentions over the encoder's hidden-state representations, the decoder then predicts the next timeslice for this spectrogram, steadily growing the spectrogram one timestep at a time.
 
-![The audio waveform gets mapped to a shorter sequence of hidden-states](../../../assets/img/speecht5_decoding.png)
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/speecht5_decoding.png" alt="The audio waveform gets mapped to a shorter sequence of hidden-states">
+</div>
 
 But how does the decoder know when to stop? In the **SpeechT5** model this is handled by making the decoder predict a second sequence. This contains the probability that the current timestep is the last one. While generating audio at inference time, if this probability is over a certain threshold (say 0.5), the decoder is indicating that the spectrogram is finished and the generation loop should end.
 

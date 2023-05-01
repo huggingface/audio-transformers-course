@@ -6,7 +6,9 @@ An encoder-only transformer is the simplest kind of transformer because it just 
 
 With a CTC model, we apply an additional linear mapping on the sequence of hidden-states to get class label predictions. The class labels are the **characters of the alphabet** (a, b, c, …). This way we're able to predict any word in the target language with a small classification head, as the vocabulary just needs to exist of 26 characters plus a few special tokens.
 
-![Transformer encoder with a CTC head on top](../../../assets/img/wav2vec2-ctc.png)
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/wav2vec2-ctc.png" alt="Transformer encoder with a CTC head on top">
+</div>
 
 So far, this is very similar to what we do in NLP with a model such as BERT: an encoder-only transformer model  maps our text tokens into a sequence of encoder hidden-states, and then we apply a linear mapping to get one class label prediction for each hidden-state.
 
@@ -30,7 +32,9 @@ Let's suppose our input is a one-second audio file. In **Wav2Vec2**, the model f
 
 The transformer encoder predicts one feature representation for each of these hidden-states, meaning we receive a sequence of 50 outputs from the transformer. Each of these outputs has a dimensionality of 768. The output sequence of the transformer encoder in this example therefore has shape `(768, 50)`. As each of these predictions covers 25 ms of time, which is shorter than the duration of a phoneme, it makes sense to predict individual phonemes or characters but not entire words. CTC works best with a small vocabulary, so we'll predict characters.
 
-![The audio waveform gets mapped to a shorter sequence of hidden-states](../../../assets/img/cnn-feature-encoder.png)
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/cnn-feature-encoder.png" alt="The audio waveform gets mapped to a shorter sequence of hidden-states">
+</div>
 
 To make text predictions, we map each of the 768-dimensional encoder outputs to our character labels using a linear layer (the "CTC head"). The model then predicts a `(50, 32)` tensor containing the logits, where 32 is the number of tokens in the vocabulary. Since we make one prediction for each of the features in the sequence, we end up with a total of 50 character predictions for each second of audio.
 
