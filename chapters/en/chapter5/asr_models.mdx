@@ -1,6 +1,10 @@
 # Pre-trained models for automatic speech recognition
 
-As detailed in Chapter 2, speech recognition model broadly fall into one of two categories:
+In this section, we'll cover how the `pipeline()` to leverage pre-trained models for speech recognition. In Unit 2, we
+introduced the `pipeline()` as an easy way of running speech tasks, with all pre- and post-processing handled under-the-hood,
+as well as giving you the flexibility to quickly experiment with pre-trained checkpoints on the Hugging Face Hub.
+
+As detailed in Unit 3, speech recognition model broadly fall into one of two categories:
 
 1. Connectionist Temporal Classification (CTC): _encoder-only_ models with a linear classification (CTC) head on top
 2. Sequence-to-sequence (Seq2Seq): _encoder-decoder_ models, with a cross-attention mechanism between the encoder and decoder
@@ -330,7 +334,8 @@ we want to provide closed captions for a video - we need these timestamps to kno
 to a certain segment of video, in order to display the correct transcription for that time.
 
 Activating timestamp prediction is straightforward, we just need to set the argument `return_timestamps=True`. Timestamps are compatible
-with both the chunking and batching methods we used previously, so we can simply add the timestamp argument to our previous call:
+with both the chunking and batching methods we used previously, so we can simply append the timestamp argument to our previous call:
+
 ```python
 pipe(long_audio, max_new_tokens=256, generate_kwargs={"task": "transcribe"}, chunk_length_s=30, batch_size=8, return_timestamps=True)["chunks"]
 ```
