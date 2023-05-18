@@ -78,18 +78,45 @@ For a detailed breakdown of the audio datasets covered in both tables, refer to 
 Alright! Now that we've gone through all the criterion for selecting an ASR dataset, let's pick one for the purpose of this tutorial.
 We know that Whisper already does a pretty good job at transcribing data in high-resource languages (such as English and Spanish), so
 we'll focus ourselves on low-resource multilingual transcription. We want to retain Whisper's ability to predict punctuation and casing,
-so it seems from the second table that Common Voice 13 is a great candidate choice!
+so it seems from the second table that Common Voice 13 is a great candidate dataset!
+
+## Common Voice 13
+
+Common Voice 13 is a crowd-sourced dataset where speakers record text from Wikipedia in various languages. It forms part of
+the Common Voice series, a collection of Common Voice datasets released by Mozilla Foundation. At the time of writing,
+Common Voice 13 is the latest edition of the dataset, with the most languages and hours per language out of any release to date.
 
 We can get the full list of languages for the Common Voice 13 dataset by checking-out the dataset page on the Hub:
-[mozilla-foundation/common_voice_13_0#languages](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0#languages).
-Here we see a list of 108 candidate languages, any one of which we could use to fine-tune our model.
+[mozilla-foundation/common_voice_13_0](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0).
+The first time we view this page, we'll be asked to accept the terms of use. After that, we'll be given full access to the dataset.
 
-For this Unit, we'll select [_Dhivehi_](https://en.wikipedia.org/wiki/Maldivian_language) (or _Maldivian_), an Indo-Aryan
-language spoken in the South Asian island country of the Maldives. Common Voice 13 contains approximately ten hours
-of labelled Dhivehi data, three of which is held-out test data. This is extremely little data for fine-tuning, so we'll
-be relying on leveraging the extensive multilingual ASR knowledge acquired by Whisper during pre-training for the low-resource
-Dhivehi language.
+Once we've provided authentication to use the dataset, we'll be presented with the dataset preview. The dataset preview
+shows us the first 100 samples of the dataset for each language. What's more, it's loaded up with audio samples ready for us
+to listen to in real time. For this Unit, we'll select [_Dhivehi_](https://en.wikipedia.org/wiki/Maldivian_language)
+(or _Maldivian_), an Indo-Aryan language spoken in the South Asian island country of the Maldives. While we're selecting
+Dhivehi for this tutorial, the steps covered here apply to any one of the 108 languages in the Common Voice 13 dataset, and
+more generally to any one of the 77 audio datasets on the Hugging Face Hub, so there's no restriction on language or dialect.
 
-I personally don't speak Dhivehi, and expect the vast majority of readers not to either! To know if our fine-tuned model
+We can select the Dhivehi subset of Common Voice 13 by setting the subset to `dv` using the dropdown menu (`dv` being the language
+identifier code for Dhivehi):
+
+<!--- Fast render, don't display figs
+
+<figure>
+<img src=TODO alt="Trulli" style="width:100%">
+</figure>
+--->
+
+If we hit the play button on the first sample, we can listen to the audio and see the corresponding text. Have a scroll
+through the samples for the train and test sets to get a better feel for the audio and text data that we're dealing with.
+You can tell from the intonation and style that the recordings are taken from narrated speech. You'll also likely notice
+the large variation in speakers and recording quality, a common trait of crowd-sourced data.
+
+The Dataset Preview is a brilliant way of experiencing audio datasets before committing to using them. You can pick any
+dataset on the Hub, scroll through the samples and listen to the audio for the different subsets and splits, gauging whether
+it's the right dataset for your needs. Once you've selected a dataset, it's trivial to load the data so that you can
+start using it.
+
+Now, I personally don't speak Dhivehi, and expect the vast majority of readers not to either! To know if our fine-tuned model
 is any good, we'll need a rigorous way of _evaluating_ it on unseen data and measuring its transcription accuracy.
 We'll cover exactly this in the next section!
