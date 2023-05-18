@@ -1,1 +1,97 @@
 # Pre-trained models for automatic speech recognition
+
+As detailed in Chapter 2, speech recognition model broadly fall into one of two categories:
+
+1. Connectionist Temporal Classification (CTC): _encoder-only_ models with a linear classification (CTC) head on top
+2. Sequence-to-sequence (Seq2Seq): _encoder-decoder_ models, with a cross-attention mechanism between the encoder and decoder
+
+Prior to 2022, CTC was the more popular of the two architectures, with encoder-only models such as Wav2Vec2, HuBERT and XLSR achieving
+breakthoughs in the pre-training / fine-tuning paradigm for speech. Big corporations, such as Meta and Microsoft, would pre-train
+the encoder on vast amounts of unlabelled audio data for many days or weeks. Users could take a pre-trained checkpoint and
+fine-tune it with a CTC head on as little as 10 minutes of labelled speech data to achieve strong performance on a downstream
+speech recognition task.
+
+However, CTC models have their shortcomings. Appending a simple linear layer to an encoder gives a small, fast overall model, but can
+be prone to phonetic spelling errors. We'll demonstrate this for the Wav2Vec2 model below.
+
+## Probing CTC Models
+
+Let's load a small excerpt of the [LibriSpeech](https://huggingface.co/datasets/librispeech_asr) dataset to demonstrate
+Wav2Vec2's speech transcription capabilities:
+
+```python
+from datasets import load_dataset
+
+dataset = load_dataset("hf-internal-testing/librispeech_asr_demo", "clean", split="validation")
+dataset
+```
+
+**Output:**
+```
+Dataset({
+    features: ['file', 'audio', 'text', 'speaker_id', 'chapter_id', 'id'],
+    num_rows: 73
+})
+```
+
+We can pick one of the 73 audio samples and inspect the audio sample as well as the transcription:
+
+```python
+from IPython.display import Audio
+
+sample = dataset[2]
+
+print(sample["text"])
+Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
+```
+**Output:**
+```
+HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
+```
+
+Alright! Having chosen a data sample, we now load a fine-tuned checkpoint into the `pipeline()`. For this, we'll use the
+official [Wav2Vec2 base](facebook/wav2vec2-base-100h) checkpoint fine-tuned on 100 hours of LibriSpeech data:
+```python
+from transformers import pipeline
+
+asr = pipeline("automatic-speech-recognition", model="facebook/wav2vec2-base-100h")
+```
+
+Next, we'll take an example from the dataset and pass its raw data to the pipeline:
+
+```python
+asr(sample["audio"])
+{'text': 'HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAUS AND ROSE BEEF LOOMING BEFORE US SIMALYIS DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND'}
+```
+
+We can see that the Wav2Vec2 model does a pretty good job at transcribing this sample - at a first glance it looks generally correct.
+Let's put the target and prediction side-by-side and highlight the differences:
+
+```
+Target:     HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
+Prediction: HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH **CHRISTMAUS** AND **ROSE** BEEF LOOMING BEFORE US **SIMALYIS** DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
+```
+
+Comparing the target text to the predicted transcription, we can see that all words sound correct, but some are not spelled accurately. For example:
+
+* _CHRISTMAUS_ vs. _CHRISTMAS_
+* _ROSE_ vs. _ROAST_
+* _SIMALYIS_ vs. _SIMILES_
+
+This highlights the shortcoming of a CTC model. A CTC model is essentially an 'acoustic-only' model: it consists of an encoder
+which forms hidden-state representations from the audio inputs, and a linear layer which maps the hidden-states to characters:
+
+<!--- Need U3 to be merged before this figure is available:
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/wav2vec2-ctc.png" alt="Transformer encoder with a CTC head on top">
+</div>
+
+--->
+
+This means that the system almost entirely bases its prediction on the acoustic input it was given (the phonetic sounds of the audio),
+and so has a tendency to transcribe the audio in a phonetic way (e.g. _CHRISTMAUS_). It gives less importance to the
+language modelling context of previous and successive letters, and so is prone to phonetic spelling errors. A more intelligent model
+would identify that _CHRISTMAUS_ is not a valid word in the English vocabulary, and correct it to _CHRISTMAS_ when making
+its predictions.
+
