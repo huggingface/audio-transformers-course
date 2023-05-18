@@ -1,1 +1,159 @@
 # Evaluation metrics for ASR
+
+If your familiar with the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) from NLP, the
+metrics for assessing speech recognition systems will be familiar! Don't worry if you're not, we'll go through the
+explanations start-to-finish to make sure you know the different metrics and understand what they mean.
+
+When assessing speech recognition systems, we compare the system's predictions to the target text transcriptions,
+annotating any errors that are present. We categorise these errors into one of three categories:
+1. Substitutions (S): where we transcribe the **wrong word** in our prediction ("sit" instead of "sat")
+2. Insertions (I): where we add an **extra word** in our prediction
+3. Deletions (D): where we **remove a word** in our prediction
+
+These error categories are the same for all speech recognition metrics. What differs is the level at which we compute
+these errors: we can either compute them on the _word level_ or on the _character level_.
+
+We'll use a running example for each of the metric definitions. Here, we have a _ground truth_ or _reference_ text sequence:
+
+```python
+reference = "the cat sat on the mat"
+```
+
+And a predicted sequence from the speech recognition system that we're trying to assess:
+
+```python
+prediction = "the cat sit on the"
+```
+
+We can see that the prediction is pretty close! But some words are not quite right. We'll evaluate this prediction
+against the reference for the three most popular speech recognition metrics and see what sort of numbers we get for each.
+
+## Word Error Rate
+The _word error rate (WER)_ metric is the 'de facto' metric for speech recognition. It calculates substitutions,
+insertions and deletions on the _word level_. This means errors are annotated on a word-by-word basis. Take our example:
+
+
+| Reference:  | the | cat | sat     | on  | the | mat |
+|-------------|-----|-----|---------|-----|-----|-----|
+| Prediction: | the | cat | **sit** | on  | the |     |  |
+| Label:      | ✅   | ✅   | S       | ✅   | ✅   | D   |
+
+Here, we have:
+* 1 substitution ("sit" instead of "sat")
+* 0 insertions
+* 1 deletion ("mat" is missing)
+
+This gives 2 errors in total. To get our error rate, we divide the number of errors by the total number of words in our
+reference (N), which for this example is 6:
+
+\begin{aligned}
+WER &= \frac{S + I + D}{N} \\
+&= \frac{1 + 0 + 1}{6} \\
+&= 0.333
+\end{aligned}
+
+Alright! So we have a WER of 0.333, or 33.3%. That's quite a lot higher than the best LibriSpeech systems from the
+leaderboards, which were more like 1%!
+
+Notice how the word "sit" only has one character that is wrong, but the entire word is marked incorrect! This is a
+defining feature of the WER: spelling errors are penalised heavily, no matter how minor they are.
+
+The WER is defined such that _lower is better_: a lower WER means there are fewer errors in our prediction, so a perfect
+speech recognition system would have a WER of zero (no errors).
+
+Let's see how we can compute the WER using 🤗 Evaluate. We'll need two packages to compute our WER metric: 🤗 Evaluate
+for the API interface, and JIWER to do the heavy lifting of running the calculation:
+```
+pip install --upgrade evaluate jiwer
+```
+
+Great! We can now load up the WER metric and compute the figure for our example:
+
+```python
+from evaluate import load
+
+wer_metric = load("wer")
+
+wer = wer_metric.compute(references=[reference], predictions=[prediction])
+
+print(wer)
+```
+**Print Output:**
+```
+0.3333333333333333
+```
+
+0.33, or 33.3%, as expected! We now know what's going on under-the-hood with this WER calculation.
+
+Now, here's something that's quite confusing! What do you think the upper limit of the WER is? You would expect it to be
+1 or 100% right? Nuh uh! Since the WER is the ratio of errors to number of words (N), there is no upper limit on the WER!
+Let's take an example were we predict 10 words and the target only has 2 words. If all of our predictions were wrong (10 errors),
+we'd have a WER of 10 / 2 = 5, or 500%! This is something to bear in mind if you train an ASR system and see a WER of over
+100%. Although if you're seeing this, something has likely gone wrong... 😅
+
+## Word Accuracy
+
+We can flip the WER around to give us a metric where _higher is better_. Rather than measuring the word error rate,
+we can measure the _word accuracy (WAcc)_ of our system:
+
+\begin{equation}
+WAcc = 1 - WER \nonumber
+\end{equation}
+
+The WAcc is also measured on the word-level, it's just the WER reformulated as an accuracy metric rather than an error
+metric. The WAcc is very infrequently quoted in the speech literature - we think of our system predictions in terms of
+word errors, and so prefer error rate metrics that are more associated with these error type annotations.
+
+### Character Error Rate
+It seems a bit unfair that we marked the entire word for "sit" wrong when in fact only one letter was incorrect!
+That's because we were evaluating our system on the word level, thereby annotating errors on a word-by-word basis.
+The _character error rate (CER)_ assess systems on the _character level_. This means we divide up our words into their
+individual characters, and annotate errors on a character-by-character basis:
+
+| Reference:  | t   | h   | e   |     | c   | a   | t   |     | s   | a     | t   |     | o   | n   |     | t   | h   | e   |     | m   | a   | t   |
+|-------------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+| Prediction: | t   | h   | e   |     | c   | a   | t   |     | s   | **i** | t   |     | o   | n   |     | t   | h   | e   |     |     |     |     |
+| Label:      | ✅   | ✅   | ✅   |     | ✅   | ✅   | ✅   |     | ✅   | S     | ✅   |     | ✅   | ✅   |     | ✅   | ✅   | ✅   |     | D   | D   | D   |
+
+We can see now that for the word "sit", the "s" and "t" are marked as correct! It's only the "i" which is labelled as a
+substitution error (S). Thus, we reward our system for the partially correct prediction 🤝
+
+In our example, we have 1 character substitution, 0 insertions, and 3 deletions. In total, we have 14 characters. So, our CER is:
+
+\begin{aligned}
+CER &= \frac{S + I + D}{N} \\
+&= \frac{1 + 0 + 3}{14} \\
+&= 0.286
+\end{aligned}
+
+Right! We have a CER of 0.286, or 28.6%! Notice how this is lower than our WER - we penalised the spelling error much less.
+
+
+
+```python
+cer_metric = load("cer")
+
+cer = cer_metric.compute(references=[reference], predictions=[prediction])
+
+print(cer)
+```
+**Print Output:**
+```
+
+```
+
+## Which metric should I use?
+
+In general, the WER is used far more than the CER for assessing speech systems. This is because the WER requires systems
+to have greater understanding of the context of the predictions. In our example, "sit" is in the wrong tense. A system
+that understands the relationship between the verb and tense of the sentence would have predicted the correct verb tense
+of "sat". We want to encourage this level of understanding from our speech systems. So although the WER is harder than
+the CER, it's also more conducive to the kinds of intelligible systems we want to develop. Therefore, we typically use
+the WER and would encourage you to as well! However, there are circumstances where it is not possible to use the WER.
+Certain languages, such as Mandarin and Japanese, have no notion of 'words', and so the WER is meaningless. Here, we revert
+to using the CER.
+
+In our example, we only used one sentence when computing the WER. We would typically use an entire test set consisting
+of several thousand sentences when evaluating a real system. When evaluating over multiple sentences, we aggregate S, I, D
+and N across all sentences, and then compute the WER according to the formula defined above. This gives a better estimate
+of the WER for unseen data.
