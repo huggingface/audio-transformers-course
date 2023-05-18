@@ -79,3 +79,17 @@ Alright! Now that we've gone through all the criterion for selecting an ASR data
 We know that Whisper already does a pretty good job at transcribing data in high-resource languages (such as English and Spanish), so
 we'll focus ourselves on low-resource multilingual transcription. We want to retain Whisper's ability to predict punctuation and casing,
 so it seems from the second table that Common Voice 13 is a great candidate choice!
+
+We can get the full list of languages for the Common Voice 13 dataset by checking-out the dataset page on the Hub:
+[mozilla-foundation/common_voice_13_0#languages](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0#languages).
+Here we see a list of 108 candidate languages, any one of which we could use to fine-tune our model.
+
+For this Unit, we'll select [_Dhivehi_](https://en.wikipedia.org/wiki/Maldivian_language) (or _Maldivian_), an Indo-Aryan
+language spoken in the South Asian island country of the Maldives. Common Voice 13 contains approximately ten hours
+of labelled Dhivehi data, three of which is held-out test data. This is extremely little data for fine-tuning, so we'll
+be relying on leveraging the extensive multilingual ASR knowledge acquired by Whisper during pre-training for the low-resource
+Dhivehi language.
+
+I personally don't speak Dhivehi, and expect the vast majority of readers not to either! To know if our fine-tuned model
+is any good, we'll need a rigorous way of _evaluating_ it on unseen data and measuring its transcription accuracy.
+We'll cover exactly this in the next section!
