@@ -198,7 +198,7 @@ def is_audio_in_length_range(length):
 We apply our filter function to all samples of our training dataset through 🤗 Datasets' `.filter` method:
 
 ```python
-vectorized_datasets["train"] = vectorized_datasets["train"].filter(
+common_voice["train"] = common_voice["train"].filter(
     is_audio_in_length_range,
     input_columns=["input_length"],
 )
@@ -346,7 +346,7 @@ model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-small")
 
 We'll set `use_cache` to `False` since we're using gradient checkpointing and the two are incompatible. We'll also 
 override two generation arguments to control the behaviour of the model during inference. We'll force the language
-and task token during generation by setting the `language` and `task` arguments in the `generation_config` (see [`forced_decoder_ids`](https://huggingface.co/docs/transformers/main_classes/text_generation#transformers.generation_utils.GenerationMixin.generate.forced_decoder_ids)).
+and task tokens during generation by setting the `language` and `task` arguments in the `generation_config` (see [`forced_decoder_ids`](https://huggingface.co/docs/transformers/main_classes/text_generation#transformers.generation_utils.GenerationMixin.generate.forced_decoder_ids)).
 We also re-enable cache for generate to speed-up inference time:
 
 ```python
@@ -372,7 +372,7 @@ For more detail on the training arguments, refer to the Seq2SeqTrainingArguments
 from transformers import Seq2SeqTrainingArguments
 
 training_args = Seq2SeqTrainingArguments(
-    output_dir="./whisper-small-dv",
+    output_dir="./whisper-small-dv",  # name on the HF Hub
     per_device_train_batch_size=16,
     gradient_accumulation_steps=1,  # increase by 2x for every 2x decrease in batch size
     learning_rate=1e-5,
@@ -459,6 +459,9 @@ The training results can now be uploaded to the Hub. To do so, execute the `push
 ```python
 trainer.push_to_hub(**kwargs)
 ```
+
+This will save the training logs and model weights under `"your-username/the-name-you-picked"`.
+For this example, check out the upload at `sanchit-gandhi/my-first-asr-model`.
 
 While the fine-tuned model yields satisfactory results on the Common Voice 13 Dhivehi test data, it is by no means optimal.
 The purpose of this notebook is to demonstrate how to fine-tune an ASR model using the 🤗 Trainer for multilingual speech
