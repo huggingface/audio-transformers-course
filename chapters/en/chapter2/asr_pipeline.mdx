@@ -1,14 +1,18 @@
 # Automatic speech recognition with a pipeline
 
-Automatic Speech Recognition (ASR) is a task that involves transcribing speech audio recording into text.
-This task has has numerous practical applications, from creating closed captions for videos to enabling voice commands
+Automatic Speech Recognition (ASR) is the task of transcribing a speech audio recording into text.
+This task has numerous practical applications, from creating closed captions for videos, to enabling voice commands
 for virtual assistants like Siri and Alexa.
 
 In this section, we'll use the `automatic-speech-recognition` pipeline to transcribe an audio recording of a person
-asking a question about paying a bill using the same MINDS-14 dataset as before.
+asking a question about paying a bill using the same [MINDS-14](https://huggingface.co/datasets/PolyAI/minds14) dataset as before.
 
-To get started, load the datas  et and upsample it to 16kHz as described in [Audio classification with a pipeline](introduction.mdx),
-if you haven't done that yet.
+To get started, load the `en-AU` subset of the data as before:
+```py
+from datasets import load_dataset
+
+minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+```
 
 To transcribe an audio recording, we can use the `automatic-speech-recognition` pipeline from 🤗 Transformers. Let's
 instantiate the pipeline:
@@ -23,7 +27,7 @@ Next, we'll take an example from the dataset and pass its raw data to the pipeli
 
 ```py
 example = minds[0]
-asr(example["audio"]["array"])
+asr(example["audio"])
 {"text": "I WOULD LIKE TO PAY MY ELECTRICITY BILL USING MY COD CAN YOU PLEASE ASSIST"}
 ```
 
@@ -41,20 +45,18 @@ is often silent. Having said that, I wouldn't recommend trying to pay your next 
 By default, this pipeline uses a model trained for automatic speech recognition for English language, which is fine in
 this example. If you'd like to try transcribing other subsets of MINDS-14 in different language, you can find a pre-trained
 ASR model [on the 🤗 Hub](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&language=fr&sort=downloads).
-You can filter the models list by task first, then by language. Once you have found the model you like, pass it's name as
+You can filter the models list by task first, then by language. Once you have found the model you like, pass its name as
 the `model` argument to the pipeline.
 
-Let's try this for the German split of the MINDS-14. Load the "de-DE" subset:
+Let's try this for the German split of the MINDS-14. First, we load the "de-DE" subset:
 
 ```py
 from datasets import load_dataset
-from datasets import Audio
 
 minds = load_dataset("PolyAI/minds14", name="de-DE", split="train")
-minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
 ```
 
-Get an example and see what the transcription is supposed to be:
+Then get an example and see what the transcription is supposed to be:
 
 ```py
 example = minds[0]
@@ -62,7 +64,8 @@ example["transcription"]
 "ich möchte gerne Geld auf mein Konto einzahlen"
 ```
 
-Find a pre-trained ASR model for German language on the 🤗 Hub, instantiate a pipeline, and transcribe the example:
+Next, we can find a pre-trained ASR model for German language on the 🤗 Hub, instantiate a pipeline, and transcribe the example.
+Here, we'll use the checkpoint [maxidl/wav2vec2-large-xlsr-german](https://huggingface.co/maxidl/wav2vec2-large-xlsr-german):
 
 ```py
 from transformers import pipeline
@@ -77,9 +80,8 @@ Also, stimmt's!
 When working on solving your own task, starting with a simple pipeline like the ones we've shown in this unit is a valuable
 tool that offers several benefits:
 - a pre-trained model may exist that already solves your task really well, saving you plenty of time
-- pipeline() takes care of all the pre/post-processing for you, so you don't have to worry about getting the data into
+- `pipeline()` takes care of all the pre/post-processing for you, so you don't have to worry about getting the data into
 the right format for a model
 - if the result isn't ideal, this still gives you a quick baseline for future fine-tuning
 - once you fine-tune a model on your custom data and share it on Hub, the whole community will be able to use it quickly
-and effortlessly via the `pipeline()` method making AI more accessible.
-
+and effortlessly via the `pipeline()` method, making AI more accessible
