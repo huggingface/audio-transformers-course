@@ -1,8 +1,10 @@
 # Pre-trained models for automatic speech recognition
 
-In this section, we'll cover how the `pipeline()` to leverage pre-trained models for speech recognition. In Unit 2, we
-introduced the `pipeline()` as an easy way of running speech tasks, with all pre- and post-processing handled under-the-hood,
-as well as giving you the flexibility to quickly experiment with pre-trained checkpoints on the Hugging Face Hub.
+In this section, we'll cover how the `pipeline()` to leverage pre-trained models for speech recognition. In [Unit 2](../chapter2/asr_pipeline.mdx),
+we introduced the `pipeline()` as an easy way of running speech recognition tasks, with all pre- and post-processing handled under-the-hood
+and the flexibility to quickly experiment with any pre-trained checkpoint on the Hugging Face Hub. In this Unit, we'll go a
+level deeper and explore the different attributes of speech recognition models and how we can use them to tackle a range
+of different tasks.
 
 As detailed in Unit 3, speech recognition model broadly fall into one of two categories:
 
@@ -10,9 +12,9 @@ As detailed in Unit 3, speech recognition model broadly fall into one of two cat
 2. Sequence-to-sequence (Seq2Seq): _encoder-decoder_ models, with a cross-attention mechanism between the encoder and decoder
 
 Prior to 2022, CTC was the more popular of the two architectures, with encoder-only models such as Wav2Vec2, HuBERT and XLSR achieving
-breakthoughs in the pre-training / fine-tuning paradigm for speech. Big corporations, such as Meta and Microsoft, would pre-train
-the encoder on vast amounts of unlabelled audio data for many days or weeks. Users could take a pre-trained checkpoint and
-fine-tune it with a CTC head on as little as 10 minutes of labelled speech data to achieve strong performance on a downstream
+breakthoughs in the pre-training / fine-tuning paradigm for speech. Big corporations, such as Meta and Microsoft, pre-trained
+the encoder on vast amounts of unlabelled audio data for many days or weeks. Users could then take a pre-trained checkpoint, and
+fine-tune it with a CTC head on as little as **10 minutes** of labelled speech data to achieve strong performance on a downstream
 speech recognition task.
 
 However, CTC models have their shortcomings. Appending a simple linear layer to an encoder gives a small, fast overall model, but can
@@ -53,8 +55,10 @@ Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
 HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
 ```
 
-Alright! Having chosen a data sample, we now load a fine-tuned checkpoint into the `pipeline()`. For this, we'll use the
-official [Wav2Vec2 base](facebook/wav2vec2-base-100h) checkpoint fine-tuned on 100 hours of LibriSpeech data:
+Alright! Christmas and roast beef, sounds great! 🎄 Having chosen a data sample, we now load a fine-tuned checkpoint into
+the `pipeline()`. For this, we'll use the official [Wav2Vec2 base](facebook/wav2vec2-base-100h) checkpoint fine-tuned on
+100 hours of LibriSpeech data:
+
 ```python
 from transformers import pipeline
 
@@ -72,11 +76,11 @@ We can see that the Wav2Vec2 model does a pretty good job at transcribing this s
 Let's put the target and prediction side-by-side and highlight the differences:
 
 ```
-Target:     HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
-Prediction: HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH **CHRISTMAUS** AND **ROSE** BEEF LOOMING BEFORE US **SIMALYIS** DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
+Target:      HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
+Prediction:  HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH **CHRISTMAUS** AND **ROSE** BEEF LOOMING BEFORE US **SIMALYIS** DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
 ```
 
-Comparing the target text to the predicted transcription, we can see that all words sound correct, but some are not spelled accurately. For example:
+Comparing the target text to the predicted transcription, we can see that all words _sound_ correct, but some are not spelled accurately. For example:
 
 * _CHRISTMAUS_ vs. _CHRISTMAS_
 * _ROSE_ vs. _ROAST_
@@ -98,7 +102,7 @@ and so has a tendency to transcribe the audio in a phonetic way (e.g. _CHRISTMAU
 language modelling context of previous and successive letters, and so is prone to phonetic spelling errors. A more intelligent model
 would identify that _CHRISTMAUS_ is not a valid word in the English vocabulary, and correct it to _CHRISTMAS_ when making
 its predictions. We're also missing two big features in our prediction - casing and punctuation - which limits the usefulness of
-the model's transcriptions.
+the model's transcriptions to real-world applications.
 
 ## Graduation to Seq2Seq
 
@@ -113,7 +117,7 @@ There are two downsides to Seq2Seq models:
 1. They are inherently slower at decoding, since as the decoding process happens one step at a time, rather than all at once
 2. They are more data hungry, requiring significantly more training data to reach convergence
 
-In particular, the need for large amounts of training data was a bottleneck in the advancement of Seq2Seq architectures for
+In particular, the need for large amounts of training data has been a bottleneck in the advancement of Seq2Seq architectures for
 speech. Labelled speech data is difficult to come by, with the largest annotated datasets at the time clocking in at just
 10,000 hours. This all changed in 2022 upon the release of **Whisper**. Whisper is a pre-trained model for speech recognition
 published in [September 2022](https://openai.com/blog/whisper/) by the authors Alec Radford et al. from OpenAI. Unlike
@@ -121,7 +125,7 @@ its CTC predecessors, which were pre-trained entirely on **un-labelled** audio d
 **labelled** audio-transcription data, 680,000 hours to be precise.
 
 This is an order of magnitude more data than the un-labelled audio data used to train Wav2Vec 2.0 (60,000 hours). What is
-more, 117,000 hours of this pre-training data is multilingual (non-English) data. This results in checkpoints that can be applied to
+more, 117,000 hours of this pre-training data is multilingual (or "non-English") data. This results in checkpoints that can be applied to
 over 96 languages, many of which are considered _low-resource_.
 
 When scaled to 680,000 hours of labelled pre-training data, Whisper models demonstrate a strong ability to generalise to
@@ -129,19 +133,21 @@ many datasets and domains. The pre-trained checkpoints achieve competitive resul
 near 3% word error rate (WER) on the test-clean subset of LibriSpeech pipe and a new state-of-the-art on TED-LIUM with
 4.7% WER (_c.f._ Table 8 of the [Whisper paper](https://cdn.openai.com/papers/whisper.pdf)).
 
-Of particular importance is Whisper's ability to handle long-form audio samples and its robustness to input noise. This makes
-it a strong viable candidate for real-world speech recognition systems.
+Of particular importance is Whisper's ability to handle long-form audio samples, its robustness to input noise and ability
+to predict cased and punctuated transcriptions. This makes it a viable candidate for real-world speech recognition systems.
 
-The remainder of this section will show you how to use the pre-trained Whisper models for speech recognition using 🤗 Transformers.
-In many situations, the pre-trained Whisper checkpoints are extremely performant and give great results, thus we encourage you
-to try using the pre-trained checkpoints as a first step to solving any speech recognition problem. Through fine-tuning, the
-pre-trained checkpoints can be adapted for specific datasets and languages to further improve upon these results.
-We'll demonstrate how to do this in the upcoming subsection on [fine-tuning](fine-tuning.mdx).
+The remainder of this section will show you how to use the pre-trained Whisper models for speech recognition using 🤗
+Transformers. In many situations, the pre-trained Whisper checkpoints are extremely performant and give great results,
+thus we encourage you to try using the pre-trained checkpoints as a first step to solving any speech recognition problem.
+Through fine-tuning, the pre-trained checkpoints can be adapted for specific datasets and languages to further improve
+upon these results. We'll demonstrate how to do this in the upcoming subsection on [fine-tuning](fine-tuning.mdx).
 
 The Whisper checkpoints come in five configurations of varying model sizes. The smallest four are trained on either
 English-only or multilingual data. The largest checkpoint is multilingual only. All nine of the pre-trained checkpoints
 are available on the [Hugging Face Hub](https://huggingface.co/models?search=openai/whisper). The checkpoints are
-summarised in the following table with links to the models on the Hub:
+summarised in the following table with links to the models on the Hub. "VRAM" denotes the required GPU memory to run the
+model with the minimum batch size of 1. "Rel Speed" is the relative speed of a checkpoint compared to the largest model.
+Based on this information, you can select a checkpoint that is best suited to your hardware.
 
 | Size   | Parameters | VRAM / GB | Rel Speed | English-only                                         | Multilingual                                        |
 |--------|------------|-----------|-----------|------------------------------------------------------|-----------------------------------------------------|
@@ -198,7 +204,8 @@ dataset = load_dataset("facebook/multilingual_librispeech", "spanish", split="va
 sample = next(iter(dataset))
 ```
 
-Inspecting the text transcription and listening to the audio segment:
+Again, we'll inspect the text transcription and take a listen to the audio segment:
+
 ```python
 print(sample["text"])
 Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
@@ -207,7 +214,8 @@ Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
 ```
 entonces te delelitarás en jehová y yo te haré subir sobre las alturas de la tierra y te daré á comer la heredad de jacob tu padre porque la boca de jehová lo ha hablado
 ```
-It's Spanish (as expected)! This is the text that we're aiming for with our Whisper transcription. Although we now know that we can
+
+This is the target text that we're aiming for with our Whisper transcription. Although we now know that we can
 probably better this, since our model is also going to predict punctuation and casing, neither of which are present in the
 reference. Let's forward the audio sample to the pipeline to get our text prediction:
 
@@ -221,8 +229,8 @@ pipe(sample["audio"].copy(), max_new_tokens=256)
 
 Hold on a second... we put a Spanish audio input in, but got an English transcription out? 🤔 Whisper has implicitly performed
 the task of _speech translation_, translating the input audio from one language into a transcription in another. We can
-force it to perform the task of _speech recognition_, which transcribes the audio in the same language it was spoken. To achieve this,
-we'll forward the `task` as a generation argument, which is set to `"transcribe"` (for speech recognition):
+force it to perform the task of _speech recognition_, which transcribes the audio in the same language it was spoken.
+To achieve this, we'll forward the `task` as a generation argument, which is set to `"transcribe"` (for speech recognition):
 
 ```python
 pipe(sample["audio"], max_new_tokens=256, generate_kwargs={"task": "transcribe"})
@@ -233,8 +241,8 @@ pipe(sample["audio"], max_new_tokens=256, generate_kwargs={"task": "transcribe"}
 ```
 
 Great - this looks very similar to our reference text. Now that we know we can toggle between speech translation and
-recognition, we can pick our task depending on our needs. Either we translate from audio in language X to text in English,
-or we recognise from audio in language X to text in the same language X.
+recognition, we can pick our task depending on our needs. Either we translate from audio in any language X to text in
+English, or we recognise from audio in language X to text in the same language X.
 
 To understand why Whisper defaulted to speech translation, we can decompose the training data a little more deeply:
 * 438,000 hours (65%) is English speech recognition data (English audio -> English text)
@@ -254,9 +262,10 @@ of Whisper was its ability to work on long audio samples. We'll tackle this task
 
 Let's create a long audio file by concatenating sequential samples from the MLS dataset. Since the MLS dataset is
 curated by splitting long audiobook recordings into shorter segments, concatenating samples is one way of reconstructing
-longer audiobook passages, and the resulting audio should be coherent across the entire length.
+longer audiobook passages. Consequently, the resulting audio should be coherent across the entire sample.
 
 We'll set our target audio length to 5 minutes, and stop concatenating samples once we hit this value:
+
 ```python
 import numpy as np
 
@@ -286,12 +295,12 @@ Length of audio sample is 5.0 minutes 17.22 seconds
 
 Alright! 5 minutes and 17 seconds of audio to transcribe. There are two problems with forwarding this long audio sample
 directly to the model:
-1. Whisper is inherently designed to work with 30 second samples: anything shorter than 30s is padded to 30s with silence, anything longer than 30s is truncated to 30s by cutting of the extra audio
-2. Memory in a transformer block scales with the sequence length squared: doubling the input length quadruples the memory requirement, so passing super long audio files is bound to lead to an out-of-memory (OOM) error
+1. Whisper is inherently designed to work with 30 second samples: anything shorter than 30s is padded to 30s with silence, anything longer than 30s is truncated to 30s by cutting of the extra audio, so if we pass our audio directly we'll only get the transcription for the first 30s
+2. Memory in a transformer network scales with the sequence length squared: doubling the input length quadruples the memory requirement, so passing super long audio files is bound to lead to an out-of-memory (OOM) error
 
 The way long-form transcription works in 🤗 Transformers is by _chunking_ the input audio into smaller, more manageable segments.
 Each segment has a small amount of overlap with the previous one. This allows us to accurately stitch the segments back together
-at the boundaries, as we can match the overlapping transcriptions together:
+at the boundaries, since we can find the overlap between segments and merge the transcriptions accordingly:
 
 <!--- Fast render, don't display figs
 
@@ -305,14 +314,15 @@ The advantage of chunking the samples is that we don't need the result of chunk 
 chunk \\( i + 1 \\). The stitching is done after we have transcribed all the chunks at the chunk boundaries, so it doesn't
 matter which order we transcribe chunks in. The algorithm is entirely **stateless**, so we can even do chunk \\( i + 1 \\)
 at the same time as chunk \\( i \\)! This allows us to _batch_ the chunks and run them through the model in parallel,
-providing a large computational speed-up compared to transcribing them sequentially.
+providing a large computational speed-up compared to transcribing them sequentially. To read more about chunking in 🤗 Transformers,
+you can refer to this [blog post](https://huggingface.co/blog/asr-chunking).
 
 To activate long-form transcriptions, we have to add one additional argument when we call the pipeline. This argument,
-`chunk_length_s`, controls the length of the chunked segments. For Whisper, 30s chunks are optimal, since this matches
-the input length Whisper expects.
+`chunk_length_s`, controls the length of the chunked segments in seconds. For Whisper, 30 second chunks are optimal,
+since this matches the input length Whisper expects.
 
-To activate batching, we pass the argument `batch_size` to the pipeline. Putting it all together, we can transcribe the
-long audio sample as follows:
+To activate batching, we need to pass the argument `batch_size` to the pipeline. Putting it all together, we can transcribe the
+long audio sample with chunking and batching as follows:
 
 ```python
 pipe(long_audio, max_new_tokens=256, generate_kwargs={"task": "transcribe"}, chunk_length_s=30, batch_size=8)
@@ -333,8 +343,9 @@ time for a short passage of audio, and are particularly useful for aligning a tr
 we want to provide closed captions for a video - we need these timestamps to know which part of the transcription corresponds
 to a certain segment of video, in order to display the correct transcription for that time.
 
-Activating timestamp prediction is straightforward, we just need to set the argument `return_timestamps=True`. Timestamps are compatible
-with both the chunking and batching methods we used previously, so we can simply append the timestamp argument to our previous call:
+Activating timestamp prediction is straightforward, we just need to set the argument `return_timestamps=True`. Timestamps
+are compatible with both the chunking and batching methods we used previously, so we can simply append the timestamp
+argument to our previous call:
 
 ```python
 pipe(long_audio, max_new_tokens=256, generate_kwargs={"task": "transcribe"}, chunk_length_s=30, batch_size=8, return_timestamps=True)["chunks"]
@@ -351,3 +362,11 @@ pipe(long_audio, max_new_tokens=256, generate_kwargs={"task": "transcribe"}, chu
 ```
 
 And voila! We have our predicted text as well as corresponding timestamps.
+
+## Summary
+
+Whisper is a strong pre-trained model for speech recognition and translation. Compared to Wav2Vec2, it has higher
+transcription accuracy, with outputs that contain punctuation and casing. It can be used to transcribe speech in English
+as well as 96 other languages, both on short audio segments and longer ones through _chunking_. These attributes make it
+a viable model for many speech recognition tasks without the need for fine-tuning. The `pipeline()` method provides an easy
+way of running inference in one-line API calls with control over the generated predictions.
