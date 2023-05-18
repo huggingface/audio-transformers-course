@@ -60,7 +60,7 @@ asr = pipeline("automatic-speech-recognition", model="facebook/wav2vec2-base-100
 Next, we'll take an example from the dataset and pass its raw data to the pipeline:
 
 ```python
-asr(sample["audio"])
+asr(sample["audio"].copy())
 {'text': 'HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAUS AND ROSE BEEF LOOMING BEFORE US SIMALYIS DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND'}
 ```
 
@@ -93,5 +93,149 @@ This means that the system almost entirely bases its prediction on the acoustic 
 and so has a tendency to transcribe the audio in a phonetic way (e.g. _CHRISTMAUS_). It gives less importance to the
 language modelling context of previous and successive letters, and so is prone to phonetic spelling errors. A more intelligent model
 would identify that _CHRISTMAUS_ is not a valid word in the English vocabulary, and correct it to _CHRISTMAS_ when making
-its predictions.
+its predictions. We're also missing two big features in our prediction - casing and punctuation - which limits the usefulness of
+the model's transcriptions.
+
+## Graduation to Seq2Seq
+
+Cue Seq2Seq models! As outlined in Unit 3, Seq2Seq models are formed of an encoder and decoder linked via a cross-attention
+mechanism. The encoder plays the same role as before, computing hidden-state representations of the audio inputs, while the decoder
+plays the role of a **language model**. The decoder processes the entire sequence of hidden-state representations
+from the encoder and generates the corresponding text transcriptions. With global context of the audio input, the decoder
+is able to use language modelling context as it makes its predictions, correcting for spelling mistakes on-the-fly and thus
+circumventing the issue of phonetic predictions.
+
+There are two downsides to Seq2Seq models:
+1. They are inherently slower at decoding, since as the decoding process happens one step at a time, rather than all at once
+2. They are more data hungry, requiring significantly more training data to reach convergence
+
+In particular, the need for large amounts of training data was a bottleneck in the advancement of Seq2Seq architectures for
+speech. Labelled speech data is difficult to come by, with the largest annotated datasets at the time clocking in at just
+10,000 hours. This all changed in 2022 upon the release of **Whisper**. Whisper is a pre-trained model for speech recognition
+published in [September 2022](https://openai.com/blog/whisper/) by the authors Alec Radford et al. from OpenAI. Unlike
+its CTC predecessors, which were pre-trained entirely on **un-labelled** audio data, Whisper is pre-trained on a vast quantity of
+**labelled** audio-transcription data, 680,000 hours to be precise.
+
+This is an order of magnitude more data than the un-labelled audio data used to train Wav2Vec 2.0 (60,000 hours). What is
+more, 117,000 hours of this pre-training data is multilingual (non-English) data. This results in checkpoints that can be applied to
+over 96 languages, many of which are considered _low-resource_.
+
+When scaled to 680,000 hours of labelled pre-training data, Whisper models demonstrate a strong ability to generalise to
+many datasets and domains. The pre-trained checkpoints achieve competitive results to state-of-the-art ASR systems, with
+near 3% word error rate (WER) on the test-clean subset of LibriSpeech ASR and a new state-of-the-art on TED-LIUM with
+4.7% WER (_c.f._ Table 8 of the [Whisper paper](https://cdn.openai.com/papers/whisper.pdf)).
+
+Of particular importance is Whisper's ability to handle long-form audio samples and its robustness to input noise. This makes
+it a strong viable candidate for real-world speech recognition systems.
+
+The remainder of this section will show you how to use the pre-trained Whisper models for speech recognition using 🤗 Transformers.
+In many situations, the pre-trained Whisper checkpoints are extremely performant and give great results. The extensive multilingual
+ASR knowledge acquired by Whisper during pre-training can be leveraged for other low-resource languages; through fine-tuning,
+the pre-trained checkpoints can be adapted for specific datasets and languages to further improve upon these results.
+We'll demonstrate how to do this in the upcoming subsection on [fine-tuning](fine-tuning.mdx).
+
+The Whisper checkpoints come in five configurations of varying model sizes. The smallest four are trained on either
+English-only or multilingual data. The largest checkpoint is multilingual only. All nine of the pre-trained checkpoints
+are available on the [Hugging Face Hub](https://huggingface.co/models?search=openai/whisper). The checkpoints are
+summarised in the following table with links to the models on the Hub:
+
+| Size   | Parameters | VRAM / GB | Rel Speed | English-only                                         | Multilingual                                        |
+|--------|------------|-----------|-----------|------------------------------------------------------|-----------------------------------------------------|
+| tiny   | 39 M       | 1.4       | 32        | [✓](https://huggingface.co/openai/whisper-tiny.en)   | [✓](https://huggingface.co/openai/whisper-tiny)     |
+| base   | 74 M       | 1.5       | 16        | [✓](https://huggingface.co/openai/whisper-base.en)   | [✓](https://huggingface.co/openai/whisper-base)     |
+| small  | 244 M      | 2.3       | 6         | [✓](https://huggingface.co/openai/whisper-small.en)  | [✓](https://huggingface.co/openai/whisper-small)    |
+| medium | 769 M      | 4.2       | 2         | [✓](https://huggingface.co/openai/whisper-medium.en) | [✓](https://huggingface.co/openai/whisper-medium)   |
+| large  | 1550 M     | 7.5       | 1         | x                                                    | [✓](https://huggingface.co/openai/whisper-large-v2) |
+
+Let's load the [Whisper Base](https://huggingface.co/openai/whisper-base) checkpoint, which is of comparable size to the
+Wav2Vec2 checkpoint we used previously. Preempting our move to multilingual speech recognition, we'll load the multilingual
+variant of the base checkpoint:
+
+```python
+asr = pipeline("automatic-speech-recognition", model="openai/whisper-base")
+```
+
+Great! Now let's transcribe the audio as before. The only change we make is passing an extra argument, `max_new_tokens`,
+which tells the model the maximum number of tokens to generate when making its prediction:
+
+```python
+asr(sample["audio"], max_new_tokens=256)
+```
+**Output:**
+```
+{'text': ' He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similarly is drawn from eating and its results occur most readily to the mind.'}
+```
+
+Easy enough! The first thing you'll notice is the presence of both casing and punctuation. Immediately this makes the
+transcription easier to read compared to the un-cased and un-punctuated transcription from Wav2Vec2. Let's put the transcription
+side-by-side with the target:
+
+```
+Target:     HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
+Prediction: He tells us that at this festive season of the year, with **Christmas** and **roast** beef looming before us, **similarly** is drawn from eating and its results occur most readily to the mind.
+```
+
+Whisper has done a great job at correcting the phonetic errors we saw from Wav2Vec2 - both _Christmas_ and _roast_ are
+spelled correctly. We see that the model still struggles with _SIMILES_, being incorrectly transcribe as _similarly_, but
+this time the prediction is a valid word from the English vocabulary. Using a larger Whisper checkpoint can help further
+reduce transcription errors, at the expense of requiring more compute and a longer transcription time.
+
+We've been promised a model that can handle 96 languages, so lets leave English speech recognition for now and go global 🌎!
+The [Multilingual LibriSpeech](https://huggingface.co/datasets/facebook/multilingual_librispeech) (MLS) dataset is
+the multilingual equivalent of the LibriSpeech dataset, with labelled audio data in six languages. We'll load one sample
+from the Spanish split of the MLS dataset, making use of _streaming_ mode so that we don't have to download the entire dataset:
+
+```python
+dataset = load_dataset("facebook/multilingual_librispeech", "spanish", split="validation", streaming=True)
+sample = next(iter(dataset))
+```
+
+Inspecting the text transcription and listening to the audio segment:
+```python
+print(sample["text"])
+Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
+```
+**Output:**
+```
+entonces te delelitarás en jehová y yo te haré subir sobre las alturas de la tierra y te daré á comer la heredad de jacob tu padre porque la boca de jehová lo ha hablado
+```
+It's Spanish (as expected)! This is the text that we're aiming for with our Whisper transcription. Although we now know that we can
+probably better this, since our model is also going to predict punctuation and casing, neither of which are present in the
+reference. Let's forward the audio sample to the pipeline to get our text prediction:
+
+```python
+asr(sample["audio"].copy(), max_new_tokens=256)
+```
+**Output:**
+```
+{'text': ' So you will choose in Jehovah and I will raise you on the heights of the earth and I will give you the honor of Jacob to your father because the voice of Jehovah has spoken to you.'}
+```
+
+Hold on a second... we put a Spanish audio input in, but got an English transcription out? 🤔 Whisper has implicitly performed
+the task of _speech translation_, translating the input audio from one language into a transcription in another. We can
+force it to perform the task of _speech recognition_, which transcribes the audio in the same language it was spoken. To achieve this,
+we'll forward the `task` as a generation argument, which is set to `"transcribe"` (for speech recognition):
+
+```python
+asr(sample["audio"], max_new_tokens=256, generate_kwargs={"task": "transcribe"})
+```
+**Output:**
+```
+{'text': ' Entonces te deleitarás en Jehová y yo te haré subir sobre las alturas de la tierra y te daré a comer la heredad de Jacob tu padre porque la boca de Jehová lo ha hablado.'}
+```
+
+Great - this looks very similar to our reference text. Now that we know we can toggle between speech translation and
+recognition, we can pick our task depending on our needs. Either we translate from audio in language X to text in English,
+or we recognise from audio in language X to text in the same language X.
+
+To understand why Whisper defaulted to speech translation, we can decompose the training data a little more deeply:
+* 438,000 hours (65%) is English speech recognition data (English audio -> English text)
+* 126,000 hours (18%) is speech translation data (X audio -> English text)
+* 117,000 hours (17%) is multilingual speech recognition data (X audio -> X text)
+
+Given an audio input with Spanish speech, Whisper has to decide whether to translate it to English text, or transcribe
+it as Spanish text. Since there is more speech translation data than multilingual speech recognition data, Whisper
+usually makes the **maximum likelihood** estimate and defaults to speech translation. Passing the `task` argument overrides
+this prediction, and forces Whisper to perform the task that you give it (either `"translate"` or `"transcribe"`), so you
+can effectively control the predictions.
 
