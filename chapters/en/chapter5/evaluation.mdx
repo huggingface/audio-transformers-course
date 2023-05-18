@@ -52,11 +52,9 @@ WER &= \frac{S + I + D}{N} \\
 &= 0.333
 \end{aligned}
 
-Alright! So we have a WER of 0.333, or 33.3%. That's quite a lot higher than the best LibriSpeech systems from the
-leaderboards, which were more like 1%!
-
-Notice how the word "sit" only has one character that is wrong, but the entire word is marked incorrect! This is a
-defining feature of the WER: spelling errors are penalised heavily, no matter how minor they are.
+Alright! So we have a WER of 0.333, or 33.3%. Notice how the word "sit" only has one character that is wrong, but the
+entire word is marked incorrect! This is a defining feature of the WER: spelling errors are penalised heavily, no matter
+how minor they are.
 
 The WER is defined such that _lower is better_: a lower WER means there are fewer errors in our prediction, so a perfect
 speech recognition system would have a WER of zero (no errors).
