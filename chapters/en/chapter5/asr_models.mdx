@@ -16,13 +16,13 @@ be prone to phonetic spelling errors. We'll demonstrate this for the Wav2Vec2 mo
 
 ## Probing CTC Models
 
-Let's load a small excerpt of the [LibriSpeech](https://huggingface.co/datasets/librispeech_asr) dataset to demonstrate
+Let's load a small excerpt of the [LibriSpeech](https://huggingface.co/datasets/librispeech_pipe) dataset to demonstrate
 Wav2Vec2's speech transcription capabilities:
 
 ```python
 from datasets import load_dataset
 
-dataset = load_dataset("hf-internal-testing/librispeech_asr_demo", "clean", split="validation")
+dataset = load_dataset("hf-internal-testing/librispeech_pipe_demo", "clean", split="validation")
 dataset
 ```
 
@@ -54,13 +54,13 @@ official [Wav2Vec2 base](facebook/wav2vec2-base-100h) checkpoint fine-tuned on 1
 ```python
 from transformers import pipeline
 
-asr = pipeline("automatic-speech-recognition", model="facebook/wav2vec2-base-100h")
+pipe = pipeline("automatic-speech-recognition", model="facebook/wav2vec2-base-100h")
 ```
 
 Next, we'll take an example from the dataset and pass its raw data to the pipeline:
 
 ```python
-asr(sample["audio"].copy())
+pipe(sample["audio"].copy())
 {'text': 'HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAUS AND ROSE BEEF LOOMING BEFORE US SIMALYIS DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND'}
 ```
 
@@ -121,17 +121,17 @@ more, 117,000 hours of this pre-training data is multilingual (non-English) data
 over 96 languages, many of which are considered _low-resource_.
 
 When scaled to 680,000 hours of labelled pre-training data, Whisper models demonstrate a strong ability to generalise to
-many datasets and domains. The pre-trained checkpoints achieve competitive results to state-of-the-art ASR systems, with
-near 3% word error rate (WER) on the test-clean subset of LibriSpeech ASR and a new state-of-the-art on TED-LIUM with
+many datasets and domains. The pre-trained checkpoints achieve competitive results to state-of-the-art pipe systems, with
+near 3% word error rate (WER) on the test-clean subset of LibriSpeech pipe and a new state-of-the-art on TED-LIUM with
 4.7% WER (_c.f._ Table 8 of the [Whisper paper](https://cdn.openai.com/papers/whisper.pdf)).
 
 Of particular importance is Whisper's ability to handle long-form audio samples and its robustness to input noise. This makes
 it a strong viable candidate for real-world speech recognition systems.
 
 The remainder of this section will show you how to use the pre-trained Whisper models for speech recognition using 🤗 Transformers.
-In many situations, the pre-trained Whisper checkpoints are extremely performant and give great results. The extensive multilingual
-ASR knowledge acquired by Whisper during pre-training can be leveraged for other low-resource languages; through fine-tuning,
-the pre-trained checkpoints can be adapted for specific datasets and languages to further improve upon these results.
+In many situations, the pre-trained Whisper checkpoints are extremely performant and give great results, thus we encourage you
+to try using the pre-trained checkpoints as a first step to solving any speech recognition problem. Through fine-tuning, the
+pre-trained checkpoints can be adapted for specific datasets and languages to further improve upon these results.
 We'll demonstrate how to do this in the upcoming subsection on [fine-tuning](fine-tuning.mdx).
 
 The Whisper checkpoints come in five configurations of varying model sizes. The smallest four are trained on either
@@ -149,17 +149,21 @@ summarised in the following table with links to the models on the Hub:
 
 Let's load the [Whisper Base](https://huggingface.co/openai/whisper-base) checkpoint, which is of comparable size to the
 Wav2Vec2 checkpoint we used previously. Preempting our move to multilingual speech recognition, we'll load the multilingual
-variant of the base checkpoint:
+variant of the base checkpoint. We'll also load the model on the GPU if available, or CPU otherwise. The `pipeline()` will
+subsequently take care of moving all inputs / outputs from the CPU to the GPU as required:
 
 ```python
-asr = pipeline("automatic-speech-recognition", model="openai/whisper-base")
+import torch
+
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+pipe = pipeline("automatic-speech-recognition", model="openai/whisper-base", device=device)
 ```
 
 Great! Now let's transcribe the audio as before. The only change we make is passing an extra argument, `max_new_tokens`,
 which tells the model the maximum number of tokens to generate when making its prediction:
 
 ```python
-asr(sample["audio"], max_new_tokens=256)
+pipe(sample["audio"], max_new_tokens=256)
 ```
 **Output:**
 ```
@@ -204,7 +208,7 @@ probably better this, since our model is also going to predict punctuation and c
 reference. Let's forward the audio sample to the pipeline to get our text prediction:
 
 ```python
-asr(sample["audio"].copy(), max_new_tokens=256)
+pipe(sample["audio"].copy(), max_new_tokens=256)
 ```
 **Output:**
 ```
@@ -217,7 +221,7 @@ force it to perform the task of _speech recognition_, which transcribes the audi
 we'll forward the `task` as a generation argument, which is set to `"transcribe"` (for speech recognition):
 
 ```python
-asr(sample["audio"], max_new_tokens=256, generate_kwargs={"task": "transcribe"})
+pipe(sample["audio"], max_new_tokens=256, generate_kwargs={"task": "transcribe"})
 ```
 **Output:**
 ```
@@ -233,9 +237,112 @@ To understand why Whisper defaulted to speech translation, we can decompose the 
 * 126,000 hours (18%) is speech translation data (X audio -> English text)
 * 117,000 hours (17%) is multilingual speech recognition data (X audio -> X text)
 
-Given an audio input with Spanish speech, Whisper has to decide whether to translate it to English text, or transcribe
-it as Spanish text. Since there is more speech translation data than multilingual speech recognition data, Whisper
-usually makes the **maximum likelihood** estimate and defaults to speech translation. Passing the `task` argument overrides
-this prediction, and forces Whisper to perform the task that you give it (either `"translate"` or `"transcribe"`), so you
+Given an audio input with Spanish speech, Whisper has to decide whether to translate it to English text, or transcribe 
+it as Spanish text. Since there is more speech translation data than multilingual speech recognition data, Whisper 
+usually makes the **maximum likelihood** estimate and defaults to speech translation. Passing the `task` argument overrides 
+this prediction, and forces Whisper to perform the task that you give it (either `"translate"` or `"transcribe"`), so you 
 can effectively control the predictions.
 
+## Long-Form Transcription and Timestamps
+
+So far, we've focussed on transcribing short audio samples of less than 30 seconds. We mentioned that one of the appeals 
+of Whisper was its ability to work on long audio samples. We'll tackle this task here!
+
+Let's create a long audio file by concatenating sequential samples from the MLS dataset. Since the MLS dataset is
+curated by splitting long audiobook recordings into shorter segments, concatenating samples is one way of reconstructing
+longer audiobook passages, and the resulting audio should be coherent across the entire length.
+
+We'll set our target audio length to 5 minutes, and stop concatenating samples once we hit this value:
+```python
+import numpy as np
+
+target_length_in_m = 5
+
+# convert from minutes to seconds (* 60) to num samples (* sampling rate)
+target_length_in_samples = target_length_in_m * 60 * 16000
+long_audio = []
+
+# iterate over our streaming dataset, concatenating samples until we hit our target
+for sample in dataset:
+    long_audio.extend(sample["audio"]["array"])
+    if len(long_audio) > target_length_in_samples:
+        break
+
+long_audio = np.asarray(long_audio)
+
+# how did we do?
+seconds = len(long_audio) / 16000
+minutes, seconds = divmod(seconds, 60)
+print(f"Length of audio sample is {minutes} minutes {seconds:.2f} seconds")
+```
+**Output:**
+```
+Length of audio sample is 5.0 minutes 17.22 seconds
+```
+
+Alright! 5 minutes and 17 seconds of audio to transcribe. There are two problems with forwarding this long audio sample
+directly to the model:
+1. Whisper is inherently designed to work with 30 second samples: anything shorter than 30s is padded to 30s with silence, anything longer than 30s is truncated to 30s by cutting of the extra audio
+2. Memory in a transformer block scales with the sequence length squared: doubling the input length quadruples the memory requirement, so passing super long audio files is bound to lead to an out-of-memory (OOM) error
+
+The way long-form transcription works in 🤗 Transformers is by _chunking_ the input audio into smaller, more manageable segments.
+Each segment has a small amount of overlap with the previous one. This allows us to accurately stitch the segments back together
+at the boundaries, as we can match the overlapping transcriptions together:
+
+<!--- Fast render, don't display figs
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/blog/assets/49_asr_chunking/Striding.png" alt="🤗 Transformers chunking algorithm. Source: https://huggingface.co/blog/asr-chunking.">
+</div>
+
+--->
+
+The advantage of chunking the samples is that we don't need the result of chunk \\( i \\) to transcribe the subsequent
+chunk \\( i + 1 \\). The stitching is done after we have transcribed all the chunks at the chunk boundaries, so it doesn't
+matter which order we transcribe chunks in. The algorithm is entirely **stateless**, so we can even do chunk \\( i + 1 \\)
+at the same time as chunk \\( i \\)! This allows us to _batch_ the chunks and run them through the model in parallel,
+providing a large computational speed-up compared to transcribing them sequentially.
+
+To activate long-form transcriptions, we have to add one additional argument when we call the pipeline. This argument,
+`chunk_length_s`, controls the length of the chunked segments. For Whisper, 30s chunks are optimal, since this matches
+the input length Whisper expects.
+
+To activate batching, we pass the argument `batch_size` to the pipeline. Putting it all together, we can transcribe the
+long audio sample as follows:
+
+```python
+pipe(long_audio, max_new_tokens=256, generate_kwargs={"task": "transcribe"}, chunk_length_s=30, batch_size=8)
+```
+**Output:**
+```
+{'text': ' Entonces te deleitarás en Jehová, y yo te haré subir sobre las alturas de la tierra, y te daré a comer la
+heredad de Jacob tu padre, porque la boca de Jehová lo ha hablado. nosotros curados. Todos nosotros nos descarriamos
+como bejas, cada cual se apartó por su camino, mas Jehová cargó en él el pecado de todos nosotros...
+```
+
+We won't print the entire output here since it's pretty long (312 words total)! On a 16GB V100 GPU, you can expect the above
+line to take approximately 3.45 seconds to run, which is pretty good for a 317 second audio sample. On a CPU, expect
+closer to 30 seconds.
+
+Whisper is also able to predict segment-level _timestamps_ for the audio data. These timestamps indicate the start and end
+time for a short passage of audio, and are particularly useful for aligning a transcription with the input audio. Suppose
+we want to provide closed captions for a video - we need these timestamps to know which part of the transcription corresponds
+to a certain segment of video, in order to display the correct transcription for that time.
+
+Activating timestamp prediction is straightforward, we just need to set the argument `return_timestamps=True`. Timestamps are compatible
+with both the chunking and batching methods we used previously, so we can simply add the timestamp argument to our previous call:
+```python
+pipe(long_audio, max_new_tokens=256, generate_kwargs={"task": "transcribe"}, chunk_length_s=30, batch_size=8, return_timestamps=True)["chunks"]
+```
+**Output:**
+```
+[{'timestamp': (0.0, 26.4),
+  'text': ' Entonces te deleitarás en Jehová, y yo te haré subir sobre las alturas de la tierra, y te daré a comer la heredad de Jacob tu padre, porque la boca de Jehová lo ha hablado. nosotros curados. Todos nosotros nos descarriamos como bejas, cada cual se apartó por su camino,'},
+ {'timestamp': (26.4, 32.48),
+  'text': ' mas Jehová cargó en él el pecado de todos nosotros. No es que partas tu pan con el'},
+ {'timestamp': (32.48, 38.4),
+  'text': ' hambriento y a los hombres herrantes metas en casa, que cuando vieres al desnudo lo cubras y no'},
+ ...
+```
+
+And voila! We have our predicted text as well as corresponding timestamps.
