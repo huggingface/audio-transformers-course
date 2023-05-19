@@ -162,7 +162,8 @@ TODO(SG): sub-section on post-processing to normalise text before computing metr
 
 ## Putting it all together
 
-TODO(SG): zero-shot evaluation of Whisper-small on CV13 Dhivehi test set using pipeline, with WER calculation
+TODO(SG): zero-shot evaluation of Whisper-small on CV13 Dhivehi test set using pipeline, with WER calculation. Below is
+a placeholder.
 
 Load pipeline:
 ```python
@@ -185,7 +186,7 @@ Run evaluation:
 from tqdm import tqdm
 
 all_predictions = []
-for prediction in tqdm(pipe(common_voice_test, max_new_tokens=256, generate_kwargs: {"task": "transcribe"})):
+for prediction in tqdm(pipe(common_voice_test, max_new_tokens=256, generate_kwargs={"task": "transcribe"})):
     all_predictions.append(prediction["text"])
 ```
 
