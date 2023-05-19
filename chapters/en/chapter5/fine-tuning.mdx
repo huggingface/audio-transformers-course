@@ -167,7 +167,7 @@ def prepare_dataset(sample):
     batch = processor(
         audio=audio["array"],
         sampling_rate=audio["sampling_rate"],
-        text_target=sample["sentence"],
+        text=sample["sentence"],
     )
 
     # compute input length of audio sample in seconds
