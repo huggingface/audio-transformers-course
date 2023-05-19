@@ -164,16 +164,16 @@ Now we can write a function to prepare our data ready for the model:
 def prepare_dataset(sample):
     audio = sample["audio"]
 
-    batch = processor(
+    sample = processor(
         audio=audio["array"],
         sampling_rate=audio["sampling_rate"],
         text=sample["sentence"],
     )
 
     # compute input length of audio sample in seconds
-    batch["input_length"] = len(audio["array"]) / audio["sampling_rate"]
+    sample["input_length"] = len(audio["array"]) / audio["sampling_rate"]
 
-    return batch
+    return sample
 ```
 
 We can apply the data preparation function to all of our training examples using 🤗 Datasets' `.map` method. We'll
