@@ -155,3 +155,60 @@ In our example, we only used one sentence when computing the WER. We would typic
 of several thousand sentences when evaluating a real system. When evaluating over multiple sentences, we aggregate S, I, D
 and N across all sentences, and then compute the WER according to the formula defined above. This gives a better estimate
 of the WER for unseen data.
+
+## Normalisation
+
+TODO(SG): sub-section on post-processing to normalise text before computing metrics (strip punctuation and casing)
+
+## Putting it all together
+
+TODO(SG): zero-shot evaluation of Whisper-small on CV13 Dhivehi test set using pipeline, with WER calculation
+
+Load pipeline:
+```python
+from transformers import pipeline
+import torch
+
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+pipe = pipeline("automatic-speech-recognition", model="openai/whisper-small", device=device)
+```
+
+Load dataset:
+```python
+from datasets import load_dataset
+
+common_voice_test = load_dataset("mozilla-foundation/common_voice_13_0", "dv", split="test")
+```
+
+Run evaluation:
+```python
+from tqdm import tqdm
+
+all_predictions = []
+for prediction in tqdm(pipe(common_voice_test, max_new_tokens=256, generate_kwargs: {"task": "transcribe"})):
+    all_predictions.append(prediction["text"])
+```
+
+Compute metrics, with and without normalisation:
+
+```python
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer
+
+normalizer = BasicTextNormalizer()
+
+all_references = common_voice_test["sentence"]
+wer_ortho = 100 * wer_metric.compute(references=all_references, predictions=all_predictions)
+
+# compute normalised WER
+all_predictions_norm = [normalizer(pred) for pred in all_predictions]
+all_references_norm = [normalizer(label) for label in all_references]
+
+# filtering step to only evaluate the samples that correspond to non-zero references
+all_predictions_norm = [all_predictions_norm[i] for i in range(len(all_predictions_norm)) if len(all_references_norm[i]) > 0]
+all_references_norm = [all_references_norm[i] for i in range(len(all_references_norm)) if len(all_references_norm[i]) > 0]
+
+wer = 100 * wer_metric.compute(references=all_references_norm, predictions=all_predictions_norm)
+
+print("Orthographic WER: ", wer_ortho)
+print("Normalised WER: ", wer)
+```
