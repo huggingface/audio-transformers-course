@@ -217,7 +217,9 @@ entonces te delelitarás en jehová y yo te haré subir sobre las alturas de la 
 
 This is the target text that we're aiming for with our Whisper transcription. Although we now know that we can
 probably better this, since our model is also going to predict punctuation and casing, neither of which are present in the
-reference. Let's forward the audio sample to the pipeline to get our text prediction:
+reference. Let's forward the audio sample to the pipeline to get our text prediction. One thing to note is that the
+pipeline _consumes_ the dictionary of audio inputs that we input, meaning the dictionary can't be re-used. To circumvent
+this, we'll pass a _copy_ of the audio sample, so that we can re-use the same audio sample in the proceeding code examples:
 
 ```python
 pipe(sample["audio"].copy(), max_new_tokens=256)
