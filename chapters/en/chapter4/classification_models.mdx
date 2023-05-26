@@ -1,1 +1,20 @@
 # Pre-trained models for audio classification
+
+The Hugging Face Hub is home to over 500 pre-trained models for audio classification. In this section, we'll go through
+some of the most common audio classification tasks and suggest appropriate pre-trained models for each. Using the `pipeline()`
+class, switching between models and tasks is straightforward - once you know how to `pipeline()` for one model, you'll be able
+to use it for any model on the Hub no code changes! This makes experimenting with the `pipeline()` class extremely fast,
+allowing you to quickly select the best pre-trained model for your needs.
+
+Before we jump into the various audio classification problems, let's quickly recap the transformer architectures typically
+used. The standard audio classification architecture is motivated by the nature of the task; we want to transform a sequence
+of audio inputs (i.e. our input audio array) into a single class label prediction. Hence, there tends to be a preference
+for _encoder-only_ models. Encoder-only models first map the input audio sequence into a sequence of hidden-state
+representations by passing the inputs through a transformer block. The sequence of hidden-state representations is then
+mapped to a class label output by taking the mean over the hidden-states and passing the resulting vector through a linear
+classification layer. TODO(SG): re-use a diagram from Unit3. Decoder-only models introduce unnecessary complexity to the
+task, since they assume that the outputs can also be a sequence (rather than a single class label prediction) and so generate
+multiple outputs. Therefore, they have slower inference speed and tend not to be used. Encoder-decoder models are largely
+omitted for the same reason. These architecture choices are analogous to those in NLP, where encoder-only models such as
+BERT are favoured for sequence classification tasks, and decoder-only models such as GPT reserved for sequence generation
+tasks.
