@@ -18,3 +18,78 @@ multiple outputs. Therefore, they have slower inference speed and tend not to be
 omitted for the same reason. These architecture choices are analogous to those in NLP, where encoder-only models such as
 BERT are favoured for sequence classification tasks, and decoder-only models such as GPT reserved for sequence generation
 tasks.
+
+## Keyword Spotting
+Keyword spotting (KWS) is the task of identifying a keyword in a spoken utterance. The set of possible keywords forms the
+set of predicted class labels. Hence, to use a pre-trained keyword spotting model, you should ensure that your keywords
+match those that the model was pre-trained on. Below, we'll introduce two datasets and models for keyword spotting.
+
+### Minds-14
+
+TODO(SG): more exciting dataset?
+
+Let's go ahead and use the same [MINDS-14](https://huggingface.co/datasets/PolyAI/minds14) dataset that you have explored
+in the previous unit. If you recall, MINDS-14 contains recordings of people asking an e-banking system questions in several
+languages and dialects, and has the `intent_class` for each recording. We can classify the recordings by intent of the call.
+
+```python
+from datasets import load_dataset
+from transformers import pipeline
+
+minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+
+classifier = pipeline(
+    "audio-classification",
+    model="anton-l/xtreme_s_xlsr_300m_minds14",
+)
+
+classifier(minds[0]["path"])
+```
+**Output:**
+```
+[
+    {"score": 0.9631525278091431, "label": "pay_bill"},
+    {"score": 0.02819698303937912, "label": "freeze"},
+    {"score": 0.0032787492964416742, "label": "card_issues"},
+    {"score": 0.0019414445850998163, "label": "abroad"},
+    {"score": 0.0008378693601116538, "label": "high_value_payment"},
+]
+```
+Great! We've identified that the intent of the call was paying a bill, with probability 96%.
+
+### SUPERB
+
+```python
+superb = load_dataset("anton-l/superb_demo", "ks", split="test")
+
+classifier = pipeline("audio-classification", model="superb/hubert-base-superb-ks")
+classifier(superb[-1]["file"])
+```
+**Output:**
+```
+[{'score': 0.9992257356643677, 'label': 'no'},
+ {'score': 0.0004319172876421362, 'label': 'go'},
+ {'score': 0.0003331181069370359, 'label': 'down'},
+ {'score': 8.870103556546383e-06, 'label': '_unknown_'},
+ {'score': 2.6367405325800064e-07, 'label': 'stop'}]
+```
+
+
+## Language Identification
+
+```python
+classifier = pipeline("audio-classification", model="sanchit-gandhi/whisper-medium-fleurs-lang-id")
+
+ds = load_dataset("google/fleurs", "all", split="validation", streaming=True)
+sample = next(iter(ds))
+
+classifier(sample["audio"])
+```
+**Output:**
+```
+[{'score': 0.9999330043792725, 'label': 'Afrikaans'},
+ {'score': 7.093023668858223e-06, 'label': 'Northern-Sotho'},
+ {'score': 4.269149485480739e-06, 'label': 'Icelandic'},
+ {'score': 3.2661141631251667e-06, 'label': 'Danish'},
+ {'score': 3.2580724109720904e-06, 'label': 'Cantonese Chinese'}]
+```
