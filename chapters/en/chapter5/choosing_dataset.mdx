@@ -74,6 +74,11 @@ for each dataset, and replace it with the number of languages per dataset:
 | [FLEURS](https://huggingface.co/datasets/google/fleurs)                                       | 101       | European Parliament recordings        | Spontaneous    | ❌      | ❌           | CC-BY-4.0 | Multilingual evaluation |
 
 For a detailed breakdown of the audio datasets covered in both tables, refer to the blog post [A Complete Guide to Audio Datasets](https://huggingface.co/blog/audio-datasets#a-tour-of-audio-datasets-on-the-hub).
+While there are over 180 speech recognition datasets on the Hub, it may be possible that there isn't a dataset that matches
+your needs. In this case, it's also possible to use your own audio data with 🤗 Datasets. To create a custom audio dataset,
+refer to the guide [Create an audio dataset](https://huggingface.co/docs/datasets/audio_dataset). When creating a custom
+audio dataset, consider sharing the final dataset on the Hub so that others in the community can benefit from your
+efforts - the audio community is inclusive and wide-ranging, and others will appreciate your work as you do theirs.
 
 Alright! Now that we've gone through all the criterion for selecting an ASR dataset, let's pick one for the purpose of this tutorial.
 We know that Whisper already does a pretty good job at transcribing data in high-resource languages (such as English and Spanish), so
@@ -95,7 +100,7 @@ shows us the first 100 samples of the dataset for each language. What's more, it
 to listen to in real time. For this Unit, we'll select [_Dhivehi_](https://en.wikipedia.org/wiki/Maldivian_language)
 (or _Maldivian_), an Indo-Aryan language spoken in the South Asian island country of the Maldives. While we're selecting
 Dhivehi for this tutorial, the steps covered here apply to any one of the 108 languages in the Common Voice 13 dataset, and
-more generally to any one of the 77 audio datasets on the Hugging Face Hub, so there's no restriction on language or dialect.
+more generally to any one of the 180+ audio datasets on the Hugging Face Hub, so there's no restriction on language or dialect.
 
 We can select the Dhivehi subset of Common Voice 13 by setting the subset to `dv` using the dropdown menu (`dv` being the language
 identifier code for Dhivehi):
