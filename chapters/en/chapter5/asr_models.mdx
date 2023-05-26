@@ -222,40 +222,33 @@ pipeline _consumes_ the dictionary of audio inputs that we input, meaning the di
 this, we'll pass a _copy_ of the audio sample, so that we can re-use the same audio sample in the proceeding code examples:
 
 ```python
-pipe(sample["audio"].copy(), max_new_tokens=256)
-```
-**Output:**
-```
-{'text': ' So you will choose in Jehovah and I will raise you on the heights of the earth and I will give you the honor of Jacob to your father because the voice of Jehovah has spoken to you.'}
-```
-
-Hold on a second... we put a Spanish audio input in, but got an English transcription out? 🤔 Whisper has implicitly performed
-the task of _speech translation_, translating the input audio from one language into a transcription in another. We can
-force it to perform the task of _speech recognition_, which transcribes the audio in the same language it was spoken.
-To achieve this, we'll forward the `task` as a generation argument, which is set to `"transcribe"` (for speech recognition):
-
-```python
-pipe(sample["audio"], max_new_tokens=256, generate_kwargs={"task": "transcribe"})
+pipe(sample["audio"].copy(), max_new_tokens=256, generate_kwargs={"task": "transcribe"})
 ```
 **Output:**
 ```
 {'text': ' Entonces te deleitarás en Jehová y yo te haré subir sobre las alturas de la tierra y te daré a comer la heredad de Jacob tu padre porque la boca de Jehová lo ha hablado.'}
 ```
 
-Great - this looks very similar to our reference text. Now that we know we can toggle between speech translation and
-recognition, we can pick our task depending on our needs. Either we translate from audio in any language X to text in
-English, or we recognise from audio in language X to text in the same language X.
+Great - this looks very similar to our reference text (arguably better since it has punctuation and casing!). You'll notice
+that we forwarded the `"task"` as a _generate key-word argument_ (generate kwarg). Setting the `"task"` to `"transcribe"`
+forces Whisper to perform the task of _speech recognition_, where the audio is transcribed in the same language that the
+speech was spoken in. Whisper is also capable of performing the closely related task of _speech translation_, where the
+audio in Spanish can be translated to text in English. To achieve this, we set the `"task"` to `"translate"`:
 
-To understand why Whisper defaulted to speech translation, we can decompose the training data a little more deeply:
-* 438,000 hours (65%) is English speech recognition data (English audio -> English text)
-* 126,000 hours (18%) is speech translation data (X audio -> English text)
-* 117,000 hours (17%) is multilingual speech recognition data (X audio -> X text)
+```python
+pipe(sample["audio"], max_new_tokens=256, generate_kwargs={"task": "translate"})
+```
+**Output:**
+```
+{'text': ' So you will choose in Jehovah and I will raise you on the heights of the earth and I will give you the honor of Jacob to your father because the voice of Jehovah has spoken to you.'}
+```
 
-Given an audio input with Spanish speech, Whisper has to decide whether to translate it to English text, or transcribe 
-it as Spanish text. Since there is more speech translation data than multilingual speech recognition data, Whisper 
-usually makes the **maximum likelihood** estimate and defaults to speech translation. Passing the `task` argument overrides 
-this prediction, and forces Whisper to perform the task that you give it (either `"translate"` or `"transcribe"`), so you 
-can effectively control the predictions.
+Now that we know we can toggle between speech recognition and speech translation, we can pick our task depending on our
+needs. Either we recognise from audio in language X to text in the same language X (e.g. Spanish audio to Spanish text),
+or we translate from audio in any language X to text in English (e.g. Spanish audio to English text).
+
+To read more about how the `"task"` argument is used to control the properties of the generated text, refer to the
+[model card](https://huggingface.co/openai/whisper-base#usage) for the Whisper base model.
 
 ## Long-Form Transcription and Timestamps
 
