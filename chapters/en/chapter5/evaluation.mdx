@@ -102,7 +102,7 @@ The WAcc is also measured on the word-level, it's just the WER reformulated as a
 metric. The WAcc is very infrequently quoted in the speech literature - we think of our system predictions in terms of
 word errors, and so prefer error rate metrics that are more associated with these error type annotations.
 
-### Character Error Rate
+## Character Error Rate
 It seems a bit unfair that we marked the entire word for "sit" wrong when in fact only one letter was incorrect!
 That's because we were evaluating our system on the word level, thereby annotating errors on a word-by-word basis.
 The _character error rate (CER)_ assess systems on the _character level_. This means we divide up our words into their
@@ -158,7 +158,75 @@ of the WER for unseen data.
 
 ## Normalisation
 
-TODO(SG): sub-section on post-processing to normalise text before computing metrics (strip punctuation and casing)
+If we train an ASR model on data with punctuation and casing, it will learn to predict casing and punctuation in its
+transcriptions. This is great when we want to use out model for actual speech recognition applications, such as
+transcribing meetings or dictation, since the predicted transcriptions will be fully formatted with casing and punctuation,
+a style referred to as _orthographic_.
+
+However, we also have the option of _normalising_ the dataset to remove any casing and punctuation. Normalising the
+dataset makes the speech recognition task easier: the model no longer needs to distinguish between upper and lower case
+characters, or have to predict punctuation from the audio data alone (e.g. what sound does a semi-colon make?).
+Because of this, the word error rates are naturally lower (meaning the results are better). The Whisper paper demonstrates
+the drastic effect that normalising transcriptions can have on WER results (_c.f._ Section 4.4 of the [Whisper paper](https://cdn.openai.com/papers/whisper.pdf)).
+While we get lower WERs, the model isn't necessarily better for production. The lack of casing and punctuation makes the predicted
+text from the model significantly harder to read. Take the example from the [previous section](#asr_models), where we ran
+Wav2Vec2 and Whisper on the same audio sample from the LibriSpeech dataset. The Wav2Vec2 model predicts neither punctuation
+nor casing, whereas Whisper predicts both. Comparing the transcriptions side-by-side, we see that the Whisper transcription
+is far easier to read:
+
+```
+Wav2Vec2:  HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAUS AND ROSE BEEF LOOMING BEFORE US SIMALYIS DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
+Whisper:   He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similarly is drawn from eating and its results occur most readily to the mind.
+```
+
+The Whisper transcription is orthographic and thus ready to go - it's formatted as we'd expect for a meeting transcription
+or dictation script with both punctuation and casing. On the contrary, we would need to use additional post-processing
+to restore punctuation and casing in our Wav2Vec2 predictions if we wanted to use it for downstream applications.
+
+There is a happy medium between normalising and not normalising: we can train our systems on orthographic transcriptions,
+and then normalise the predictions and targets before computing the WER. This way, we train our systems to predict fully
+formatted text, but also benefit from the WER improvements we get by normalising the transcriptions.
+
+The Whisper model was released with a normaliser that effectively handles the normalisation of casing, punctuation and
+number formatting among others. Let's apply the normaliser to the Whisper transcriptions to demonstrate how we can
+normalise them:
+
+```python
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer
+
+normalizer = BasicTextNormalizer()
+
+prediction = " He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similarly is drawn from eating and its results occur most readily to the mind."
+normalized_prediction = normalizer(prediction)
+
+normalized_prediction
+```
+**Output:**
+```
+' he tells us that at this festive season of the year with christmas and roast beef looming before us similarly is drawn from eating and its results occur most readily to the mind '
+```
+
+Great! We can see that the text has been fully lower-cased and all punctuation removed. Let's now define the reference
+transcription and then compute the normalised WER between the reference and target:
+
+```python
+reference = "HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND"
+normalized_referece = normalizer(reference)
+
+wer = wer_metric.compute(references=[normalized_referece], predictions=[normalized_prediction])
+wer
+```
+**Output:**
+```
+0.0625
+```
+
+6.25% - that's about what we'd expect for the Whisper base model on the LibriSpeech validation set. As we see here,
+we've predicted an orthographic transcription, but benefited from the WER boost obtained by normalising the reference and
+prediction prior to computing the WER.
+
+The choice of how you normalise the transcriptions is ultimately down to your needs. We recommend training on
+orthographic text and evaluating on normalised text to get the best of both worlds.
 
 ## Putting it all together
 
