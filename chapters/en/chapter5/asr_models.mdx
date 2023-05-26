@@ -363,5 +363,16 @@ And voila! We have our predicted text as well as corresponding timestamps.
 Whisper is a strong pre-trained model for speech recognition and translation. Compared to Wav2Vec2, it has higher
 transcription accuracy, with outputs that contain punctuation and casing. It can be used to transcribe speech in English
 as well as 96 other languages, both on short audio segments and longer ones through _chunking_. These attributes make it
-a viable model for many speech recognition tasks without the need for fine-tuning. The `pipeline()` method provides an easy
-way of running inference in one-line API calls with control over the generated predictions.
+a viable model for many speech recognition and translation tasks without the need for fine-tuning. The `pipeline()` method
+provides an easy way of running inference in one-line API calls with control over the generated predictions.
+
+While the Whisper model performs extremely well on many high-resource languages, it has lower transcription and translation
+accuracy on low-resource languages, i.e. those with less readily available training data. There is also varying performance
+across different accents and dialects of certain languages, including lower accuracy for speakers of different genders,
+races, ages or other demographic criteria (_c.f._ [Whisper paper](https://arxiv.org/pdf/2212.04356.pdf)).
+
+To boost the performance on low-resource languages, accents or dialects, we can take the pre-trained Whisper model and
+train it on a small corpus of appropriately selected data, in a process called _fine-tuning_. We'll show that with
+as little of 10 hours of additional data, we can improve the performance of the Whisper model by X% on a low-resource
+language. TODO(SG): update with results when available. In the next section, we'll cover the process behind selecting a
+dataset for fine-tuning.
