@@ -30,9 +30,9 @@ The audio models we'll cover in this course typically have a standard transforme
 
 For audio tasks, the input and/or output sequences may be audio instead of text:
 
-- Automatic speech recognition (ASR): The input is a speech waveform, the output is text.
+- Automatic speech recognition (ASR): The input is speech, the output is text.
 
-- Speech synthesis (TTS): The input is text, the output is audio.
+- Speech synthesis (TTS): The input is text, the output is speech.
 
 - Audio classification: The input is audio, the output is a class probability — one for each element in the sequence or a single class probability for the entire sequence.
 
@@ -70,7 +70,7 @@ Because of this, raw audio waveforms are not usually the most efficient form of 
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/whisper-input.png" alt="Whisper uses a CNN to create embeddings from the input spectrogram">
 </div>
 
-Models such as **Whisper** first convert the waveform into a log-mel spectrogram. Whisper always splits the audio into 30-second segments, and the log-mel spectrogram for each segment has shape `(80, 3000)` where 80 is the number of mel bins and 3000 is the sequence length. The log-mel spectrogram is then processed by a small CNN into a sequence of embeddings, which goes into the transformer as usual.
+Models such as **Whisper** first convert the waveform into a log-mel spectrogram. Whisper always splits the audio into 30-second segments, and the log-mel spectrogram for each segment has shape `(80, 3000)` where 80 is the number of mel bins and 3000 is the sequence length. By converting to a log-mel spectrogram we've reduced the amount of input data, but more importantly, this is a much shorter sequence than the raw waveform. The log-mel spectrogram is then processed by a small CNN into a sequence of embeddings, which goes into the transformer as usual.
 
 In both cases, waveform as well as spectrogram input, there is a small network in front of the transformer that converts the input into embeddings and then the transformer takes over to do its thing.
 
@@ -86,7 +86,7 @@ The goal of an automatic speech recognition model is to predict a sequence of te
 
 For models that generate audio, such as a text-to-speech (TTS) model, we'll have to add layers that can produce an audio sequence. It's very common to generate a spectrogram and then use an additional neural network, known as a vocoder, to turn this spectrogram into a waveform.
 
-In the **SpeechT5** TTS model, for example, the output from the transformer network is a sequence of 768-element vectors. The model uses a so-called post-net made up of several additional linear and convolutional layers to project that sequence into a log-mel spectrogram. The vocoder then makes the final audio waveform.
+In the **SpeechT5** TTS model, for example, the output from the transformer network is a sequence of 768-element vectors. A linear layer projects that sequence into a log-mel spectrogram. A so-called post-net, made up of additional linear and convolutional layers, refines the spectrogram by reducing noise. The vocoder then makes the final audio waveform.
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/speecht5.png" alt="SpeechT5 outputs a spectrogram and uses a vocoder to create the waveform">

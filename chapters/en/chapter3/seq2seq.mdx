@@ -37,6 +37,8 @@ In this design, the decoder plays the role of a **language model**, processing t
 💡 Whereas a CTC model outputs a sequence of individual characters, the tokens predicted by Whisper are full words or portions of words. It uses the tokenizer from GPT-2 and has 50k+ unique tokens. A seq2seq model can therefore output a much shorter sequence than a CTC model for the same transcription.
 </Tip>
 
+A typical loss function for a seq2seq ASR model is the cross-entropy loss, as the final layer of the model predicts a probability distribution over the possible tokens. This is usually combined with techniques such as [beam search to generate the final sequence](https://huggingface.co/blog/how-to-generate). The metric for speech recognition is WER or word error rate, which measures how many substitutions, insertions, and deletions are necessary to turn the predicted text into the target text — the fewer, the better the score.
+
 ## Text-to-speech
 
 It may not surprise you: A seq2seq model for TTS works essentially the same as described above but with the inputs and outputs switched around! The transformer encoder takes in a sequence of text tokens and extracts a sequence of hidden-states that represent the input text. The transformer decoder applies cross-attention to the encoder output and predicts a spectrogram.
@@ -55,7 +57,9 @@ But how does the decoder know when to stop? In the **SpeechT5** model this is ha
 
 After the decoding finishes and we have an output sequence containing the spectrogram, SpeechT5 uses a so-called **post-net** that is made up of several convolution layers to refine the spectrogram.
 
-During training of the TTS model, the targets are also spectrograms. However, at inference time we want to convert the output spectrogram into an audio waveform, so that we can actually listen to it. For this an external model is used, the **vocoder**. This vocoder is not part of the seq2seq architecture and is trained separately.
+During training of the TTS model, the targets are also spectrograms and the loss is L1 or MSE. At inference time we want to convert the output spectrogram into an audio waveform, so that we can actually listen to it. For this an external model is used, the **vocoder**. This vocoder is not part of the seq2seq architecture and is trained separately.
+
+What makes TTS difficult is that it's a one-to-many mapping. With speech-to-text there is only one correct output text that corresponds to the input speech, but with text-to-speech the input text can be mapped to many possible speech sounds. Different speakers may choose to emphasize different parts of the sentence, for example. This makes TTS models hard to evaluate. Because of this, the L1 or MSE loss value isn't actually very meaningful — there are multiple ways to represent the same text to a spectrogram. This is why TTS models are typically evaluated by human listeners, using a metric known as MOS or mean opinion score.
 
 ## Conclusion
 
