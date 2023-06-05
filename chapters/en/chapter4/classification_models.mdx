@@ -75,14 +75,17 @@ Great! We've identified that the intent of the call was paying a bill, with prob
 
 Speech Commands is a dataset of spoken words designed to evaluate audio classification models on simple command words.
 The dataset consists of 15 classes of keywords, a class for silence, and an unknown class to include the false positive.
-The ten keywords are single words that would typically be used in on-device settings to control basic tasks or launch
-other processes. A similar model is running continuously on your mobile phone. Here, instead of having command words, we
-have 'wake words' specific to your device, such as "Hey Google" or "Hey Siri". When the audio classification model detects
-these wake words, it triggers your phone to start listening to the microphone and transcribe your speech using a speech
-recognition model. The audio classification model is much smaller and lighter than the speech recognition model, often
-only several millions of parameters compared to several hundred millions for speech recognition. Thus, it can be run
-continuously on your device without draining your battery! Only when the wake word is detected is the larger speech
-recognition model launched, and afterwards it is shut down again.
+The 15 keywords are single words that would typically be used in on-device settings to control basic tasks or launch
+other processes.
+
+A similar model is running continuously on your mobile phone. Here, instead of having command words, we have 'wake words'
+specific to your device, such as "Hey Google" or "Hey Siri". When the audio classification model detects these wake words,
+it triggers your phone to start listening to the microphone and transcribe your speech using a speech recognition model.
+
+The audio classification model is much smaller and lighter than the speech recognition model, often only several millions
+of parameters compared to several hundred millions for speech recognition. Thus, it can be run continuously on your device
+without draining your battery! Only when the wake word is detected is the larger speech recognition model launched, and
+afterwards it is shut down again.
 
 As with any dataset on the Hugging Face Hub, we can get a feel for the kind of audio data it has present without downloading
 or committing it memory. After heading to the [Speech Commands' dataset card](https://huggingface.co/datasets/speech_commands)
@@ -97,7 +100,8 @@ files and checking any other metadata information:
 
 The Dataset Preview is a brilliant way of experiencing audio datasets before committing to using them. You can pick any
 dataset on the Hub, scroll through the samples and listen to the audio for the different subsets and splits, gauging whether
-it's the right dataset for your needs. Once you've selected a dataset, it's trivial to load the data so that you can start using it.
+it's the right dataset for your needs. Once you've selected a dataset, it's trivial to load the data so that you can start
+using it.
 
 Let's do exactly that and load a sample of the Speech Commands dataset using streaming mode:
 
@@ -123,8 +127,8 @@ TODO(SG)
 
 Language identification (LID) is the task of identifying the language spoken in an audio sample from a list of candidate
 languages. LID can form an important part in many speech pipelines. For example, given an audio sample in an unknown language,
-an LID model can be used to categorise the language(s) spoken in the audio sample, and then an appropriate speech recognition
-model selected to transcribe the audio.
+an LID model can be used to categorise the language(s) spoken in the audio sample, and then select an appropriate speech
+recognition model trained on that language to transcribe the audio.
 
 ### FLEURS
 
