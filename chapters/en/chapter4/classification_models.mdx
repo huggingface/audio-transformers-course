@@ -2,22 +2,26 @@
 
 The Hugging Face Hub is home to over 500 pre-trained models for audio classification. In this section, we'll go through
 some of the most common audio classification tasks and suggest appropriate pre-trained models for each. Using the `pipeline()`
-class, switching between models and tasks is straightforward - once you know how to `pipeline()` for one model, you'll be able
-to use it for any model on the Hub no code changes! This makes experimenting with the `pipeline()` class extremely fast,
-allowing you to quickly select the best pre-trained model for your needs.
+class, switching between models and tasks is straightforward - once you know how to use `pipeline()` for one model, you'll
+be able to use it for any model on the Hub no code changes! This makes experimenting with the `pipeline()` class extremely
+fast, allowing you to quickly select the best pre-trained model for your needs.
 
 Before we jump into the various audio classification problems, let's quickly recap the transformer architectures typically
 used. The standard audio classification architecture is motivated by the nature of the task; we want to transform a sequence
-of audio inputs (i.e. our input audio array) into a single class label prediction. Hence, there tends to be a preference
+of audio inputs (i.e. our input audio array) into a single class label prediction. Hence, there is a preference
 for _encoder-only_ models. Encoder-only models first map the input audio sequence into a sequence of hidden-state
 representations by passing the inputs through a transformer block. The sequence of hidden-state representations is then
-mapped to a class label output by taking the mean over the hidden-states and passing the resulting vector through a linear
-classification layer. TODO(SG): re-use a diagram from Unit3. Decoder-only models introduce unnecessary complexity to the
-task, since they assume that the outputs can also be a sequence (rather than a single class label prediction) and so generate
-multiple outputs. Therefore, they have slower inference speed and tend not to be used. Encoder-decoder models are largely
-omitted for the same reason. These architecture choices are analogous to those in NLP, where encoder-only models such as
-BERT are favoured for sequence classification tasks, and decoder-only models such as GPT reserved for sequence generation
-tasks.
+mapped to a class label output by taking the mean over the hidden-states, and passing the resulting vector through a linear
+classification layer. TODO(SG): re-use a diagram from Unit3.
+
+Decoder-only models introduce unnecessary complexity to the task, since they assume that the outputs can also be a sequence
+(rather than a single class label prediction) and so generate multiple outputs. Therefore, they have slower inference speed
+and tend not to be used. Encoder-decoder models are largely omitted for the same reason. These architecture choices are
+analogous to those in NLP, where encoder-only models such as BERT are favoured for sequence classification tasks, and
+decoder-only models such as GPT reserved for sequence generation tasks.
+
+Now that we've recapped the standard transformer architecture for audio classification, let's jump into the different
+subsets of audio classification and cover the most popular models.
 
 ## Keyword Spotting
 Keyword spotting (KWS) is the task of identifying a keyword in a spoken utterance. The set of possible keywords forms the
@@ -34,15 +38,25 @@ languages and dialects, and has the `intent_class` for each recording. We can cl
 
 ```python
 from datasets import load_dataset
-from transformers import pipeline
 
 minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+```
+
+We'll load the checkpoint [`"anton-l/xtreme_s_xlsr_300m_minds14"`](https://huggingface.co/anton-l/xtreme_s_xlsr_300m_minds14),
+which is an XLS-R model fine-tuned on MINDS-14 for approximately 50 epochs. It achieves 90% accuracy over all languages
+from MINDS-14 on the evaluation set.
+
+```python
+from transformers import pipeline
 
 classifier = pipeline(
     "audio-classification",
     model="anton-l/xtreme_s_xlsr_300m_minds14",
 )
+```
 
+Finally, we can pass a sample to the classification pipeline to make a prediction:
+```python
 classifier(minds[0]["path"])
 ```
 **Output:**
