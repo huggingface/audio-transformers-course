@@ -164,3 +164,63 @@ We can see that the model predicted the audio was in Afrikaans with extremely hi
 contains audio data from a wide range of languages - we can see that possible class labels include Northern-Sotho, Icelandic,
 Danish and Cantonese Chinese amongst others. You can find the full list of languages on the dataset card here: [google/fleurs](https://huggingface.co/datasets/google/fleurs).
 
+## Zero-Shot Audio Classification
+
+In the traditional paradigm for audio classification, the model predicts a class label from a _pre-defined_ set of
+possible classes. This poses a barrier to using pre-trained models for audio classification, since the label set of the
+pre-trained model must match that of the downstream task. For the previous example of LID, the model must predict one of
+the 102 langauge classes on which it was trained. If the downstream task actually requires 110 languages, the model would
+not be able to predict 8 of the 110 languages, and so would require re-training to achieve full coverage. This limits the
+effectiveness of transfer learning for audio classification tasks.
+
+Zero-shot audio classification is a method for taking a pre-trained audio classification model trained on a set of labelled
+examples and enabling it to be able to classify new examples from previously unseen classes. Let's take a look at how we
+can achieve this!
+
+Currently, 🤗 Transformers supports one kind of model for zero-shot audio classification: the [CLAP model](https://huggingface.co/docs/transformers/model_doc/clap).
+CLAP is a transformer-based model that takes both audio and text as inputs, and computes the _similarity_ between the two.
+If we pass a text input that strongly correlates with an audio input, we'll get a high similarity score. Conversely, passing
+a text input that is completely unrelated to the audio input will return a low similarity.
+
+We can use this similarity prediction for zero-shot audio classification by passing one audio input to the model and
+multiple candidate labels. The model will return a similarity score for each of the candidate labels, and we can pick the
+one that has the highest score as our prediction.
+
+Let's take an example where we use one audio input from the [Environmental Speech Challenge (ESC)](https://huggingface.co/datasets/ashraq/esc50)
+dataset:
+
+```python
+dataset = load_dataset("ashraq/esc50", split="train", streaming=True)
+audio_sample = next(iter(dataset))["audio"]["array"]
+```
+
+And define two candidate labels:
+
+```python
+candidate_labels = ["Sound of a dog", "Sound of vacuum cleaner"]
+```
+
+We can run both through the model to find the candidate label that is _most similar_ to the audio input:
+
+```python
+classifier = pipeline(task="zero-shot-audio-classification", model="laion/clap-htsat-unfused")
+classifier(audio_sample, candidate_labels=candidate_labels)
+```
+**Output:**
+```
+[{'score': 0.9996, 'label': 'Sound of a dog'}, {'score': 0.0004, 'label': 'Sound of vacuum cleaner'}]
+```
+
+Alright! The model seems pretty confident we have the sound of a dog - it predicts it with 99.96% probability, so we'll
+take that as our prediction. Let's confirm whether we were right by listening to the audio sample (don't turn up your
+volume too high or else you might get a jump!):
+
+```python
+from IPython.display import Audio
+
+Audio(audio, rate=16000)
+```
+
+Perfect! We have the sound of a dog barking 🐕, which aligns with the model's prediction. Have a play with different audio
+samples and different candidate labels - can you define a set of labels that give good generalisation across the ESC
+dataset?
