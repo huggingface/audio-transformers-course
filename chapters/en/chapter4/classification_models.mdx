@@ -121,12 +121,34 @@ TODO(SG)
 
 ## Language Identification
 
+Language identification (LID) is the task of identifying the language spoken in an audio sample from a list of candidate
+languages. LID can form an important part in many speech pipelines. For example, given an audio sample in an unknown language,
+an LID model can be used to categorise the language(s) spoken in the audio sample, and then an appropriate speech recognition
+model selected to transcribe the audio.
+
+### FLEURS
+
+FLEURS (Few-shot Learning Evaluation of Universal Representations of Speech) is a dataset for evaluating speech recognition
+systems in 102 languages, including many that are classified as 'low-resource'. Take a look at the FLEURS dataset
+card on the Hub and explore the different languages that are present: [google/fleurs](https://huggingface.co/datasets/google/fleurs).
+Can you find your native tongue here? If not, what's the most closely related language?
+
+Let's load up a sample from the validation split of the FLEURS dataset using streaming mode:
+
+```python
+fleurs = load_dataset("google/fleurs", "all", split="validation", streaming=True)
+sample = next(iter(fleurs))
+```
+
+Great! Now we can load our audio classification model. For this, we'll use a version of [Whisper](https://arxiv.org/pdf/2212.04356.pdf)
+fine-tuned on the FLEURS dataset, which is currently the most performant LID model on the Hub:
+
 ```python
 classifier = pipeline("audio-classification", model="sanchit-gandhi/whisper-medium-fleurs-lang-id")
+```
 
-ds = load_dataset("google/fleurs", "all", split="validation", streaming=True)
-sample = next(iter(ds))
-
+We can then pass the audio through our classifier and generate a prediction:
+```python
 classifier(sample["audio"])
 ```
 **Output:**
@@ -137,3 +159,8 @@ classifier(sample["audio"])
  {'score': 3.2661141631251667e-06, 'label': 'Danish'},
  {'score': 3.2580724109720904e-06, 'label': 'Cantonese Chinese'}]
 ```
+
+We can see that the model predicted the audio was in Afrikaans with extremely high probability (near 1). The FLEURS dataset
+contains audio data from a wide range of languages - we can see that possible class labels include Northern-Sotho, Icelandic,
+Danish and Cantonese Chinese amongst others. You can find the full list of languages on the dataset card here: [google/fleurs](https://huggingface.co/datasets/google/fleurs).
+
