@@ -212,7 +212,7 @@ classifier(audio_sample, candidate_labels=candidate_labels)
 ```
 **Output:**
 ```
-[{'score': 0.9996, 'label': 'Sound of a dog'}, {'score': 0.0004, 'label': 'Sound of vacuum cleaner'}]
+[{'score': 0.9997242093086243, 'label': 'Sound of a dog'}, {'score': 0.0002758323971647769, 'label': 'Sound of vacuum cleaner'}]
 ```
 
 Alright! The model seems pretty confident we have the sound of a dog - it predicts it with 99.96% probability, so we'll
@@ -227,4 +227,4 @@ Audio(audio, rate=16000)
 
 Perfect! We have the sound of a dog barking 🐕, which aligns with the model's prediction. Have a play with different audio
 samples and different candidate labels - can you define a set of labels that give good generalisation across the ESC
-dataset?
+dataset? Think about where you could find information on the possible sounds in ESC and construct your labels accordingly!
