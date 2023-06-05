@@ -71,21 +71,36 @@ classifier(minds[0]["path"])
 ```
 Great! We've identified that the intent of the call was paying a bill, with probability 96%.
 
-### SUPERB
+### Speech Commands
+
+Speech Commands is a dataset of spoken words designed to evaluate audio classification models on simple command words.
+The dataset consists of 15 classes of keywords, a class for silence, and an unknown class to include the false positive.
+The ten keywords are single words that would typically be used in on-device settings to control basic tasks or launch
+other processes. A similar model is running continuously on your mobile phone. Here, instead of having command words, we
+have 'wake words' specific to your device, such as "Hey Google" or "Hey Siri". When the audio classification model detects
+these wake words, it triggers your phone to start listening to the microphone and transcribe your speech using a speech
+recognition model. The audio classification model is much smaller and lighter than the speech recognition model, often
+only several millions of parameters compared to several hundred millions for speech recognition. Thus, it can be run
+continuously on your device without draining your battery! Only when the wake word is detected is the larger speech
+recognition model launched, and afterwards it is shut down again.
+
+Let's load a sample of the Speech Commands dataset using streaming mode:
 
 ```python
-superb = load_dataset("anton-l/superb_demo", "ks", split="test")
+speech_commands = load_dataset("speech_commands", "v0.02", split="validation", streaming=True)
+sample = next(iter(speech_commands))
+```
 
+We'll load the official checkpoint from the [SUPERB benchmark](https://arxiv.org/abs/2105.01051), [`"superb/hubert-base-superb-ks"`](https://huggingface.co/superb/hubert-base-superb-ks),
+and run the example through the pipeline:
+
+```python
 classifier = pipeline("audio-classification", model="superb/hubert-base-superb-ks")
-classifier(superb[-1]["file"])
+classifier(sample["file"])
 ```
 **Output:**
 ```
-[{'score': 0.9992257356643677, 'label': 'no'},
- {'score': 0.0004319172876421362, 'label': 'go'},
- {'score': 0.0003331181069370359, 'label': 'down'},
- {'score': 8.870103556546383e-06, 'label': '_unknown_'},
- {'score': 2.6367405325800064e-07, 'label': 'stop'}]
+TODO(SG)
 ```
 
 
