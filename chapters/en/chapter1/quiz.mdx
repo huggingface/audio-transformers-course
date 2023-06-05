@@ -92,7 +92,7 @@
 <Question
 	choices={[
 		{
-			text: "```from datasets import load_dataset \n dataset = load_dataset("DATASET_NAME_ON_HUB")```",
+			text: "```from datasets import load_dataset \n dataset = load_dataset(DATASET_NAME_ON_HUB)```",
 			explain: "Correct! The best way is to use the 🤗 Datasets library.",
 			correct: true
 		},
@@ -101,7 +101,7 @@
 			explain: "Incorrect! Librosa.load is useful to load an individual audio file from a path into a tuple with audio time series and a sampling rate, but not an entire dataset with many examples and multiple features. "
 		},
 		{
-			text: "```from transformers import load_dataset \n dataset = load_dataset("DATASET_NAME_ON_HUB")```",
+			text: "```from transformers import load_dataset \n dataset = load_dataset(DATASET_NAME_ON_HUB)```",
 			explain: "Incorrect! load_dataset method comes in the 🤗 Datasets library, not in 🤗 Transformers."
 		}
 	]}
@@ -117,7 +117,7 @@
 		},
 		{
 			text: "Use Audio module from the 🤗 Datasets library to downsample the examples in the custom dataset",
-			explain: "Correct! \n ```from datasets import Audio \n ds = ds.cast_column("audio", Audio(sampling_rate=16000))```",
+			explain: "Correct! \n ```from datasets import Audio \n ds = ds.cast_column(\"audio\", Audio(sampling_rate=16000))```",
 			correct: true
 		},
 		{
