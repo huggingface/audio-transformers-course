@@ -1,3 +1,5 @@
+<!-- TODO: remove before merge -->
+
 # CTC architectures
 
 CTC or Connectionist Temporal Classification is a technique that is used with encoder-only transformer models for automatic speech recognition. Examples of such models are **Wav2Vec2**, **HuBERT** and **M-CTC-T**.
@@ -109,3 +111,5 @@ One difference between Wav2Vec2 and M-CTC-T is that the former works on raw audi
 Wav2Vec2 & HuBERT use the exact same architecture but are trained in very different ways. Wav2Vec2 is pre-trained like BERT's masked language modeling, by predicting speech units for masked parts of the audio. HuBERT takes the BERT inspiration a step further and learns to predict "discrete speech units", which are analogous to tokens in a text sentence, so that speech can be treated using established NLP techniques.
 
 To clarify, the models highlighted here aren't the only transformer-based CTC models. There are many others, but now you know they all work in a similar way.
+
+<!-- TODO: remove before merge -->
