@@ -69,7 +69,9 @@ classifier(minds[0]["path"])
     {"score": 0.0008378693601116538, "label": "high_value_payment"},
 ]
 ```
-Great! We've identified that the intent of the call was paying a bill, with probability 96%.
+Great! We've identified that the intent of the call was paying a bill, with probability 96%. You can imagine this kind of
+keyword spotting system being used as the first stage of an automated call centre, where we want to categorise incoming
+customer calls based on their query and offer them contextualised support accordingly.
 
 ### Speech Commands
 
@@ -78,9 +80,10 @@ The dataset consists of 15 classes of keywords, a class for silence, and an unkn
 The 15 keywords are single words that would typically be used in on-device settings to control basic tasks or launch
 other processes.
 
-A similar model is running continuously on your mobile phone. Here, instead of having command words, we have 'wake words'
-specific to your device, such as "Hey Google" or "Hey Siri". When the audio classification model detects these wake words,
-it triggers your phone to start listening to the microphone and transcribe your speech using a speech recognition model.
+A similar model is running continuously on your mobile phone. Here, instead of having single command words, we have
+'wake words' specific to your device, such as "Hey Google" or "Hey Siri". When the audio classification model detects
+these wake words, it triggers your phone to start listening to the microphone and transcribe your speech using a speech
+recognition model.
 
 The audio classification model is much smaller and lighter than the speech recognition model, often only several millions
 of parameters compared to several hundred millions for speech recognition. Thus, it can be run continuously on your device
@@ -92,7 +95,7 @@ or committing it memory. After heading to the [Speech Commands' dataset card](ht
 on the Hub, we can use the Dataset Viewer to scroll through the first 100 samples of the dataset, listening to the audio
 files and checking any other metadata information:
 
-<!---
+<!--- TODO(SG): remove comment for release
 <div class="flex justify-center">
      <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/speech_commands.png" alt="Diagram of datasets viewer.">
  </div>
@@ -115,13 +118,18 @@ and run the example through the pipeline:
 
 ```python
 classifier = pipeline("audio-classification", model="superb/hubert-base-superb-ks")
-classifier(sample["file"])
+classifier(sample["audio"])
 ```
 **Output:**
 ```
-TODO(SG)
+[{'score': 0.8167386054992676, 'label': 'up'},
+ {'score': 0.16170723736286163, 'label': '_unknown_'},
+ {'score': 0.013553570955991745, 'label': 'right'},
+ {'score': 0.005410837009549141, 'label': 'go'},
+ {'score': 0.0021237542387098074, 'label': 'left'}]
 ```
 
+Cool! Looks like the example contains the word "up" with high probability (81.7%).
 
 ## Language Identification
 
