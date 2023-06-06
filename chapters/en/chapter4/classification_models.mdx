@@ -235,4 +235,18 @@ Audio(audio, rate=16000)
 
 Perfect! We have the sound of a dog barking 🐕, which aligns with the model's prediction. Have a play with different audio
 samples and different candidate labels - can you define a set of labels that give good generalisation across the ESC
-dataset? Think about where you could find information on the possible sounds in ESC and construct your labels accordingly!
+dataset? Hint: think about where you could find information on the possible sounds in ESC and construct your labels accordingly!
+
+## What next?
+
+We've covered a number of different audio classification tasks and presented the most relevant datasets and models that
+you can download from the Hugging Face Hub and use in just several lines of code using the `pipeline()` class. These tasks
+included keyword spotting, language identification and zero-shot audio classification.
+
+But what if we want to do something **new**? We've worked extensively on speech processing tasks, but this is only one
+aspect of audio classification. Another popular field of audio processing involves **music**. While music has inherently
+different features to speech, many of the same principles that we've learnt about already can be applied to music.
+
+In the following section, we'll go through a step-by-step guide on how you can fine-tune a transformer model with 🤗
+Transformers on the task of music classification. By the end of it, you'll have a fine-tuned checkpoint that you can plug
+into the `pipeline()` class, enabling you to classify songs in exactly the same way that we've classified speech here!
