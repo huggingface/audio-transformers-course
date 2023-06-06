@@ -220,7 +220,7 @@ print(f"Mean: {np.mean(sample['array']):.3}, Variance: {np.var(sample['array']):
 
 **Output:**
 ```out
-Mean: -2.17e-05, Variance: 0.00379
+Mean: TODO, Variance: TODO
 ```
 
 We can see that the mean is close to zero already, but the variance is a long way off! This would cause our model problems,
@@ -238,7 +238,7 @@ print(f"Mean: {np.mean(inputs['input_values']):.3}, Variance: {np.var(inputs['in
 **Output:**
 ```out
 inputs keys: ['input_values', 'attention_mask']
-Mean: -2.8e-09, Variance: 1.0
+Mean: TODO, Variance: TODO
 ```
 
 Alright! Our feature extractor returns a dictionary of two arrays: `input_values` and `attention_mask`. The `input_values`
@@ -451,25 +451,48 @@ trainer.train()
 <Tip warning={true}>
 
 Depending on your GPU, it is possible that you will encounter a CUDA `"out-of-memory"` error when you start training.
-In this case, you can reduce the `batch_size` incrementally by factors of 2 and employ [`gradient_accumulation_steps`](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.Seq2SeqTrainingArguments.gradient_accumulation_steps)
+In this case, you can reduce the `batch_size` incrementally by factors of 2 and employ [`gradient_accumulation_steps`](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.TrainingArguments.gradient_accumulation_steps)
 to compensate.
 
 </Tip>
 
-```python
-trainer.evaluate()
-```
+Training will take approximately X-Y hours depending on your GPU or the one allocated to the Google Colab. Our best evaluation
+accuracy is X% - not bad for 899 examples of training data! The big question is how this compares to other music classification systems.
+For that, we can view the [autoevaluate leaderboard](https://huggingface.co/spaces/autoevaluate/leaderboards?dataset=-any-&only_verified=0&task=audio-classification&metric=f1), a leaderboard that categorises models by language and dataset, and
+subsequently ranks them according to their accuracy.
 
-```out
-{'eval_loss': 0.6693804860115051,
- 'eval_accuracy': 0.82,
- 'eval_runtime': 18.0643,
- 'eval_samples_per_second': 5.536,
- 'eval_steps_per_second': 0.72,
- 'epoch': 9.99}
-```
+TODO(SG): fix link
+
+We can automatically submit our checkpoint to the leaderboard when we push the training results to the Hub - we simply have
+to set the appropriate key-word arguments (kwargs). You can change these values to match your dataset, language and model name
+accordingly:
 
 ```python
-kwargs = {"tags": "hf-course"}
+kwargs = {
+    "dataset_tags": "marsyas/gtzan",
+    "dataset": "GTZAN",
+    "model_name": f"{model_name}-finetuned-gtzan",
+    "finetuned_from": model_id,
+    "tasks": "audio-classification",
+}
+```
+
+The training results can now be uploaded to the Hub. To do so, execute the push_to_hub command:
+
+```python
 trainer.push_to_hub(**kwargs)
+```
+
+This will save the training logs and model weights under `"your-username/distilhubert-finetuned-gtzan"`. For this example,
+check out the upload at [`"sanchit-gandhi/distilhubert-finetuned-gtzan"`](TODO(SG)).
+
+## Share Model
+
+You can now share this model with anyone using the link on the Hub. They can load it with the identifier `"your-username/distilhubert-finetuned-gtzan"`
+directly into the `pipeline()` class. For instance, to load the fine-tuned checkpoint [`"sanchit-gandhi/distilhubert-finetuned-gtzan"`](TODO(SG)):
+
+```python
+from transformers import pipeline
+
+pipe = pipeline("audio-classification", model="sanchit-gandhi/distilhubert-finetuned-gtzan")
 ```
