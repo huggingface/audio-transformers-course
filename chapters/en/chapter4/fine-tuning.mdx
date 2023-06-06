@@ -496,3 +496,13 @@ from transformers import pipeline
 
 pipe = pipeline("audio-classification", model="sanchit-gandhi/distilhubert-finetuned-gtzan")
 ```
+
+## Conclusion
+
+In this section, we've covered a step-by-step guide for fine-tuning the DistilHuBERT model for music classification. While
+we focussed on the task of music classification and the GTZAN dataset, the steps presented here apply more generally to any
+audio classification task - the same script can be used for spoken language audio classification tasks like keyword spotting
+or language identification. You just need to swap out the dataset for one that corresponds to your task of interest!
+
+In the next section, we'll take the model that you just fine-tuned and build a music classification demo that you can share
+on the Hugging Face Hub.
