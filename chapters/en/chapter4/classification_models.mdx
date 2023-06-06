@@ -113,23 +113,65 @@ speech_commands = load_dataset("speech_commands", "v0.02", split="validation", s
 sample = next(iter(speech_commands))
 ```
 
-We'll load the official checkpoint from the [SUPERB benchmark](https://arxiv.org/abs/2105.01051), [`"superb/hubert-base-superb-ks"`](https://huggingface.co/superb/hubert-base-superb-ks),
-and run the example through the pipeline:
+We'll load an official [Audio Spectrogram Transformer](https://huggingface.co/docs/transformers/model_doc/audio-spectrogram-transformer)
+checkpoint fine-tuned on the Speech Commands dataset, under the namespace [`"MIT/ast-finetuned-speech-commands-v2"`](https://huggingface.co/MIT/ast-finetuned-speech-commands-v2):
 
 ```python
-classifier = pipeline("audio-classification", model="superb/hubert-base-superb-ks")
+classifier = pipeline("audio-classification", model="MIT/ast-finetuned-speech-commands-v2")
 classifier(sample["audio"])
 ```
 **Output:**
 ```
-[{'score': 0.8167386054992676, 'label': 'up'},
- {'score': 0.16170723736286163, 'label': '_unknown_'},
- {'score': 0.013553570955991745, 'label': 'right'},
- {'score': 0.005410837009549141, 'label': 'go'},
- {'score': 0.0021237542387098074, 'label': 'left'}]
+[{'score': 0.9999892711639404, 'label': 'backward'},
+ {'score': 1.7504888774055871e-06, 'label': 'happy'},
+ {'score': 6.703040185129794e-07, 'label': 'follow'},
+ {'score': 5.805884484288981e-07, 'label': 'stop'},
+ {'score': 5.614546694232558e-07, 'label': 'up'}]
 ```
 
-Cool! Looks like the example contains the word "up" with high probability (81.7%).
+Cool! Looks like the example contains the word "backward" with high probability. We can take a listen to the sample
+and verify this is correct:
+```
+from IPython.display import Audio
+
+Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
+```
+
+Now, you might be wondering how we've selected these pre-trained models to show you in these audio classification examples.
+The truth is, finding pre-trained models for your dataset and task is very straightforward! The first thing we need to do
+is head to the Hugging Face Hub and click on the "Models" tab: https://huggingface.co/models
+
+This is going to bring up all the models on the Hugging Face Hub, sorted by downloads in the past 30 days:
+
+<!--- TODO(SG): remove comment for release
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/all_models.png">
+ </div>
+--->
+
+You'll notice on the left-hand side that we have a selection of tabs that we can select to filter models by task, library,
+dataset, etc. Scroll down and select the task "Audio Classification" from the list of audio tasks:
+
+<!--- TODO(SG): remove comment for release
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/by_audio_classification.png">
+ </div>
+--->
+
+We're now presented with the sub-set of 500+ audio classification models on the Hub. To further refine this selection, we
+can filter models by dataset. Click on the tab "Datasets", and in the search box type "speech_commands". As you begin typing,
+you'll see the selection for `speech_commands` appear underneath the search tab. You can click this button to filter all
+audio classification models to those fine-tuned on the Speech Commands dataset:
+
+<!--- TODO(SG): remove comment for release
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/by_speech_commands.png">
+ </div>
+--->
+
+Great! We see that we have 6 pre-trained models available to us for this specific dataset and task. You'll recognise the
+first of these models as the Audio Spectrogram Transformer checkpoint that we used in the previous example. This process
+of filtering models on the Hub is exactly how we went about selecting the checkpoint to show you!
 
 ## Language Identification
 
@@ -175,6 +217,8 @@ classifier(sample["audio"])
 We can see that the model predicted the audio was in Afrikaans with extremely high probability (near 1). The FLEURS dataset
 contains audio data from a wide range of languages - we can see that possible class labels include Northern-Sotho, Icelandic,
 Danish and Cantonese Chinese amongst others. You can find the full list of languages on the dataset card here: [google/fleurs](https://huggingface.co/datasets/google/fleurs).
+
+Over to you! What other checkpoints can you find for FLEURS LID on the Hub? What transformer models are they using under-the-hood?
 
 ## Zero-Shot Audio Classification
 
@@ -228,8 +272,6 @@ take that as our prediction. Let's confirm whether we were right by listening to
 volume too high or else you might get a jump!):
 
 ```python
-from IPython.display import Audio
-
 Audio(audio, rate=16000)
 ```
 
