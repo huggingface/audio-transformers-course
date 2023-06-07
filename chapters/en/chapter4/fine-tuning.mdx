@@ -480,10 +480,30 @@ to compensate.
 
 </Tip>
 
-Training will take approximately X-Y hours depending on your GPU or the one allocated to the Google Colab. Our best evaluation
-accuracy is X% - not bad for 899 examples of training data! The big question is how this compares to other music classification systems.
-For that, we can view the [autoevaluate leaderboard](https://huggingface.co/spaces/autoevaluate/leaderboards?dataset=-any-&only_verified=0&task=audio-classification&metric=f1), a leaderboard that categorises models by language and dataset, and
-subsequently ranks them according to their accuracy.
+**Output:**
+```out
+| Training Loss | Epoch | Step | Validation Loss | Accuracy |
+|:-------------:|:-----:|:----:|:---------------:|:--------:|
+| 1.718         | 1.0   | 113  | 1.8257          | 0.42     |
+| 1.2327        | 2.0   | 226  | 1.2521          | 0.66     |
+| 1.0967        | 3.0   | 339  | 1.0000          | 0.71     |
+| 0.7852        | 4.0   | 452  | 0.7794          | 0.76     |
+| 0.5957        | 5.0   | 565  | 0.7188          | 0.78     |
+| 0.3802        | 6.0   | 678  | 0.6068          | 0.8      |
+| 0.3007        | 7.0   | 791  | 0.6681          | 0.78     |
+| 0.3495        | 8.0   | 904  | 0.5883          | 0.81     |
+| 0.2065        | 9.0   | 1017 | 0.5649          | 0.8      |
+| 0.2191        | 10.0  | 1130 | 0.5787          | 0.81     |
+```
+
+Training will take approximately 1 hour depending on your GPU or the one allocated to the Google Colab. Our best evaluation
+accuracy is 81% - not bad for just 899 examples of training data! We could certainly improve upon this result by using
+regularisation techniques such as _dropout_, or sub-diving each audio example from 30s into 15s segments, thus doubling the
+amount of training data we have.
+
+The big question is how this compares to other music classification systems 🤔
+For that, we can view the [autoevaluate leaderboard](https://huggingface.co/spaces/autoevaluate/leaderboards?dataset=-any-&only_verified=0&task=audio-classification&metric=f1),
+a leaderboard that categorises models by language and dataset, and subsequently ranks them according to their accuracy.
 
 TODO(SG): fix link
 
