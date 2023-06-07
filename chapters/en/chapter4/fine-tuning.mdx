@@ -318,7 +318,6 @@ gtzan_encoded
 
 **Output:**
 ```out
-TODO(SG): update this
 DatasetDict({
     train: Dataset({
         features: ['genre', 'input_values'],
@@ -528,12 +527,12 @@ trainer.push_to_hub(**kwargs)
 ```
 
 This will save the training logs and model weights under `"your-username/distilhubert-finetuned-gtzan"`. For this example,
-check out the upload at [`"sanchit-gandhi/distilhubert-finetuned-gtzan"`](TODO(SG)).
+check out the upload at [`"sanchit-gandhi/distilhubert-finetuned-gtzan"`](https://huggingface.co/sanchit-gandhi/distilhubert-finetuned-gtzan).
 
 ## Share Model
 
 You can now share this model with anyone using the link on the Hub. They can load it with the identifier `"your-username/distilhubert-finetuned-gtzan"`
-directly into the `pipeline()` class. For instance, to load the fine-tuned checkpoint [`"sanchit-gandhi/distilhubert-finetuned-gtzan"`](TODO(SG)):
+directly into the `pipeline()` class. For instance, to load the fine-tuned checkpoint [`"sanchit-gandhi/distilhubert-finetuned-gtzan"`](https://huggingface.co/sanchit-gandhi/distilhubert-finetuned-gtzan):
 
 ```python
 from transformers import pipeline
