@@ -268,10 +268,11 @@ import numpy as np
 target_length_in_m = 5
 
 # convert from minutes to seconds (* 60) to num samples (* sampling rate)
-target_length_in_samples = target_length_in_m * 60 * 16000
-long_audio = []
+sampling_rate = pipe.feature_extractor.sampling_rate
+target_length_in_samples = target_length_in_m * 60 * sampling_rate
 
 # iterate over our streaming dataset, concatenating samples until we hit our target
+long_audio = []
 for sample in dataset:
     long_audio.extend(sample["audio"]["array"])
     if len(long_audio) > target_length_in_samples:
