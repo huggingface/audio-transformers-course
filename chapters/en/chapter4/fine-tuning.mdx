@@ -157,7 +157,7 @@ the feature extractor for DistilHuBERT from the pre-trained checkpoint:
 from transformers import AutoFeatureExtractor
 
 model_id = "ntu-spml/distilhubert"
-feature_extractor = AutoFeatureExtractor.from_pretrained(model_id)
+feature_extractor = AutoFeatureExtractor.from_pretrained(model_id, do_normalize=True, return_attention_mask=True)
 ```
 
 Since the sampling rate of the model and the dataset are different, we'll have to resample the audio file to 16,000
@@ -184,14 +184,37 @@ gtzan = gtzan.cast_column("audio", Audio(sampling_rate=sampling_rate))
 
 We can now check the first sample of the train-split of our dataset to verify that it is indeed at 16,000 Hz. 🤗 Datasets
 will resample the audio file _on-the-fly_ when we load each audio sample:
+
 ```python
 gtzan["train"][0]
 ```
 
 **Output:**
 ```out
-TODO
+{
+    "file": "~/.cache/huggingface/datasets/downloads/extracted/fa06ce46130d3467683100aca945d6deafb642315765a784456e1d81c94715a8/genres/pop/pop.00098.wav",
+    "audio": {
+        "path": "~/.cache/huggingface/datasets/downloads/extracted/fa06ce46130d3467683100aca945d6deafb642315765a784456e1d81c94715a8/genres/pop/pop.00098.wav",
+        "array": array(
+            [
+                0.0873509,
+                0.20183384,
+                0.4790867,
+                ...,
+                -0.18743178,
+                -0.23294401,
+                -0.13517427,
+            ],
+            dtype=float32,
+        ),
+        "sampling_rate": 16000,
+    },
+    "genre": 7,
+}
 ```
+
+Great! We can see that the sampling rate has been downsampled to 16kHz. The array values are also different, as we've
+now only got approximately one amplitude value for every 1.5 that we had before.
 
 A defining feature of Wav2Vec2 and HuBERT like models is that they accept a float array corresponding to the raw waveform
 of the speech signal as an input. This is in contrast to other models, like Whisper, where we pre-process the raw audio waveform
@@ -220,12 +243,12 @@ print(f"Mean: {np.mean(sample['array']):.3}, Variance: {np.var(sample['array']):
 
 **Output:**
 ```out
-Mean: TODO, Variance: TODO
+Mean: 0.000185, Variance: 0.0493
 ```
 
-We can see that the mean is close to zero already, but the variance is a long way off! This would cause our model problems,
-as the dynamic range of the audio data would be very small and difficult to separate. Let's apply the feature extractor and
-see what the outputs look like:
+We can see that the mean is close to zero already, but the variance is closer to 0.05. If the variance for the sample was
+larger, it could cause our model problems, since the dynamic range of the audio data would be very small and thus difficult to
+separate. Let's apply the feature extractor and see what the outputs look like:
 
 ```python
 inputs = feature_extractor(sample["array"], sampling_rate=sample["sampling_rate"])
@@ -238,7 +261,7 @@ print(f"Mean: {np.mean(inputs['input_values']):.3}, Variance: {np.var(inputs['in
 **Output:**
 ```out
 inputs keys: ['input_values', 'attention_mask']
-Mean: TODO, Variance: TODO
+Mean: -4.53e-09, Variance: 1.0
 ```
 
 Alright! Our feature extractor returns a dictionary of two arrays: `input_values` and `attention_mask`. The `input_values`
@@ -313,7 +336,7 @@ the encoded audio files, the `attention_mask` a binary mask of 0/1 values that i
 and the `genre` column contains the corresponding labels (or targets). To enable the `Trainer` to process the class labels,
 we need to rename the `genre` column to `label`:
 
-```
+```python
 gtzan_encoded = gtzan_encoded.rename_column("genre", "label")
 ```
 
@@ -324,7 +347,7 @@ method as follows:
 
 ```python
 id2label = {
-    str(i): id2label_fn(i) for i in range(len(gtzan["train"].features["label"].names))
+    str(i): id2label_fn(i) for i in range(len(gtzan_encoded["train"].features["label"].names))
 }
 label2id = {v: k for k, v in id2label.items()}
 
@@ -402,6 +425,7 @@ training_args = TrainingArguments(
     per_device_eval_batch_size=batch_size,
     num_train_epochs=num_train_epochs,
     warmup_ratio=0.1,
+    logging_steps=5,
     load_best_model_at_end=True,
     metric_for_best_model="accuracy",
     fp16=True,
