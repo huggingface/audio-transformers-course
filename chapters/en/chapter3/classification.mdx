@@ -8,7 +8,7 @@ The goal of audio classification is to predict a class label for an audio input.
 
 One of the easiest ways to perform audio classification is to pretend it's an image classification problem!
 
-Recall that a spectrogram is a two-dimensional tensor of shape `(frequencies, sequence length)`. In the [chapter on audio data](TODO:link) we plotted these spectrograms as images. Guess what? We can literally treat the spectrogram as an image and pass it into a regular CNN classifier model such as ResNet and get very good predictions. Even better, we can use a image transformer model such as ViT.
+Recall that a spectrogram is a two-dimensional tensor of shape `(frequencies, sequence length)`. In the [chapter on audio data](chapter1/audio_data) we plotted these spectrograms as images. Guess what? We can literally treat the spectrogram as an image and pass it into a regular CNN classifier model such as ResNet and get very good predictions. Even better, we can use a image transformer model such as ViT.
 
 This is what **Audio Spectrogram Transformer** does. It uses the ViT or Vision Transformer model, and passes it spectrograms as input instead of regular images. Thanks to the transformer's self-attention layers, the model is better able to capture global context than a CNN is.
 
@@ -26,7 +26,7 @@ Image from the paper [AST: Audio Spectrogram Transformer](https://arxiv.org/pdf/
 
 ## Any transformer can be a classifier
 
-In a [previous section](TODO:link) you've seen that CTC is an efficient technique for performing automatic speech recognition using an encoder-only transformer.  Such CTC models already are classifiers, predicting probabilities for class labels from a tokenizer vocabulary. We can take a CTC model and turn it into a general-purpose audio classifier by changing the labels and training it with a regular cross-entropy loss function instead of the special CTC loss.
+In a [previous section](ctc) you've seen that CTC is an efficient technique for performing automatic speech recognition using an encoder-only transformer.  Such CTC models already are classifiers, predicting probabilities for class labels from a tokenizer vocabulary. We can take a CTC model and turn it into a general-purpose audio classifier by changing the labels and training it with a regular cross-entropy loss function instead of the special CTC loss.
 
 For example, HF Transformers has a `Wav2Vec2ForCTC` model but also `Wav2Vec2ForSequenceClassification` and `Wav2Vec2ForAudioFrameClassification`. The only differences between the architectures of these models is the size of the classification layer and the loss function used.
 

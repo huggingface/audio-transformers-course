@@ -16,7 +16,7 @@ On the left is the **encoder** and on the right is the **decoder**.
 
 - The encoder receives an input, in this case a sequence of text tokens, and builds a representation of it (its features). This part of the model is trained to acquire understanding from the input.
 
-- The decoder uses the encoder’s representation (the features) along with other inputs (the previously predicted tokens) to generate a target sequence. This part of the model is trained to generate outputs. In the original design, the output sequence consisted of text tokens.
+- The decoder uses the encoder's representation (the features) along with other inputs (the previously predicted tokens) to generate a target sequence. This part of the model is trained to generate outputs. In the original design, the output sequence consisted of text tokens.
 
 There are also transformer-based models that only use the encoder part (good for tasks that require understanding of the input, such as classification), or only the decoder part (good for tasks such as text generation). An example of an encoder-only model is BERT; an example of a decoder-only model is GPT2.
 
@@ -40,7 +40,7 @@ For audio tasks, the input and/or output sequences may be audio instead of text:
 
 - Voice conversion or speech enhancement: Both the input and output are audio.
 
-There are a few different ways to handle audio so it can be used with a transformer. The main consideration is whether to use the audio in its raw form — as a waveform — or to process it as a spectrogram instead.
+There are a few different ways to handle audio so it can be used with a transformer. The main consideration is whether to use the audio in its raw form — as a waveform — or to process it as a spectrogram instead.
 
 ## Model inputs
 

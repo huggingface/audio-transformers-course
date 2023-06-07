@@ -7,142 +7,138 @@
     classNames="absolute z-10 right-0 top-0"
 />
 
-### 1. 
+### 1. What is a vocoder?
 
 <Question
 	choices={[
 		{
-			text: "",
+			text: "An additional neural network that turns the spectrogram output of a transformer into a waveform.",
 			explain: "Correct! ",
 			correct: true
 		},
 		{
-			text: "",
+			text: "A type of transformer layer that is responsible for creating audio embeddings.",
 			explain: ""
 		},
 		{
-			text: "",
+			text: "An additional neural network that preprocesses speech audio to remove background noise",
 			explain: "",
 		}
 	]}
 />
 
-### 2. ?
+### 2. Wav2Vec2 is an example of
 
 <Question
 	choices={[
 		{
-			text: "",
+			text: "Seq2Seq architecture",
 			explain: ""
 		},
 		{
-			text: "",
+			text: "CNN architecture",
 			explain: ""
 		},
 		{
-			text: "",
+			text: "CTC architecture",
 			explain: "Correct!",
 			correct: true
 		}
 	]}
 />
 
-### 3. ?
+### 3. What does a blank token in CTC algorithm do?
 
 <Question
 	choices={[
 		{
-			text: "",
+			text: "Blank token indicates breaks between the individual words in the sentence.",
 			explain: ""
 		},
 		{
-			text: "",
+			text: "Blank token is a predicted token that serves as a hard boundary between groups of characters. It makes it possible to filter out the duplicate characters",
 			explain: "Correct!",
 			correct: true
 		},
 		{
-			text: "",
+			text: "Blank token is used for sounds that do not match any tokens in the vocabulary, similar to <UNK> token for 'unknown'.",
 			explain: ""
 		}
 	]}
 />
 
-### 4. ?
+### 4. Which of the following statements about CTC models is FALSE? 
 
 <Question
 	choices={[
 		{
-			text: "",
+			text: "CTC models use only the encoder part of the transformer architecture.",
 			explain: ""
 		},
 		{
-			text: "",
+			text: "Wav2Vec2 & HuBERT use the exact same architecture but are trained differently.",
 			explain: ""
 		},
 		{
-			text: "",
+			text: "CTC models tend to perform best for speech recognition compared to other architectures.",
 			explain: "Correct!",
 			correct: true
 		}
 	]}
 />
 
-### 5. ?
+### 5. Whisper is an example of  
 
 <Question
 	choices={[
 		{
-			text: "",
+			text: "Seq2Seq architecture",
 			explain: "Correct!",
 			correct: true
 		},
 		{
-			text: "",
+			text: "CNN architecture",
 			explain: ""
 		},
 		{
-			text: "",
+			text: "CTC architecture",
 			explain: ""
 		}
 	]}
 />
 
-### 6. ?
+### 6. What is the easiest way to perform audio classification?
 
 <Question
 	choices={[
 		{
-			text: "",
+			text: "Use encoder-decoder transformers on the audio waveform.",
 			explain: ""
 		},
 		{
-			text: "",
+			text: "Use spectrograms and treat the task as an image classification problem.",
 			explain: "Correct!",
 			correct: true
 		},
 		{
-			text: "",
+			text: "Turn a CTC model into a general-purpose audio classifier by changing the labels and training it with a regular cross-entropy loss function.",
 			explain: ""
 		}
 	]}
 />
 
-### 7. ?
+### 7. True or false? When treating spectrograms as images for classification, you will always benefit from image data augmentation techniques, such as shifting an image, cropping it, or resizing. 
 
 <Question
 	choices={[
 		{
-			text: "",
+			text: "True",
 			explain: ""
 		},
 		{
-			text: "",
+			text: "False",
 			explain: "Correct!",
 			correct: true
-		},
-		{
-			text: "",
-			explain: ""
 		}
 	]}
 />

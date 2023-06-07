@@ -33,7 +33,7 @@ While the architecture of the decoder is mostly identical to that of the encoder
 1. the decoder has a cross-attention mechanism that allows it to look at the encoder's representation of the input sequence
 2. the decoder's attention is causal — the decoder isn't allowed to look into the future.
 
-In this design, the decoder plays the role of a **language model**, processing the hidden-state representations from the encoder and generating the corresponding text transcriptions. This is more a powerful approach than CTC, even if the CTC model is combined with an external language model, as the seq2seq system can be trained end-to-end with the same training data and loss function, giving greater flexibility and generally superior performance.
+In this design, the decoder plays the role of a **language model**, processing the hidden-state representations from the encoder and generating the corresponding text transcriptions. This is a more powerful approach than CTC, even if the CTC model is combined with an external language model, as the seq2seq system can be trained end-to-end with the same training data and loss function, giving greater flexibility and generally superior performance.
 
 <Tip>
 💡 Whereas a CTC model outputs a sequence of individual characters, the tokens predicted by Whisper are full words or portions of words. It uses the tokenizer from GPT-2 and has 50k+ unique tokens. A seq2seq model can therefore output a much shorter sequence than a CTC model for the same transcription.
