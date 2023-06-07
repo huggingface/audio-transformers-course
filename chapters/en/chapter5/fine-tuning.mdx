@@ -165,7 +165,8 @@ on-the-fly when they are loaded:
 ```python
 from datasets import Audio
 
-common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
+sampling_rate = processor.feature_extractor.sampling_rate
+common_voice = common_voice.cast_column("audio", Audio(sampling_rate=sampling_rate))
 ```
 
 Now we can write a function to prepare our data ready for the model:
@@ -225,11 +226,16 @@ common_voice["train"]
 ```
 **Output**
 ```
-TODO(SG)
+Dataset({
+    features: ['input_features', 'labels', 'input_length'],
+    num_rows: 4904
+})
 ```
 
-Alright! We filtered X amount of data that was longer than 30s. With that, we have our data fully prepared for
-training! Let's continue and take a look at how we can use this data to fine-tune Whisper.
+Alright! In this case we actually have the same number of samples as before, so there were no samples longer than 30s.
+This might not be the case if you switch languages, so it's best to keep this filter step in-place for robustness. With
+that, we have our data fully prepared for training! Let's continue and take a look at how we can use this data to fine-tune
+Whisper.
 
 ## Training and Evaluation
 
