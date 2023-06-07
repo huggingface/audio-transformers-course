@@ -230,10 +230,13 @@ orthographic text and evaluating on normalised text to get the best of both worl
 
 ## Putting it all together
 
-TODO(SG): zero-shot evaluation of Whisper-small on CV13 Dhivehi test set using pipeline, with WER calculation. Below is
-a placeholder.
+Alright! We've covered three topics so far in this Unit: pre-trained models, dataset selection and evaluation.
+Let's have some fun and put them together in one end-to-end example 🚀 We're going to set ourselves up for the next
+section on fine-tuning by evaluating the pre-trained Whisper model on the Common Voice 13 Dhivehi test set. We'll use
+the WER number we get as a _baseline_ for our fine-tuning run, or a target number that we'll try and beat 🥊
 
-Load pipeline:
+First, we'll load the pre-trained Whisper model using the `pipeline()` class. This process will be extremely familiar by now!
+
 ```python
 from transformers import pipeline
 import torch
@@ -242,14 +245,17 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 pipe = pipeline("automatic-speech-recognition", model="openai/whisper-small", device=device)
 ```
 
-Load dataset:
+Next, we'll load the Dhivehi test split of Common Voice 13:
+
 ```python
 from datasets import load_dataset
 
 common_voice_test = load_dataset("mozilla-foundation/common_voice_13_0", "dv", split="test")
 ```
 
-Run evaluation:
+Evaluating over an entire dataset can be done in much the same way as over a single example - all we have to do is **loop**
+over the predictions, rather than inferring just the first one:
+
 ```python
 from tqdm import tqdm
 
@@ -258,15 +264,30 @@ for prediction in tqdm(pipe(common_voice_test, max_new_tokens=256, generate_kwar
     all_predictions.append(prediction["text"])
 ```
 
-Compute metrics, with and without normalisation:
+And finally, we can compute the WER. Let's first compute the orthographic WER, i.e. the WER without any post-processing:
+
+```python
+from evaluate import load
+
+wer_metric = load("wer")
+
+all_references = common_voice_test["sentence"]
+wer_ortho = 100 * wer_metric.compute(references=all_references, predictions=all_predictions)
+wer_ortho
+```
+**Output:**
+```
+TODO(SG)
+```
+
+Next, we'll evaluate the normalised WER, i.e. the WER with normalisation post-processing. We have to filter our samples
+that would be empty after normalisation, as otherwise the total number of words in our reference (N) would be zero, which
+would give a divide by zero error in our calculation:
 
 ```python
 from transformers.models.whisper.english_normalizer import BasicTextNormalizer
 
 normalizer = BasicTextNormalizer()
-
-all_references = common_voice_test["sentence"]
-wer_ortho = 100 * wer_metric.compute(references=all_references, predictions=all_predictions)
 
 # compute normalised WER
 all_predictions_norm = [normalizer(pred) for pred in all_predictions]
@@ -278,6 +299,12 @@ all_references_norm = [all_references_norm[i] for i in range(len(all_references_
 
 wer = 100 * wer_metric.compute(references=all_references_norm, predictions=all_predictions_norm)
 
-print("Orthographic WER: ", wer_ortho)
-print("Normalised WER: ", wer)
+wer
 ```
+**Output:**
+```
+TODO(SG)
+```
+
+Great! So the baseline model achieves an orthographic test WER of %, and a normalised WER of %. These are the numbers that
+we want to try and beat when we fine-tune the model, in order to improve the Whisper model for Dhivehi.
