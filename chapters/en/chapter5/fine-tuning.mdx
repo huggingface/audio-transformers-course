@@ -74,6 +74,11 @@ DatasetDict({
 })
 ```
 
+<Tip>
+    You can change the language identifier from `"dv"` to a language identifier of your choice. To see all possible languages
+    in Common Voice 13, check out the dataset card on the Hugging Face Hub: [mozilla-foundation/common_voice_13_0](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0)
+</Tip>
+
 Most ASR datasets only provide input audio samples (`audio`) and the corresponding transcribed text (`sentence`).
 Common Voice contains additional metadata information, such as `accent` and `locale`, which we can disregard for ASR.
 Keeping the notebook as general as possible, we only consider the input audio and transcribed text for fine-tuning,
