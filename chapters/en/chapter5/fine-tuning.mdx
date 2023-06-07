@@ -175,19 +175,19 @@ Now we can write a function to prepare our data ready for the model:
 3. We encode the transcriptions to label ids through the use of the tokenizer.
 
 ```python
-def prepare_dataset(sample):
-    audio = sample["audio"]
+def prepare_dataset(example):
+    audio = example["audio"]
 
-    sample = processor(
+    example = processor(
         audio=audio["array"],
         sampling_rate=audio["sampling_rate"],
-        text=sample["sentence"],
+        text=example["sentence"],
     )
 
     # compute input length of audio sample in seconds
-    sample["input_length"] = len(audio["array"]) / audio["sampling_rate"]
+    example["input_length"] = len(audio["array"]) / audio["sampling_rate"]
 
-    return sample
+    return example
 ```
 
 We can apply the data preparation function to all of our training examples using 🤗 Datasets' `.map` method. We'll
