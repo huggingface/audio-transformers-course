@@ -14,23 +14,22 @@ representations by passing the inputs through a transformer block. The sequence 
 mapped to a class label output by taking the mean over the hidden-states, and passing the resulting vector through a linear
 classification layer. TODO(SG): re-use a diagram from Unit3.
 
-Decoder-only models introduce unnecessary complexity to the task, since they assume that the outputs can also be a sequence
-(rather than a single class label prediction) and so generate multiple outputs. Therefore, they have slower inference speed
-and tend not to be used. Encoder-decoder models are largely omitted for the same reason. These architecture choices are
-analogous to those in NLP, where encoder-only models such as BERT are favoured for sequence classification tasks, and
-decoder-only models such as GPT reserved for sequence generation tasks.
+Decoder-only models introduce unnecessary complexity to the task, since they assume that the outputs can also be a _sequence_
+of predictions (rather than a single class label prediction), and so generate multiple outputs. Therefore, they have slower
+inference speed and tend not to be used. Encoder-decoder models are largely omitted for the same reason. These architecture
+choices are analogous to those in NLP, where encoder-only models such as BERT are favoured for sequence classification tasks,
+and decoder-only models such as GPT reserved for sequence generation tasks.
 
 Now that we've recapped the standard transformer architecture for audio classification, let's jump into the different
-subsets of audio classification and cover the most popular models.
+subsets of audio classification and cover the most popular models!
 
 ## Keyword Spotting
+
 Keyword spotting (KWS) is the task of identifying a keyword in a spoken utterance. The set of possible keywords forms the
 set of predicted class labels. Hence, to use a pre-trained keyword spotting model, you should ensure that your keywords
 match those that the model was pre-trained on. Below, we'll introduce two datasets and models for keyword spotting.
 
 ### Minds-14
-
-TODO(SG): more exciting dataset?
 
 Let's go ahead and use the same [MINDS-14](https://huggingface.co/datasets/PolyAI/minds14) dataset that you have explored
 in the previous unit. If you recall, MINDS-14 contains recordings of people asking an e-banking system questions in several
@@ -69,6 +68,7 @@ classifier(minds[0]["path"])
     {"score": 0.0008378693601116538, "label": "high_value_payment"},
 ]
 ```
+
 Great! We've identified that the intent of the call was paying a bill, with probability 96%. You can imagine this kind of
 keyword spotting system being used as the first stage of an automated call centre, where we want to categorise incoming
 customer calls based on their query and offer them contextualised support accordingly.
@@ -88,7 +88,8 @@ recognition model.
 The audio classification model is much smaller and lighter than the speech recognition model, often only several millions
 of parameters compared to several hundred millions for speech recognition. Thus, it can be run continuously on your device
 without draining your battery! Only when the wake word is detected is the larger speech recognition model launched, and
-afterwards it is shut down again.
+afterwards it is shut down again. We'll cover transformer models for speech recognition in the next Unit, so by the end
+of the course you should have the tools you need to build your own voice activated assistant!
 
 As with any dataset on the Hugging Face Hub, we can get a feel for the kind of audio data it has present without downloading
 or committing it memory. After heading to the [Speech Commands' dataset card](https://huggingface.co/datasets/speech_commands)
@@ -278,6 +279,15 @@ Audio(audio, rate=16000)
 Perfect! We have the sound of a dog barking 🐕, which aligns with the model's prediction. Have a play with different audio
 samples and different candidate labels - can you define a set of labels that give good generalisation across the ESC
 dataset? Hint: think about where you could find information on the possible sounds in ESC and construct your labels accordingly!
+
+You might be wondering why we don't use the zero-shot audio classification pipeline for **all** audio classification tasks?
+It seems as though we can make predictions for any audio classification problem by defining appropriate class labels _a-priori_,
+thus bypassing the constraint that our classification task needs to match the labels that the model was pre-trained on.
+This comes down to the nature of the CLAP model used in the zero-shot pipeline: CLAP is pre-trained on _generic_ audio
+classification data, similar to the environmental sounds in the ESC dataset, rather than specifically speech data, like
+we had in the LID task. If you gave it speech in English and speech in Spanish, CLAP would know that both examples were
+speech data 🗣️ But it wouldn't be able to differentiate between the languages in the same way a dedicated LID model is
+able to.
 
 ## What next?
 
