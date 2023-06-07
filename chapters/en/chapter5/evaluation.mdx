@@ -1,6 +1,6 @@
 # Evaluation metrics for ASR
 
-If your familiar with the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) from NLP, the
+If you're familiar with the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) from NLP, the
 metrics for assessing speech recognition systems will be familiar! Don't worry if you're not, we'll go through the
 explanations start-to-finish to make sure you know the different metrics and understand what they mean.
 
@@ -145,7 +145,7 @@ print(cer)
 In general, the WER is used far more than the CER for assessing speech systems. This is because the WER requires systems
 to have greater understanding of the context of the predictions. In our example, "sit" is in the wrong tense. A system
 that understands the relationship between the verb and tense of the sentence would have predicted the correct verb tense
-of "sat". We want to encourage this level of understanding from our speech systems. So although the WER is harder than
+of "sat". We want to encourage this level of understanding from our speech systems. So although the WER is less forgiving than
 the CER, it's also more conducive to the kinds of intelligible systems we want to develop. Therefore, we typically use
 the WER and would encourage you to as well! However, there are circumstances where it is not possible to use the WER.
 Certain languages, such as Mandarin and Japanese, have no notion of 'words', and so the WER is meaningless. Here, we revert

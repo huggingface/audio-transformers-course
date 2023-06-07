@@ -114,7 +114,7 @@ is able to use language modelling context as it makes its predictions, correctin
 circumventing the issue of phonetic predictions.
 
 There are two downsides to Seq2Seq models:
-1. They are inherently slower at decoding, since as the decoding process happens one step at a time, rather than all at once
+1. They are inherently slower at decoding, since the decoding process happens one step at a time, rather than all at once
 2. They are more data hungry, requiring significantly more training data to reach convergence
 
 In particular, the need for large amounts of training data has been a bottleneck in the advancement of Seq2Seq architectures for
@@ -191,7 +191,7 @@ Prediction: He tells us that at this festive season of the year, with **Christma
 ```
 
 Whisper has done a great job at correcting the phonetic errors we saw from Wav2Vec2 - both _Christmas_ and _roast_ are
-spelled correctly. We see that the model still struggles with _SIMILES_, being incorrectly transcribe as _similarly_, but
+spelled correctly. We see that the model still struggles with _SIMILES_, being incorrectly transcribed as _similarly_, but
 this time the prediction is a valid word from the English vocabulary. Using a larger Whisper checkpoint can help further
 reduce transcription errors, at the expense of requiring more compute and a longer transcription time.
 
