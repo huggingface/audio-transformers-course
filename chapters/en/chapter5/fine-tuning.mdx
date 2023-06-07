@@ -491,7 +491,7 @@ This will save the training logs and model weights under `"your-username/the-nam
 For this example, check out the upload at `sanchit-gandhi/my-first-asr-model`.
 
 While the fine-tuned model yields satisfactory results on the Common Voice 13 Dhivehi test data, it is by no means optimal.
-The purpose of this notebook is to demonstrate how to fine-tune an ASR model using the 🤗 Trainer for multilingual speech
+The purpose of this guide is to demonstrate how to fine-tune an ASR model using the 🤗 Trainer for multilingual speech
 recognition. The results could likely be improved by optimising the training hyperparameters, such as _learning rate_ and
 _dropout_, and using a larger pre-trained checkpoint (`medium` or `large`).
 
@@ -508,4 +508,13 @@ pipe = pipeline("automatic-speech-recognition", model="sanchit-gandhi/whisper-sm
 
 ## Conclusion
 
-TODO
+In this section, we covered a step-by-step guide on fine-tuning the Whisper model for speech recognition 🤗 Datasets,
+Transformers and the Hugging Face Hub. We first loaded the Dhivehi subset of the Common Voice 13 dataset and pre-processed
+it by computing log-mel spectrograms and tokenising the text. We then defined a data collator, evaluation metric and
+training arguments, before using the 🤗 Trainer to train and evaluate our model. We finished by uploading the fine-tuned
+model to the Hugging Face Hub, and showcased how to share and use it with the `pipeline()` class.
+
+If you followed through to this point, you should now have a fine-tuned checkpoint for speech recognition, well done! 🥳
+Even more importantly, you're equipped with all the tools you need to fine-tune the Whisper model on any speech recognition
+dataset or domain. So what are you waiting for! Pick one of the datasets covered in the section [Choosing a Dataset](./audio_data)
+or select a dataset of your own, and see whether you can get state-of-the-art performance! The leaderboard is waiting for you...
