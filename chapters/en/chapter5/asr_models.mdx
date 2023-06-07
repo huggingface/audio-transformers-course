@@ -164,6 +164,7 @@ subsequently take care of moving all inputs / outputs from the CPU to the GPU as
 
 ```python
 import torch
+from transformers import pipeline
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 pipe = pipeline("automatic-speech-recognition", model="openai/whisper-base", device=device)
