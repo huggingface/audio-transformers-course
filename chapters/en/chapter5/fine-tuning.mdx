@@ -354,15 +354,16 @@ from transformers import WhisperForConditionalGeneration
 model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-small")
 ```
 
-We'll set `use_cache` to `False` since we're using gradient checkpointing and the two are incompatible. We'll also 
-override two generation arguments to control the behaviour of the model during inference. We'll force the language
-and task tokens during generation by setting the `language` and `task` arguments in the `generation_config` (see [`forced_decoder_ids`](https://huggingface.co/docs/transformers/main_classes/text_generation#transformers.generation_utils.GenerationMixin.generate.forced_decoder_ids)).
+We'll set `use_cache` to `False` for training since we're using [gradient checkpointing](https://huggingface.co/docs/transformers/v4.18.0/en/performance#gradient-checkpointing)
+and the two are incompatible. We'll also override two generation arguments to control the behaviour of the model during inference:
+we'll force the language and task tokens during generation by setting the `language` and `task` arguments in the `generation_config`
+(see [`forced_decoder_ids`](https://huggingface.co/docs/transformers/main_classes/text_generation#transformers.generation_utils.GenerationMixin.generate.forced_decoder_ids)).
 We also re-enable cache for generate to speed-up inference time:
 
 ```python
 from functools import partial
 
-# disable cache during training
+# disable cache during training since it's incompatible with gradient checkpointing
 model.config.use_cache = False
 
 # set language and task for generation
