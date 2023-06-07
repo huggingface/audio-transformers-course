@@ -85,7 +85,7 @@ Keeping the notebook as general as possible, we only consider the input audio an
 discarding the additional metadata information:
 
 ```python
-common_voice = common_voice.remove_columns(["accent", "age", "client_id", "down_votes", "gender", "locale", "path", "segment", "up_votes", "variant"])
+common_voice = common_voice.select_columns(["audio", "sentence"])
 ```
 
 ## Feature Extractor, Tokenizer and Processor
