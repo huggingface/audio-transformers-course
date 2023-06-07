@@ -406,7 +406,9 @@ training_args = Seq2SeqTrainingArguments(
 )
 ```
 
-**Note:** if you do not want to upload the model checkpoints to the Hub, set `push_to_hub=False`.
+<Tip>
+    If you do not want to upload the model checkpoints to the Hub, set `push_to_hub=False`.
+</Tip>
 
 We can forward the training arguments to the 🤗 Trainer along with our model, dataset, data collator and `compute_metrics` function:
 
