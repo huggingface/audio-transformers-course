@@ -204,8 +204,18 @@ common_voice["train"] = common_voice["train"].filter(
 )
 ```
 
-Alright! With that we have our data fully prepared for training! Let's continue and take a look at how we can use this
-data to fine-tune Whisper.
+Let's check how much training data we removed through this filtering step:
+
+```python
+common_voice["train"]
+```
+**Output**
+```
+TODO(SG)
+```
+
+Alright! We filtered X amount of data that was longer than 30s. With that, we have our data fully prepared for
+training! Let's continue and take a look at how we can use this data to fine-tune Whisper.
 
 ## Training and Evaluation
 
