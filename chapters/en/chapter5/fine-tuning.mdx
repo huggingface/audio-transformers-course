@@ -1,10 +1,19 @@
 # Fine-tuning the ASR model
 
-Intro goes here...
+In this section, we'll cover a step-by-step guide on fine-tuning Whisper for speech recognition on the Common Voice 13
+dataset. We'll use the 'small' version of the model and a relatively lightweight dataset, enabling you to run fine-tuning
+fairly quickly on any 16GB+ GPU with low disk space requirements, such as the 16GB T4 GPU provided in the Google Colab free
+tier.
 
-- Fine-tune on 16GB GPU
-- Small checkpoint
-- Dhivehi language
+Should you have a smaller GPU or encounter memory issues during training, you can follow the suggestions provided for
+reducing memory usage. Conversely, should you have access to a larger GPU, you can amend the training arguments to maximise
+your throughput. Thus, this guide is accessible regardless of your GPU specifications!
+
+Likewise, this guide outlines how to fine-tune the Whisper model for the Dhivehi language. However, the steps covered here
+generalise to any language in the Common Voice dataset, and more generally to any ASR dataset on the Hugging Face Hub.
+You can tweak the code to quickly switch to a language of your choice and fine-tune a Whisper model in your native tongue 🌍
+
+Right! Now that's out the way, let's get started and kick-off our fine-tuning pipeline!
 
 ## Prepare Environment
 
