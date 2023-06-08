@@ -1,10 +1,9 @@
-tname: Build documentation
+name: Build documentation
 
 on:
   push:
     branches:
-      - release
-      - doc-builder*
+      - main
 
 jobs:
   build:
@@ -18,3 +17,4 @@ jobs:
       languages: en
     secrets:
       token: ${{ secrets.HUGGINGFACE_PUSH }}
+      hf_token: ${{ secrets.hf_token }}
