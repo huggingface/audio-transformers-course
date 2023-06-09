@@ -1,0 +1,38 @@
+# Hands-on exercise
+
+It's time to get your hands on some Audio models and apply what you have learned so far. 
+This exercise is one of the four hands-on exercises required to qualify for a course completion certificate.
+
+Here are the instructions.
+In this unit, we demonstrated how to fine-tune a Hubert model on `marsyas/gtzan` dataset for music classification. Our example achieved 83% accuracy. 
+Your task is to improve upon this accuracy metric. 
+
+Feel free to choose any model on the [🤗 Hub](https://huggingface.co/models) that you think is suitable for audio classification, 
+and use the exact same dataset [`marsyas/gtzan`](https://huggingface.co/datasets/marsyas/gtzan) to build your own classifier.
+
+Your goal is to achieve 87% accuracy on this dataset with your classifier. You can choose the exact same model, and play with the raining hyperparameters, 
+or pick an entirely different model - it's up to you!   
+
+For your result to count towards your certificate, don't forget to push your model to Hub as was shown in this unit with 
+the following `**kwargs` at the end of the training:
+
+```python
+kwargs = {
+    "dataset_tags": "marsyas/gtzan",
+    "dataset": "GTZAN",
+    "model_name": f"{model_name}-finetuned-gtzan",
+    "finetuned_from": model_id,
+    "tasks": "audio-classification",
+}
+
+trainer.push_to_hub(**kwargs)
+```
+
+Here are some additional resources that you may find helpful when working on this exercise:
+* [Audio classification task guide in Transformers documentation](https://huggingface.co/docs/transformers/tasks/audio_classification)
+* [Hubert model documentation](https://huggingface.co/docs/transformers/model_doc/hubert)
+* [M-CTC-T model documentation](https://huggingface.co/docs/transformers/model_doc/mctct)
+* [Audio Spectrogram Transformer documentation](https://huggingface.co/docs/transformers/model_doc/audio-spectrogram-transformer)
+* [Wav2Vec2 documentation](https://huggingface.co/docs/transformers/model_doc/wav2vec2)
+
+Feel free to build a demo of your model, and share it on Discord! If you have questions, post them in the #audio-study-group channel.
