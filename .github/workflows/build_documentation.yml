@@ -1,10 +1,9 @@
-tname: Build documentation
+name: Build documentation
 
 on:
   push:
     branches:
-      - release
-      - doc-builder*
+      - main
 
 jobs:
   build:
