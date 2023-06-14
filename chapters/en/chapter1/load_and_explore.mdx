@@ -26,6 +26,9 @@ from datasets import load_dataset
 
 minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
 minds
+```
+and obtained:
+```py
 Dataset(
     {
         features: [
@@ -47,6 +50,9 @@ at one of the examples:
 
 ```py
 example = minds[0]
+```
+and obtained:
+```py
 example
 {
     "path": "/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav",
@@ -92,6 +98,8 @@ You can easily remove irrelevant features using 🤗 Datasets' `remove_columns` 
 columns_to_remove = ["lang_id", "english_transcription"]
 minds = minds.remove_columns(columns_to_remove)
 minds
+```
+```py
 Dataset({features: ["path", "audio", "transcription", "intent_class"], num_rows: 654})
 ```
 
