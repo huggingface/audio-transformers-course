@@ -168,6 +168,9 @@ As easy as that, we now have log-mel spectrograms as `input_features` in the dat
 Let's visualize it for one of the examples in the `minds` dataset:
 
 ```py
+import numpy as np
+
+example = minds[0]
 input_features = example["input_features"]
 
 plt.figure().set_figwidth(12)
@@ -175,8 +178,8 @@ librosa.display.specshow(
     np.asarray(input_features[0]),
     x_axis="time",
     y_axis="mel",
-    sr=sampling_rate,
-    hop_length=hop_length,
+    sr=feature_extractor.sampling_rate,
+    hop_length=feature_extractor.hop_length,
 )
 plt.colorbar()
 ```
