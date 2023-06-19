@@ -16,7 +16,7 @@ spanning disco to metal. We can get the audio files and their corresponding labe
 ```python
 from datasets import load_dataset
 
-gtzan = load_dataset("marsyas/gtzan")
+gtzan = load_dataset("marsyas/gtzan", "all")
 gtzan
 ```
 
@@ -302,16 +302,17 @@ def preprocess_function(examples):
     return inputs
 ```
 
-With this function defined, we can now apply it to the dataset using the `map()` method. Since audio datasets can be quite
+With this function defined, we can now apply it to the dataset using the `map()` method.
+
+<!--- TODO(SG): revert to multiprocessing when bug in datasets is fixed
+Since audio datasets can be quite
 slow to process, it is usually a good idea to use multiprocessing. We can do this by passing the `num_proc` argument to
 `map()` and we'll use Python's `psutil` module to determine the number of CPU cores on the system:
+--->
 
 ```python
-import psutil
-
-num_proc = psutil.cpu_count()
 gtzan_encoded = gtzan.map(
-    preprocess_function, remove_columns=["audio", "file"], batched=True, num_proc=num_proc
+    preprocess_function, remove_columns=["audio", "file"], batched=True, num_proc=1
 )
 gtzan_encoded
 ```
