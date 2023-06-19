@@ -88,7 +88,7 @@ gtzan["train"][0]
 }
 ```
 
-As we saw in [Unit 1](/chapters/en/chapter1/audio_data), the audio files are represented as 1-dimensional NumPy arrays,
+As we saw in [Unit 1](chapter1/audio_data), the audio files are represented as 1-dimensional NumPy arrays,
 where the value of the array represents the amplitude at that timestep. For these songs, the sampling rate is 22,050 Hz,
 meaning there are 22,050 amplitude values sampled per second. We'll have to keep this in mind when using a pretrained model
 with a different sampling rate, converting the sampling rates ourselves to ensure they match. We can also see the genre
@@ -545,7 +545,10 @@ pipe = pipeline("audio-classification", model="sanchit-gandhi/distilhubert-finet
 In this section, we've covered a step-by-step guide for fine-tuning the DistilHuBERT model for music classification. While
 we focussed on the task of music classification and the GTZAN dataset, the steps presented here apply more generally to any
 audio classification task - the same script can be used for spoken language audio classification tasks like keyword spotting
-or language identification. You just need to swap out the dataset for one that corresponds to your task of interest!
+or language identification. You just need to swap out the dataset for one that corresponds to your task of interest! If
+you're interested in fine-tuning other Hugging Face Hub models for audio classification, we encourage you to check out the
+other [examples](https://github.com/huggingface/transformers/tree/main/examples/pytorch/audio-classification) in the 🤗
+Transformers repository.
 
 In the next section, we'll take the model that you just fine-tuned and build a music classification demo that you can share
 on the Hugging Face Hub.

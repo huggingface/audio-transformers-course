@@ -1,4 +1,4 @@
-# Pre-trained models for audio classification
+# Pre-trained models and datasets for audio classification
 
 The Hugging Face Hub is home to over 500 pre-trained models for audio classification. In this section, we'll go through
 some of the most common audio classification tasks and suggest appropriate pre-trained models for each. Using the `pipeline()`
@@ -8,17 +8,17 @@ fast, allowing you to quickly select the best pre-trained model for your needs.
 
 Before we jump into the various audio classification problems, let's quickly recap the transformer architectures typically
 used. The standard audio classification architecture is motivated by the nature of the task; we want to transform a sequence
-of audio inputs (i.e. our input audio array) into a single class label prediction. Hence, there is a preference
-for _encoder-only_ models. Encoder-only models first map the input audio sequence into a sequence of hidden-state
-representations by passing the inputs through a transformer block. The sequence of hidden-state representations is then
-mapped to a class label output by taking the mean over the hidden-states, and passing the resulting vector through a linear
-classification layer. TODO(SG): re-use a diagram from Unit3.
+of audio inputs (i.e. our input audio array) into a single class label prediction. Encoder-only models first map the input
+audio sequence into a sequence of hidden-state representations by passing the inputs through a transformer block. The
+sequence of hidden-state representations is then mapped to a class label output by taking the mean over the hidden-states,
+and passing the resulting vector through a linear classification layer. Hence, there is a preference for _encoder-only_
+models for audio classification.TODO(SG): re-use a diagram from Unit3.
 
 Decoder-only models introduce unnecessary complexity to the task, since they assume that the outputs can also be a _sequence_
 of predictions (rather than a single class label prediction), and so generate multiple outputs. Therefore, they have slower
 inference speed and tend not to be used. Encoder-decoder models are largely omitted for the same reason. These architecture
-choices are analogous to those in NLP, where encoder-only models such as BERT are favoured for sequence classification tasks,
-and decoder-only models such as GPT reserved for sequence generation tasks.
+choices are analogous to those in NLP, where encoder-only models such as [BERT]((https://huggingface.co/blog/bert-101))
+are favoured for sequence classification tasks, and decoder-only models such as GPT reserved for sequence generation tasks.
 
 Now that we've recapped the standard transformer architecture for audio classification, let's jump into the different
 subsets of audio classification and cover the most popular models!
@@ -251,7 +251,13 @@ dataset = load_dataset("ashraq/esc50", split="train", streaming=True)
 audio_sample = next(iter(dataset))["audio"]["array"]
 ```
 
-And define two candidate labels:
+We then define our candidate labels, which form the set of possible classification labels. The model will return a
+classification probability for each of the labels we define. This means we need to know _a-priori_ the set of possible
+labels in our classification problem, such that the correct label is contained within the set and is thus assigned a
+valid probability score. Note that we can either pass the full set of labels to the model, or a hand-selected subset
+that we believe contains the correct label. Passing the full set of labels is going to be more exhaustive, but comes
+at the expense of lower classification accuracy since the classification space is larger (provided the correct label is
+our chosen subset of labels):
 
 ```python
 candidate_labels = ["Sound of a dog", "Sound of vacuum cleaner"]

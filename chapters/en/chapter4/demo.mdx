@@ -1,9 +1,10 @@
 # Build a demo with Gradio
 
-In this final section on audio classification, we'll build a Gradio demo to showcase the music classification model
-that we just trained on the GTZAN dataset. The first thing to do is load up the fine-tuned checkpoint using the `pipeline()`
-class - this is very familiar now from the section on [pre-trained models](../classification_models). You can change the
-`model_id` to the namespace of your fine-tuned model on the Hugging Face Hub:
+In this final section on audio classification, we'll build a [Gradio]((https://gradio.app)) demo to showcase the music
+classification model that we just trained on the [GTZAN](https://huggingface.co/datasets/marsyas/gtzan) dataset. The first
+thing to do is load up the fine-tuned checkpoint using the `pipeline()` class - this is very familiar now from the section
+on [pre-trained models](../classification_models). You can change the `model_id` to the namespace of your fine-tuned model
+on the Hugging Face Hub:
 
 ```python
 from transformers import pipeline
