@@ -36,21 +36,21 @@
   - local: chapter2/hands_on
     title: Hands-on exercise
 
-#- title: Unit 3. Transformer architectures for audio
-#  sections:
-#  - local: chapter3/introduction
-#    title: Refresher on transformer models
-#  - local: chapter3/ctc
-#    title: CTC architectures
-#  - local: chapter3/seq2seq
-#    title: Seq2Seq architectures
-#  - local: chapter3/classification
-#    title: Audio classification architectures
-#  - local: chapter3/quiz
-#    title: Quiz
-#    quiz: 3
-#  - local: chapter3/supplemental_reading
-#    title: Supplemental reading and resources
+- title: Unit 3. Transformer architectures for audio
+  sections:
+  - local: chapter3/introduction
+    title: Refresher on transformer models
+  - local: chapter3/ctc
+    title: CTC architectures
+  - local: chapter3/seq2seq
+    title: Seq2Seq architectures
+  - local: chapter3/classification
+    title: Audio classification architectures
+  - local: chapter3/quiz
+    title: Quiz
+    quiz: 3
+  - local: chapter3/supplemental_reading
+    title: Supplemental reading and resources
 
 - title: Unit 4. Build a music genre classifier
   sections:
@@ -64,7 +64,7 @@
     title: Build a demo with Gradio
   - local: chapter4/hands_on
     title: Hands-on exercise
-#
+
 #- title: Unit 5. Transcribe a meeting recording
 #  sections:
 #  - local: chapter5/introduction
