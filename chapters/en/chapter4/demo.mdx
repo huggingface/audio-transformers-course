@@ -1,0 +1,44 @@
+# Build a demo with Gradio
+
+In this final section on audio classification, we'll build a [Gradio]((https://gradio.app)) demo to showcase the music
+classification model that we just trained on the [GTZAN](https://huggingface.co/datasets/marsyas/gtzan) dataset. The first
+thing to do is load up the fine-tuned checkpoint using the `pipeline()` class - this is very familiar now from the section
+on [pre-trained models](../classification_models). You can change the `model_id` to the namespace of your fine-tuned model
+on the Hugging Face Hub:
+
+```python
+from transformers import pipeline
+
+model_id = "sanchit-gandhi/distilhubert-finetuned-gtzan"
+pipe = pipeline("audio-classification", model=model_id)
+```
+
+Secondly, we'll define a function that takes the filepath for an audio input and passes it through the pipeline. Here,
+the pipeline automatically takes care of loading the audio file, resampling it to the correct sampling rate, and running
+inference with the model. We take the models predictions of `preds` and format them as a dictionary object to be displayed on the
+output:
+
+```python
+def classify_audio(filepath):
+    preds = pipe(filepath)
+    outputs = {}
+    for p in preds:
+        outputs[p["label"]] = p["score"]
+    return outputs
+```
+
+Finally, we launch the Gradio demo using the function we've just defined:
+
+```python
+import gradio as gr
+
+demo = gr.Interface(
+    fn=classify_audio, inputs=gr.Audio(type="filepath"), outputs=gr.outputs.Label()
+)
+demo.launch(debug=True)
+```
+
+This will launch a Gradio demo similar to the one running on the Hugging Face Space:
+
+<iframe src="https://course-demos-song-classifier.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+

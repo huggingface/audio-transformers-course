@@ -52,25 +52,19 @@
   - local: chapter3/supplemental_reading
     title: Supplemental reading and resources
 
-#- title: Unit 4. Build a music genre classifier
-#  sections:
-#  - local: chapter4/introduction
-#    title: What you'll learn and what you'll build
-#  - local: chapter4/choosing_dataset
-#    title: Choosing a dataset
-#  - local: chapter4/classification_models
-#    title: Pre-trained models for audio classification
-#  - local: chapter4/preprocessing_data
-#    title: Preprocessing data
-#  - local: chapter4/evaluation
-#    title: Evaluation metrics for audio classification
-#  - local: chapter4/fine-tuning
-#    title: Fine-tuning the model
-#  - local: chapter4/demo
-#    title: Creating a Gradio demo
-#  - local: chapter4/hands_on
-#    title: Hands-on exercise
-#
+- title: Unit 4. Build a music genre classifier
+  sections:
+  - local: chapter4/introduction
+    title: What you'll learn and what you'll build
+  - local: chapter4/classification_models
+    title: Pre-trained models for audio classification
+  - local: chapter4/fine-tuning
+    title: Fine-tuning a model for music classification
+  - local: chapter4/demo
+    title: Build a demo with Gradio
+  - local: chapter4/hands_on
+    title: Hands-on exercise
+
 #- title: Unit 5. Transcribe a meeting recording
 #  sections:
 #  - local: chapter5/introduction
