@@ -12,7 +12,7 @@ of audio inputs (i.e. our input audio array) into a single class label predictio
 audio sequence into a sequence of hidden-state representations by passing the inputs through a transformer block. The
 sequence of hidden-state representations is then mapped to a class label output by taking the mean over the hidden-states,
 and passing the resulting vector through a linear classification layer. Hence, there is a preference for _encoder-only_
-models for audio classification.TODO(SG): re-use a diagram from Unit3.
+models for audio classification.
 
 Decoder-only models introduce unnecessary complexity to the task, since they assume that the outputs can also be a _sequence_
 of predictions (rather than a single class label prediction), and so generate multiple outputs. Therefore, they have slower
