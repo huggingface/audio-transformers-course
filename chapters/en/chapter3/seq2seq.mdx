@@ -1,3 +1,5 @@
+<!-- TODO: remove before merge -->
+
 # Seq2Seq architectures
 
 The CTC models discussed in the previous section used only the encoder part of the transformer architecture. When we also add the decoder to create an encoder-decoder model, this is referred to as a **sequence-to-sequence** model or seq2seq for short. The model maps a sequence of one kind of data to a sequence of another kind of data.
@@ -31,7 +33,7 @@ While the architecture of the decoder is mostly identical to that of the encoder
 1. the decoder has a cross-attention mechanism that allows it to look at the encoder's representation of the input sequence
 2. the decoder's attention is causal — the decoder isn't allowed to look into the future.
 
-In this design, the decoder plays the role of a **language model**, processing the hidden-state representations from the encoder and generating the corresponding text transcriptions. This is more a powerful approach than CTC, even if the CTC model is combined with an external language model, as the seq2seq system can be trained end-to-end with the same training data and loss function, giving greater flexibility and generally superior performance.
+In this design, the decoder plays the role of a **language model**, processing the hidden-state representations from the encoder and generating the corresponding text transcriptions. This is a more powerful approach than CTC, even if the CTC model is combined with an external language model, as the seq2seq system can be trained end-to-end with the same training data and loss function, giving greater flexibility and generally superior performance.
 
 <Tip>
 💡 Whereas a CTC model outputs a sequence of individual characters, the tokens predicted by Whisper are full words or portions of words. It uses the tokenizer from GPT-2 and has 50k+ unique tokens. A seq2seq model can therefore output a much shorter sequence than a CTC model for the same transcription.
@@ -66,3 +68,5 @@ What makes TTS difficult is that it's a one-to-many mapping. With speech-to-text
 The seq2seq approach is more powerful than an encoder-only model. By separating the encoding of the input sequence from the decoding of the output sequence, the alignment of audio and text is less of a problem. <!-- The model learns how to perform this alignment through the attention mechanism. -->
 
 However, an encoder-decoder model is also slower as the decoding process happens one step at a time, rather than all at once. The longer the sequence, the slower the prediction. Autoregressive models can also get stuck in repetitions or skip words. Techniques such as beam search can help improve the quality of the predictions, but also slow down decoding even more.
+
+<!-- TODO: remove before merge -->

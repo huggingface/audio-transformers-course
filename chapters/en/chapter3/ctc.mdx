@@ -1,3 +1,5 @@
+<!-- TODO: remove before merge -->
+
 # CTC architectures
 
 CTC or Connectionist Temporal Classification is a technique that is used with encoder-only transformer models for automatic speech recognition. Examples of such models are **Wav2Vec2**, **HuBERT** and **M-CTC-T**.
@@ -12,7 +14,7 @@ With a CTC model, we apply an additional linear mapping on the sequence of hidde
 
 So far, this is very similar to what we do in NLP with a model such as BERT: an encoder-only transformer model  maps our text tokens into a sequence of encoder hidden-states, and then we apply a linear mapping to get one class label prediction for each hidden-state.
 
-Here's the rub: In speech, we don’t know the **alignment** of the audio inputs and text outputs. We know that the order the speech is spoken in is the same as the order that the text is transcribed in (the alignment is so-called monotonic), but we don’t know how the characters in the transcription line up to the audio. This is where the CTC algorithm comes in.
+Here's the rub: In speech, we don't know the **alignment** of the audio inputs and text outputs. We know that the order the speech is spoken in is the same as the order that the text is transcribed in (the alignment is so-called monotonic), but we don't know how the characters in the transcription line up to the audio. This is where the CTC algorithm comes in.
 
 <Tip>
 💡 In NLP models the vocabulary is usually made up of thousands of tokens that describe not just individual characters but parts of words or even complete words. For CTC, however, a small vocabulary works best and we generally try to keep it to less than 50 characters. We don't care about the casing of the letters, so only using uppercase (or only lowercase) is sufficient. Numbers are spelled out, e.g. `"20"` becomes `"twenty"`. In addition to the letters, we need at least a word separator token (space) and a padding token. Just as with an NLP model, the padding token allows us to combine multiple examples in a batch, but it's also the token the model will predict for silences. In English, it's also useful to keep the `'` character — after all, `"it's"` and `"its"` have very different meanings.
@@ -109,3 +111,5 @@ One difference between Wav2Vec2 and M-CTC-T is that the former works on raw audi
 Wav2Vec2 & HuBERT use the exact same architecture but are trained in very different ways. Wav2Vec2 is pre-trained like BERT's masked language modeling, by predicting speech units for masked parts of the audio. HuBERT takes the BERT inspiration a step further and learns to predict "discrete speech units", which are analogous to tokens in a text sentence, so that speech can be treated using established NLP techniques.
 
 To clarify, the models highlighted here aren't the only transformer-based CTC models. There are many others, but now you know they all work in a similar way.
+
+<!-- TODO: remove before merge -->

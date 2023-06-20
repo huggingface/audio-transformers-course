@@ -1,3 +1,5 @@
+<!-- TODO: remove before merge -->
+
 # Refresher on transformer models
 
 In this course we will primarily consider transformer models and how they can be applied to audio tasks. While you don't need to know the inner details of these models, it's useful to understand the main concepts that make them work, so here's a quick refresher. For a deep dive into transformers, check out our [NLP Course](https://huggingface.co/course/chapter1/1).
@@ -14,7 +16,7 @@ On the left is the **encoder** and on the right is the **decoder**.
 
 - The encoder receives an input, in this case a sequence of text tokens, and builds a representation of it (its features). This part of the model is trained to acquire understanding from the input.
 
-- The decoder uses the encoder’s representation (the features) along with other inputs (the previously predicted tokens) to generate a target sequence. This part of the model is trained to generate outputs. In the original design, the output sequence consisted of text tokens.
+- The decoder uses the encoder's representation (the features) along with other inputs (the previously predicted tokens) to generate a target sequence. This part of the model is trained to generate outputs. In the original design, the output sequence consisted of text tokens.
 
 There are also transformer-based models that only use the encoder part (good for tasks that require understanding of the input, such as classification), or only the decoder part (good for tasks such as text generation). An example of an encoder-only model is BERT; an example of a decoder-only model is GPT2.
 
@@ -38,7 +40,7 @@ For audio tasks, the input and/or output sequences may be audio instead of text:
 
 - Voice conversion or speech enhancement: Both the input and output are audio.
 
-There are a few different ways to handle audio so it can be used with a transformer. The main consideration is whether to use the audio in its raw form — as a waveform — or to process it as a spectrogram instead.
+There are a few different ways to handle audio so it can be used with a transformer. The main consideration is whether to use the audio in its raw form — as a waveform — or to process it as a spectrogram instead.
 
 ## Model inputs
 
@@ -52,7 +54,7 @@ A text-to-speech model takes text as input. This works just like the original tr
 
 An automatic speech recognition model takes audio as input. To be able to use a transformer for ASR, we first need to convert the audio into a sequence of embedding vectors somehow.
 
-Models such as **Wav2Vec2** and **HuBERT** use the audio waveform directly as the input to the model. As you've seen in [the chapter on audio data](TODO:link), a waveform is a one-dimensional sequence of floating-point numbers, where each number represents the sampled amplitude at a given time. This raw waveform is first normalized to zero mean and unit variance, which helps to standardize audio samples across different volumes (amplitudes).
+Models such as **Wav2Vec2** and **HuBERT** use the audio waveform directly as the input to the model. As you've seen in [the chapter on audio data](chapter1/introduction), a waveform is a one-dimensional sequence of floating-point numbers, where each number represents the sampled amplitude at a given time. This raw waveform is first normalized to zero mean and unit variance, which helps to standardize audio samples across different volumes (amplitudes).
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/wav2vec2-input.png" alt="Wav2Vec2 uses a CNN to create embeddings from the input waveform">
@@ -107,3 +109,5 @@ In summary: Most audio transformer models are more alike than different — they
 You've also seen how to get audio data into and out of transformer models. To perform the different audio tasks of ASR, TTS, and so on, we can simply swap out the layers that pre-process the inputs into embeddings, and swap out the layers that post-process the predicted embeddings into outputs, while the transformer backbone stays the same.
 
 Next, let's look at a few different ways these models can be trained to do automatic speech recognition.
+
+<!-- TODO: remove before merge -->
