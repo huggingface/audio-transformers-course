@@ -31,6 +31,10 @@ Re-load the first audio example in the MINDS-14 dataset, and check that it has b
 
 ```py
 minds[0]
+```
+
+**Output:**
+```out
 {
     "path": "/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav",
     "audio": {
@@ -100,6 +104,10 @@ minds = minds.filter(is_audio_length_in_range, input_columns=["duration"])
 # remove the temporary helper column
 minds = minds.remove_columns(["duration"])
 minds
+```
+
+**Output:**
+```out
 Dataset({features: ["path", "audio", "transcription", "intent_class"], num_rows: 624})
 ```
 
@@ -155,6 +163,10 @@ We can apply the data preparation function to all of our training examples using
 ```py
 minds = minds.map(prepare_dataset)
 minds
+```
+
+**Output:**
+```out
 Dataset(
     {
         features: ["path", "audio", "transcription", "intent_class", "input_features"],

@@ -50,6 +50,10 @@ Instead, you have to iterate over the dataset. Here's how you can access an exam
 
 ```py
 next(iter(gigaspeech["train"]))
+```
+
+**Output:**
+```out
 {
     "segment_id": "YOU0000000315_S0000660",
     "speaker": "N/A",
@@ -78,6 +82,10 @@ the first two examples in the gigaspeech dataset:
 ```py
 gigaspeech_head = gigaspeech["train"].take(2)
 list(gigaspeech_head)
+```
+
+**Output:**
+```out
 [
     {
         "segment_id": "YOU0000000315_S0000660",

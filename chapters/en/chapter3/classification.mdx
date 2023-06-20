@@ -1,5 +1,3 @@
-<!-- TODO: remove before merge -->
-
 # Audio classification architectures
 
 The goal of audio classification is to predict a class label for an audio input. The model can predict a single class label that covers the entire input sequence, or it can predict a label for every audio frame — typically every 20 milliseconds of input audio — in which case the model's output is a sequence of class label probabilities. An example of the former is detecting what bird is making a particular sound; an example of the latter is speaker diarization, where the model predicts which speaker is speaking at any given moment.
@@ -35,5 +33,3 @@ In fact, any encoder-only audio transformer model can be turned into an audio cl
 To predict a single classification score for the entire sequence (`Wav2Vec2ForSequenceClassification`), the model takes the mean over the hidden-states and feeds that into the classification layer. The output is a single probability distribution.
 
 To make a separate classification for each audio frame (`Wav2Vec2ForAudioFrameClassification`), the classifier is run on the sequence of hidden-states, and so the output of the classifier is a sequence too.
-
-<!-- TODO: remove before merge -->
