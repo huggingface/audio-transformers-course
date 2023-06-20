@@ -1,6 +1,6 @@
 # The Audio Transformers Course
 
-This repo contains the content that's used to create [Hugging Face's Audio Transformers Course](https://huggingface.co/audio-course). 
+This repo contains the content that's used to create [Hugging Face's Audio Transformers Course](https://huggingface.co/learn/audio-course/). 
 The course teaches you about applying Transformers to various tasks in audio and speech processing.It's completely free and open-source!
 
 
@@ -52,7 +52,7 @@ language codes -- see [here](https://www.loc.gov/standards/iso639-2/php/code_lis
 
 **✍️ Start translating**
 
-Now comes the fun part - translating the text! The first thing we recommend is translating the part of the `_toctree.yml` file that corresponds to your chapter. This file is used to render the table of contents on the website and provide the links to the Colab notebooks. The only fields you should change are the `title`, ones -- for example, here are the parts of `_toctree.yml` that we'd translate for [Chapter 0](https://huggingface.co/course/chapter0/1?fw=pt):
+Now comes the fun part - translating the text! The first thing we recommend is translating the part of the `_toctree.yml` file that corresponds to your chapter. This file is used to render the table of contents on the website and provide the links to the Colab notebooks. The only fields you should change are the `title`, ones -- for example, here are the parts of `_toctree.yml` that we'd translate for [Chapter 0 of the NLP course](https://huggingface.co/course/chapter0/1?fw=pt):
 
 ```yaml
 - title: 0. Setup # Translate this!
