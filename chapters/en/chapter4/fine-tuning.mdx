@@ -413,7 +413,7 @@ from transformers import TrainingArguments
 model_name = model_id.split("/")[-1]
 batch_size = 8
 gradient_accumulation_steps = 1
-num_train_epochs = 10
+num_train_epochs = 5
 
 training_args = TrainingArguments(
     f"{model_name}-finetuned-gtzan",
@@ -484,28 +484,21 @@ to compensate.
 ```out
 | Training Loss | Epoch | Step | Validation Loss | Accuracy |
 |:-------------:|:-----:|:----:|:---------------:|:--------:|
-| 1.718         | 1.0   | 113  | 1.8257          | 0.42     |
-| 1.2327        | 2.0   | 226  | 1.2521          | 0.66     |
-| 1.0967        | 3.0   | 339  | 1.0000          | 0.71     |
-| 0.7852        | 4.0   | 452  | 0.7794          | 0.76     |
-| 0.5957        | 5.0   | 565  | 0.7188          | 0.78     |
-| 0.3802        | 6.0   | 678  | 0.6068          | 0.8      |
-| 0.3007        | 7.0   | 791  | 0.6681          | 0.78     |
-| 0.3495        | 8.0   | 904  | 0.5883          | 0.81     |
-| 0.2065        | 9.0   | 1017 | 0.5649          | 0.8      |
-| 0.2191        | 10.0  | 1130 | 0.5787          | 0.81     |
+| 1.5613        | 1.0   | 113  | 1.7108          | 0.52     |
+| 1.1928        | 2.0   | 226  | 1.2290          | 0.67     |
+| 1.0137        | 3.0   | 339  | 0.9546          | 0.7      |
+| 0.7152        | 4.0   | 452  | 0.8872          | 0.76     |
+| 0.6655        | 5.0   | 565  | 0.8068          | 0.75     |
 ```
 
-Training will take approximately 1 hour depending on your GPU or the one allocated to the Google Colab. Our best evaluation
-accuracy is 81% - not bad for just 899 examples of training data! We could certainly improve upon this result by using
-regularisation techniques such as _dropout_, or sub-diving each audio example from 30s into 15s segments, thus doubling the
-amount of training data we have.
+Training will take approximately 30 minutes depending on your GPU or the one allocated to the Google Colab. Our best
+evaluation accuracy is 75% - not bad for just 5 epochs with 899 examples of training data! We could certainly improve
+upon this result by training for more epochs, using regularisation techniques such as _dropout_, or sub-diving each
+audio example from 30s into 15s segments to change our data pre-processing strategy.
 
 The big question is how this compares to other music classification systems 🤔
-For that, we can view the [autoevaluate leaderboard](https://huggingface.co/spaces/autoevaluate/leaderboards?dataset=-any-&only_verified=0&task=audio-classification&metric=f1),
+For that, we can view the [autoevaluate leaderboard](https://huggingface.co/spaces/autoevaluate/leaderboards?dataset=marsyas%2Fgtzan&only_verified=0&task=audio-classification&config=all&split=train&metric=accuracy),
 a leaderboard that categorises models by language and dataset, and subsequently ranks them according to their accuracy.
-
-TODO(SG): fix link
 
 We can automatically submit our checkpoint to the leaderboard when we push the training results to the Hub - we simply have
 to set the appropriate key-word arguments (kwargs). You can change these values to match your dataset, language and model name
