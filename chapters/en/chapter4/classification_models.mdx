@@ -108,7 +108,9 @@ using it.
 Let's do exactly that and load a sample of the Speech Commands dataset using streaming mode:
 
 ```python
-speech_commands = load_dataset("speech_commands", "v0.02", split="validation", streaming=True)
+speech_commands = load_dataset(
+    "speech_commands", "v0.02", split="validation", streaming=True
+)
 sample = next(iter(speech_commands))
 ```
 
@@ -116,7 +118,9 @@ We'll load an official [Audio Spectrogram Transformer](https://huggingface.co/do
 checkpoint fine-tuned on the Speech Commands dataset, under the namespace [`"MIT/ast-finetuned-speech-commands-v2"`](https://huggingface.co/MIT/ast-finetuned-speech-commands-v2):
 
 ```python
-classifier = pipeline("audio-classification", model="MIT/ast-finetuned-speech-commands-v2")
+classifier = pipeline(
+    "audio-classification", model="MIT/ast-finetuned-speech-commands-v2"
+)
 classifier(sample["audio"])
 ```
 **Output:**
@@ -191,7 +195,9 @@ Great! Now we can load our audio classification model. For this, we'll use a ver
 fine-tuned on the FLEURS dataset, which is currently the most performant LID model on the Hub:
 
 ```python
-classifier = pipeline("audio-classification", model="sanchit-gandhi/whisper-medium-fleurs-lang-id")
+classifier = pipeline(
+    "audio-classification", model="sanchit-gandhi/whisper-medium-fleurs-lang-id"
+)
 ```
 
 We can then pass the audio through our classifier and generate a prediction:
@@ -258,7 +264,9 @@ candidate_labels = ["Sound of a dog", "Sound of vacuum cleaner"]
 We can run both through the model to find the candidate label that is _most similar_ to the audio input:
 
 ```python
-classifier = pipeline(task="zero-shot-audio-classification", model="laion/clap-htsat-unfused")
+classifier = pipeline(
+    task="zero-shot-audio-classification", model="laion/clap-htsat-unfused"
+)
 classifier(audio_sample, candidate_labels=candidate_labels)
 ```
 **Output:**

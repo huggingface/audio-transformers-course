@@ -157,7 +157,9 @@ the feature extractor for DistilHuBERT from the pre-trained checkpoint:
 from transformers import AutoFeatureExtractor
 
 model_id = "ntu-spml/distilhubert"
-feature_extractor = AutoFeatureExtractor.from_pretrained(model_id, do_normalize=True, return_attention_mask=True)
+feature_extractor = AutoFeatureExtractor.from_pretrained(
+    model_id, do_normalize=True, return_attention_mask=True
+)
 ```
 
 Since the sampling rate of the model and the dataset are different, we'll have to resample the audio file to 16,000
@@ -255,7 +257,9 @@ inputs = feature_extractor(sample["array"], sampling_rate=sample["sampling_rate"
 
 print(f"inputs keys: {list(inputs.keys())}")
 
-print(f"Mean: {np.mean(inputs['input_values']):.3}, Variance: {np.var(inputs['input_values']):.3}")
+print(
+    f"Mean: {np.mean(inputs['input_values']):.3}, Variance: {np.var(inputs['input_values']):.3}"
+)
 ```
 
 **Output:**
@@ -347,7 +351,8 @@ method as follows:
 
 ```python
 id2label = {
-    str(i): id2label_fn(i) for i in range(len(gtzan_encoded["train"].features["label"].names))
+    str(i): id2label_fn(i)
+    for i in range(len(gtzan_encoded["train"].features["label"].names))
 }
 label2id = {v: k for k, v in id2label.items()}
 
@@ -531,7 +536,9 @@ directly into the `pipeline()` class. For instance, to load the fine-tuned check
 ```python
 from transformers import pipeline
 
-pipe = pipeline("audio-classification", model="sanchit-gandhi/distilhubert-finetuned-gtzan")
+pipe = pipeline(
+    "audio-classification", model="sanchit-gandhi/distilhubert-finetuned-gtzan"
+)
 ```
 
 ## Conclusion
