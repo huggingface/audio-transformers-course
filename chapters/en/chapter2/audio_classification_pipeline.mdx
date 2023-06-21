@@ -47,6 +47,10 @@ pass is straight to the `classifier`:
 
 ```py
 classifier(example["audio"]["array"])
+```
+
+**Output:**
+```out
 [
     {"score": 0.9631525278091431, "label": "pay_bill"},
     {"score": 0.02819698303937912, "label": "freeze"},
@@ -62,6 +66,10 @@ this example is:
 ```py
 id2label = minds.features["intent_class"].int2str
 id2label(example["intent_class"])
+```
+
+**Output:**
+```out
 "pay_bill"
 ```
 

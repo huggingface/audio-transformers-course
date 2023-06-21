@@ -1,5 +1,3 @@
-<!-- TODO: remove before merge -->
-
 # Seq2Seq architectures
 
 The CTC models discussed in the previous section used only the encoder part of the transformer architecture. When we also add the decoder to create an encoder-decoder model, this is referred to as a **sequence-to-sequence** model or seq2seq for short. The model maps a sequence of one kind of data to a sequence of another kind of data.
@@ -68,5 +66,3 @@ What makes TTS difficult is that it's a one-to-many mapping. With speech-to-text
 The seq2seq approach is more powerful than an encoder-only model. By separating the encoding of the input sequence from the decoding of the output sequence, the alignment of audio and text is less of a problem. <!-- The model learns how to perform this alignment through the attention mechanism. -->
 
 However, an encoder-decoder model is also slower as the decoding process happens one step at a time, rather than all at once. The longer the sequence, the slower the prediction. Autoregressive models can also get stuck in repetitions or skip words. Techniques such as beam search can help improve the quality of the predictions, but also slow down decoding even more.
-
-<!-- TODO: remove before merge -->

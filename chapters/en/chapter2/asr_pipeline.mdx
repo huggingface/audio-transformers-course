@@ -24,6 +24,10 @@ Next, we'll take an example from the dataset and pass its raw data to the pipeli
 ```py
 example = minds[0]
 asr(example["audio"]["array"])
+```
+
+**Output:**
+```out
 {"text": "I WOULD LIKE TO PAY MY ELECTRICITY BILL USING MY COD CAN YOU PLEASE ASSIST"}
 ```
 
@@ -31,6 +35,10 @@ Let's compare this output to what the actual transcription for this example is:
 
 ```py
 example["english_transcription"]
+```
+
+**Output:**
+```out
 "I would like to pay my electricity bill using my card can you please assist"
 ```
 
@@ -59,6 +67,10 @@ Get an example and see what the transcription is supposed to be:
 ```py
 example = minds[0]
 example["transcription"]
+```
+
+**Output:**
+```out
 "ich möchte gerne Geld auf mein Konto einzahlen"
 ```
 
@@ -69,6 +81,10 @@ from transformers import pipeline
 
 asr = pipeline("automatic-speech-recognition", model="maxidl/wav2vec2-large-xlsr-german")
 asr(example["audio"]["array"])
+```
+
+**Output:**
+```out
 {"text": "ich möchte gerne geld auf mein konto einzallen"}
 ```
 
