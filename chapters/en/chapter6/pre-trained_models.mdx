@@ -13,7 +13,12 @@ contextual information over long sequences is crucial for generating coherent an
 Finally, training TTS models typically requires pairs of text and corresponding speech recordings. On top of that, to ensure 
 the model can generate speech that sounds natural for various speakers and speaking styles, data should contain diverse and 
 representative speech samples from multiple speakers. Collecting such data is expensive, time-consuming and for some languages 
-is not feasible. 
+is not feasible. You may think, why not just take a dataset designed for ASR (automatic speech recognition) and use it for 
+training a TTS model? Unfortunately, automated speech recognition (ASR) datasets are not the best option. The features that 
+make it beneficial for ASR, such as excessive background noise, are typically undesirable in TTS. It's great to be able to 
+pick out speach from a noisy street recording, but not so much if your voice assistant replies to you with cars honking 
+and construction going full-swing in the background. Still, some ASR datasets can sometimes be useful for fine-tuning, 
+as finding top-quality, multilingual, and multi-speaker TTS datasets can be quite challenging.
 
 Compared to ASR (automatic speech recognition) and audio classification tasks, there are significantly fewer pretrained 
 model checkpoints available. On the Hugging Face Hub, you'll find close to 300 suitable checkpoints. Among 
@@ -94,6 +99,7 @@ The SpeechT5 TTS model is not limited to creating speech for a single speaker. I
 that capture a particular speaker's voice characteristics. 
 
 [//]: # (TODO: We should elaborate here how the speaker embeddings are obtained, what they represent, etc.)
+[//]: # (As an example we can talk about use the pre-trained [spkrec-xvect-voxceleb](https://huggingface.co/speechbrain/spkrec-xvect-voxceleb model from SpeechBrain. )
 
 Let's load such a speaker embedding from a dataset on the Hub. The embeddings 
 were obtained from the [CMU ARCTIC dataset](http://www.festvox.org/cmu_arctic/) using 
