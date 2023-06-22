@@ -1,1 +1,191 @@
-# - Pre-trained models for text-to-speech
+# Pre-trained models for text-to-speech
+
+Text-to-speech task (also called _speech synthesis_) comes with a range of challenges.
+
+First, just like in the previously discussed automatic speech recognition, the alignment between text and speech can be tricky.  
+The model has to learn to generate the correct duration and timing for each phoneme, word, or sentence which can be challenging, 
+especially for long and complex sentences.
+
+Next, there's the long-distance dependency problem: language has a temporal aspect, and understanding the meaning of a 
+sentence often requires considering the context of surrounding words. Ensuring that the TTS model captures and retains 
+contextual information over long sequences is crucial for generating coherent and natural-sounding speech.
+
+Finally, training TTS models typically requires pairs of text and corresponding speech recordings. On top of that, to ensure 
+the model can generate speech that sounds natural for various speakers and speaking styles, data should contain diverse and 
+representative speech samples from multiple speakers. Collecting such data is expensive, time-consuming and for some languages 
+is not feasible. 
+
+Compared to ASR (automatic speech recognition) and audio classification tasks, there are significantly fewer pretrained 
+model checkpoints available. On the Hugging Face Hub, you'll find close to 300 suitable checkpoints. Among 
+these pretrained models we'll focus on two architectures that are readily available for you in the 🤗 Transformers library - 
+SpeechT5 and Massive Multilingual Speech (MMS).
+
+## SpeechT5 
+
+SpeechT5 is a model that is capable of handling a range of speech tasks. While in this unit, we focus on the text-to-speech aspect, 
+this model can be tailored to speech-to-text tasks (automatic speech recognition or speaker identification), 
+as well as speech-to-speech (e.g. speech enhancement or converting between different voices). This is due to how the model 
+is designed and pre-trained. 
+
+At the heart of SpeechT5 is a regular Transformer encoder-decoder model. Just like any other Transformer, the encoder-decoder 
+network models a sequence-to-sequence transformation using hidden representations. This Transformer backbone is the same 
+for all tasks SpeechT5 supports.
+
+This Transformer is complemented with six modal-specific (speech/text) _pre-nets_ and _post-nets_. The input speech or text
+(depending on the task) is preprocessed through a corresponding pre-net to obtain the hidden representations that Transformer 
+can use. The Transformer's output is then passed to a post-net that will use it to generate the output in the target modality.
+
+This is what the architecture looks like (image from the original paper): 
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/speecht5/architecture.jpg" alt="SpeechT5 architecture from the original paper">
+</div>
+
+SpeechT5 is first pre-trained using large-scale unlabeled speech and text data, to acquire a unified representation 
+of different modalities. During the pre-training phase all pre-nets and post-nets are used simultaneously.
+
+After pre-training, the entire encoder-decoder backbone is fine-tuned for each individual task. At this step, only the 
+pre-nets and post-nets relevant to the specific task are employed. For example, to use SpeechT5 for text-to-speech, you'd 
+need the text encoder pre-net for the text inputs and the speech decoder pre- and post-nets for the speech outputs. 
+
+This approach allows to obtain several models fine-tuned for different speech tasks that all benefit from the initial 
+pre-training on unlabeled data.  
+
+<Tip> Even though the fine-tuned models start out using the same set of weights from the shared pre-trained model, the 
+final versions are all quite different in the end. You can't take a fine-tuned ASR model and swap out the pre-nets and 
+post-net to get a working TTS model, for example. SpeechT5 is flexible, but not that flexible ;)
+</Tip>
+
+Let's see what are the pre- and post-nets that SpeechT5 uses for the TTS task specifically:
+
+* Text encoder pre-net: A text embedding layer that maps text tokens to the hidden representations that the encoder expects. This is similar to what happens in an NLP model such as BERT.
+* Speech decoder pre-net: This takes a log mel spectrogram as input and uses a sequence of linear layers to compress the spectrogram into hidden representations. 
+* Speech decoder post-net: This predicts a residual to add to the output spectrogram and is used to refine the results.
+
+When combined, this is what SpeechT5 architecture for text-to-speech looks like:
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/speecht5/tts.jpg" alt="SpeechT5 architecture for TTS">
+</div>
+
+As you can see, the output is a log mel spectrogram and not a final waveform. If you recall, we briefly touched on 
+this topic in [Unit 3](../chapter3/introduction#spectrogram-output). It is common for models that generate audio to produce 
+a log mel spectrogram, which needs to be converted to a waveform with an additional neural network known as a vocoder.
+
+Let's see how you could do that.
+
+First, let's load the fine-tuned TTS SpeechT5 model from the 🤗 Hub, along with the processor object used for tokenization 
+and feature extraction:
+
+```python
+from transformers import SpeechT5Processor, SpeechT5ForTextToSpeech
+
+processor = SpeechT5Processor.from_pretrained("microsoft/speecht5_tts")
+model = SpeechT5ForTextToSpeech.from_pretrained("microsoft/speecht5_tts")
+```
+
+Next, tokenize the input text.
+
+```python
+inputs = processor(text="Don't count the days, make the days count.", return_tensors="pt")
+```
+
+The SpeechT5 TTS model is not limited to creating speech for a single speaker. Instead, it uses so-called speaker embeddings 
+that capture a particular speaker's voice characteristics. 
+
+[//]: # (TODO: We should elaborate here how the speaker embeddings are obtained, what they represent, etc.)
+
+Let's load such a speaker embedding from a dataset on the Hub. The embeddings 
+were obtained from the [CMU ARCTIC dataset](http://www.festvox.org/cmu_arctic/) using 
+[this script](https://huggingface.co/mechanicalsea/speecht5-vc/blob/main/manifest/utils/prep_cmu_arctic_spkemb.py), but any X-Vector embedding should work.
+
+```python
+from datasets import load_dataset
+embeddings_dataset = load_dataset("Matthijs/cmu-arctic-xvectors", split="validation")
+
+import torch
+speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze(0)
+```
+
+The speaker embedding is a tensor of shape (1, 512). This particular speaker embedding describes a female voice.
+
+At this point we already have enough inputs to generate a log mel spectrogram as an output, you can do it like this:
+
+```python
+spectrogram = model.generate_speech(inputs["input_ids"], speaker_embeddings)
+```
+
+This outputs a tensor of shape (140, 80) containing a log mel spectrogram. The first dimension is the sequence length, and 
+it may vary between runs as the speech decoder pre-net always applies dropout to the input sequence. This adds a bit of 
+random variability to the generated speech.
+
+However, if we are looking to generate speech waveform, we need to specify a vocoder to use for the spectrogram to waveform conversion. 
+Conveniently, 🤗 Transformers offers a vocoder based on HiFi-GAN. Its weights were kindly provided by the original 
+authors of SpeechT5.
+
+[//]: # (TODO: Should we add here a section about how vocoder works? Seems like it would be appropriate here)
+
+<Tip> 
+In theory, you can use any vocoder that works on 80-bin mel spectrograms. The vocoder based on HiFi-GAN provided in 🤗 Transformers is simply a convenient way to add a vocoder. 
+</Tip>>
+
+Loading the vocoder is as easy as any other 🤗 Transformers model.
+
+```python
+from transformers import SpeechT5HifiGan
+vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
+```
+
+
+Now all you need to do is pass it as an argument when generating speech, and the outputs will be automatically converted to the speech waveform.
+
+```python
+speech = model.generate_speech(inputs["input_ids"], speaker_embeddings, vocoder=vocoder)
+```
+
+Let's listen to the result. The sample rate used by SpeechT5 is always 16 kHz.
+
+```python
+from IPython.display import Audio
+
+Audio(speech, rate=16000)
+```
+
+Neat! 
+
+Feel free to play with the SpeechT5 text-to-speech demo, explore other voices, experiment with inputs. Note that this 
+pre-trained checkpoint only supports English language:
+
+<iframe
+	src="https://matthijs-speecht5-tts-demo.hf.space"
+	frameborder="0"
+	width="850"
+	height="450">
+</iframe>
+
+## Massive Multilingual Speech (MMS)
+
+[//]: # (This is the only other TTS model that I could find, and it's still not fully available, it's WIP. Should we write about it? 
+It may feel odd to have only SpeechT5)
+
+Now, what if you are looking for a pre-trained model in a language other than English? Massive Multilingual Speech (MMS) is 
+another model that covers an array of speech tasks, however, it supports a large number of languages. For instance, it can 
+synthesize speech in over 1,100 languages.
+
+At the core of MMS is wav2vec2, a CTC model. If you don't remember what a Connectionist Temporal Classification (CTC) approach is, 
+refer to [Unit 3](../chapter3/ctc) for a refresher. Just as before, first, the model is pre-trained in unsupervised manner 
+on more than half a million hours of audio in over 1,400 languages.   
+
+Next, MMS uses so-called _adapter training_, a training method where only a small fraction of model weights are trained to 
+adapt the model to 1000+ different vocabularies. It is important to note that the original model parameters remain 
+unchanged. How does it work? Small, trainable modules, called adapter layers, are inserted between the pre-existing layers 
+of the model, which then adapt the model to a specific task without requiring extensive retraining.
+This approach not only greatly reduces computational requirements compared to training the full model, but also allows 
+for better and more flexible speaker-specific adjustments.
+
+Essentially, adapter layers act like linguistic bridges, enabling the model to leverage knowledge from one language when 
+deciphering another. MMS's Adapter training achieves astonishingly low word error rates after just 10-20 minutes of fine-tuning.
+
+Currently, MMS model is being actively integrated in 🤗 Transformers. If you install the library from source (`!pip install git+https://github.com/huggingface/transformers.git`), 
+you can already try it for ASR and language identification. In the near future, speech synthesis will be available in  🤗 Transformers as well.
+
