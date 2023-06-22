@@ -121,7 +121,7 @@ checkpoint fine-tuned on the Speech Commands dataset, under the namespace [`"MIT
 classifier = pipeline(
     "audio-classification", model="MIT/ast-finetuned-speech-commands-v2"
 )
-classifier(sample["audio"])
+classifier(sample["audio"]["array"])
 ```
 **Output:**
 ```
