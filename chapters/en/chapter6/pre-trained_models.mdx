@@ -56,9 +56,11 @@ need the text encoder pre-net for the text inputs and the speech decoder pre- an
 This approach allows to obtain several models fine-tuned for different speech tasks that all benefit from the initial 
 pre-training on unlabeled data.  
 
-<Tip> Even though the fine-tuned models start out using the same set of weights from the shared pre-trained model, the 
+<Tip> 
+	Even though the fine-tuned models start out using the same set of weights from the shared pre-trained model, the 
 final versions are all quite different in the end. You can't take a fine-tuned ASR model and swap out the pre-nets and 
 post-net to get a working TTS model, for example. SpeechT5 is flexible, but not that flexible ;)
+
 </Tip>
 
 Let's see what are the pre- and post-nets that SpeechT5 uses for the TTS task specifically:
@@ -132,8 +134,8 @@ authors of SpeechT5.
 [//]: # (TODO: Should we add here a section about how vocoder works? Seems like it would be appropriate here)
 
 <Tip> 
-In theory, you can use any vocoder that works on 80-bin mel spectrograms. The vocoder based on HiFi-GAN provided in 🤗 Transformers is simply a convenient way to add a vocoder. 
-</Tip>>
+	In theory, you can use any vocoder that works on 80-bin mel spectrograms. The vocoder based on HiFi-GAN provided in 🤗 Transformers is simply a convenient way to add a vocoder. 
+</Tip>
 
 Loading the vocoder is as easy as any other 🤗 Transformers model.
 
