@@ -93,18 +93,12 @@
   sections:
   - local: chapter6/introduction
     title: What you'll learn and what you'll build
-  - local: chapter6/overview
-    title: How to synthesize human speech from text?
-  - local: chapter6/choosing_dataset
-    title: Choosing a dataset
-  - local: chapter6/preprocessing
-    title: Loading and preprocessing data
   - local: chapter6/pre-trained_models
     title: Pre-trained models for text-to-speech
-  - local: chapter6/evaluation
-    title: Evaluation metrics for text-to-speech
   - local: chapter6/fine-tuning
     title: Fine-tuning SpeechT5
+  - local: chapter6/evaluation
+    title: Evaluating text-to-speech models
   - local: chapter6/quiz
     title: Quiz
     quiz: 6
