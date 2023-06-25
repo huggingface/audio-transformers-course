@@ -1,0 +1,26 @@
+- title: 0단원. 코스에 오신 것을 환영합니다!
+  sections:
+  - local: chapter0/introduction
+    title: 이 코스에서 기대할 수 있는 것들
+  - local: chapter0/get_ready
+    title: 준비하기
+  - local: chapter0/community
+    title: 커뮤니티에 참여하기
+
+- title: 1단원. 오디오 데이터 다루기
+  sections:
+  - local: chapter1/introduction
+    title: 학습할 내용들
+  - local: chapter1/audio_data
+    title: 오디오 데이터에 대하여
+  - local: chapter1/load_and_explore
+    title: 오디오 데이터셋 불러오기 및 탐색하기
+  - local: chapter1/preprocessing
+    title: 오디오 데이터 전처리하기
+  - local: chapter1/streaming
+    title: 오디오 데이터 스트리밍하기
+  - local: chapter1/quiz
+    title: 퀴즈
+    quiz: 1
+  - local: chapter1/supplemental_reading
+    title: 참고자료들

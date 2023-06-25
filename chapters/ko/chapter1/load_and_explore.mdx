@@ -1,0 +1,147 @@
+# 오디오 데이터셋 불러오기 및 탐색하기
+
+이 코스에서 우리는 🤗 Datasets 라이브러리를 사용하여 오디오 데이터셋을 다룹니다.🤗 Datasets는 오디오를 포함한 모든 양식의 데이터셋을 다운로드하고 준비할 수 있는 오픈소스 라이브러리입니다.
+이 라이브러리는 허깅페이스 허브에서 공개적으로 사용 가능한 머신러닝 데이터셋에 쉽게 접근할 수 있도록 도와줍니다. 무엇보다도, 🤗 Datasets는 연구자와 실무자 모두가 오디오 데이터셋을 쉽게 다룰 수 있도록 만드는 특화 기능들을 여럿 가지고 있습니다.
+
+시작에 앞서, 🤗 Datasets 라이브러리가 설치돼있는지 확인해주세요:
+
+```bash
+pip install datasets[audio]
+```
+
+🤗 Datasets의 주된 기능 중 하나는 `load_dataset()` 파이썬 코드 한줄로 데이터셋을 다운로드하고 준비할 수 있다는것입니다.
+
+
+[MINDS-14](https://huggingface.co/datasets/PolyAI/minds14)라고 하는 오디오 데이터셋을 불러와 다뤄봅시다. 이 데이터셋은 여러 언어와 방언으로 사람들이 인터넷뱅킹에 대해 묻는 내용이 녹음돼있습니다.
+
+MINDS-14 데이터셋을 불러오기 위해 허브에서의 데이터셋 식별자인 (`PolyAI/minds14`)를 `load_dataset` 함수로 넘겨줘야 합니다. 또한 데이터셋의 호주 부분(`en-AU`)에만 관심이 있고 학습용 데이터에만 관심이 있음을 명시하겠습니다.:
+
+```py
+from datasets import load_dataset
+
+minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+minds
+```
+
+**Output:**
+```out
+Dataset(
+    {
+        features: [
+            "path",
+            "audio",
+            "transcription",
+            "english_transcription",
+            "intent_class",
+            "lang_id",
+        ],
+        num_rows: 654,
+    }
+)
+```
+
+데이터셋은 654개의 오디오 파일로 이뤄져있습니다. 각각의 파일들은 자막, 영어 번역, 그리고 질문자의 의도를 나타내는 레이블(label)이 함께 제공됩니다. 오디오 컬럼(column)에는 원시(raw) 오디오 데이터가 포함되어 있습니다. 예제를 하나 살펴보겠습니다:
+
+```py
+example = minds[0]
+example
+```
+
+**Output:**
+```out
+{
+    "path": "/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav",
+    "audio": {
+        "path": "/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav",
+        "array": array(
+            [0.0, 0.00024414, -0.00024414, ..., -0.00024414, 0.00024414, 0.0012207],
+            dtype=float32,
+        ),
+        "sampling_rate": 8000,
+    },
+    "transcription": "I would like to pay my electricity bill using my card can you please assist",
+    "english_transcription": "I would like to pay my electricity bill using my card can you please assist",
+    "intent_class": 13,
+    "lang_id": 2,
+}
+```
+
+오디오 컬럼에 여러 feature가 있음을 알 수 있습니다. 각각은 다음과 같습니다: 
+* `path`: 오디오 파일의 경로(이 예제의 경우 `*.wav`).
+* `array`: 1차원 넘파이 배열로 디코딩된 오디오 데이터.
+* `sampling_rate`: 오디오 파일의 샘플링 속도(이 예제의 경우 8,000 Hz).
+
+
+`intent_class`는 오디오 녹음이 어떤 카테고리로 분류되는지 나타냅니다. 이 숫자를 의미있는 문자열로 바꾸려면 `int2str()` 메소드를 사용하세요:
+
+```py
+id2label = minds.features["intent_class"].int2str
+id2label(example["intent_class"])
+```
+
+**Output:**
+```out
+"pay_bill"
+```
+
+`transcription` feature를 보면 누군가가 청구서를 지불하는 것에 대해 질문하는 녹음의 오디오 파일이란것을 알 수 있습니다.
+
+이 데이터의 부분집합에 대해 오디오 분류기(classifier)를 학습시킬 계획이시라면, 이 모든 feature가 필요하진 않을지도 모릅니다. 예를 들어, `lang_id`는 모든 예제에서 같은 값을 지니기 때문에 그다지 쓸모 있지 않을겁니다.  `english_transcription`는 이 호주데이터에선 대부분이 `transcription`과 같을테니 삭제해도 좋을겁니다.
+
+이런 관계없는 feature는 🤗 Datasets의 `remove_columns` 메소드를 사용하면 쉽게 제거할 수 있습니다:
+
+```py
+columns_to_remove = ["lang_id", "english_transcription"]
+minds = minds.remove_columns(columns_to_remove)
+minds
+```
+
+**Output:**
+```out
+Dataset({features: ["path", "audio", "transcription", "intent_class"], num_rows: 654})
+```
+
+이제 데이터셋의 원시 컨텐츠들을 불러오고 살펴봤으니, 몇개를 들어봅시다!
+`Gradio`의 `Blocks`와 `Audio` 기능을 써서 데이터셋의 샘플 몇개를 무작위로 디코딩해보겠습니다:
+
+```py
+import gradio as gr
+
+
+def generate_audio():
+    example = minds.shuffle()[0]
+    audio = example["audio"]
+    return (
+        audio["sampling_rate"],
+        audio["array"],
+    ), id2label(example["intent_class"])
+
+
+with gr.Blocks() as demo:
+    with gr.Column():
+        for _ in range(4):
+            audio, label = generate_audio()
+            output = gr.Audio(audio, label=label)
+
+demo.launch(debug=True)
+```
+
+원하신다면, 예제 몇개를 시각화해보는 것도 좋습니다. 첫번째 예제의 파형을 그려보겠습니다.
+
+```py
+import librosa
+import matplotlib.pyplot as plt
+import librosa.display
+
+array = example["audio"]["array"]
+sampling_rate = example["audio"]["sampling_rate"]
+
+plt.figure().set_figwidth(12)
+librosa.display.waveshow(array, sr=sampling_rate)
+```
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/waveform_unit1.png" alt="Waveform plot">
+</div>
+
+한번 해보세요! MINDS-14 데이터셋의 다른 언어나 방언을 다운로드하여 듣고 시각화를 해보세요. 전체 데이터셋이 어떨지 대략적인 감을 줄겁니다. [여기](https://huggingface.co/datasets/PolyAI/minds14)서 가능한 언어들이 무엇인지 확인하실 수 있습니다.
