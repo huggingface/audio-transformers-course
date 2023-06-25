@@ -24,3 +24,8 @@
     quiz: 1
   - local: chapter1/supplemental_reading
     title: 참고자료들
+
+- title: 코스 이벤트
+  sections:
+  - local: events/introduction
+    title: 라이브 세션과 워크샵
