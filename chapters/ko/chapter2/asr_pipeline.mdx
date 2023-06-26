@@ -1,0 +1,88 @@
+# 파이프라인을 이용한 자동 음성 인식
+
+자동 음성 인식(ASR)은 음성 오디오 녹음을 텍스트로 변환하는 작업입니다. 이 작업은 매우 다양하게 실용적으로 쓰일 수가 있습니다. 비디오 자막 생성부터 Siri나 Alexa같은 가상 비서의 음성명령에 이르기까지요.
+
+이번 섹션에선 이전의 MINDS-14 데이터셋의 청구서 지불 방법에 대해 묻는 사람의 음성 녹음을 `automatic-speech-recognition` 파이프라인을 이용해 텍스트로 변환하는 방법을 알아보겠습니다.
+
+시작을 위해 데이터를 준비해야 합니다. 아직 준비하지 않았다면, [Audio classification with a pipeline](introduction.mdx)에서 했던것처럼 데이터셋을 불러오고 16 kHz로 업샘플링을 해주세요.
+
+오디오 녹음을 텍스트로 바꾸기 위해 🤗 Transformers의 `automatic-speech-recognition` 파이프라인을 이용합니다. 파이프라인을 인스턴스화(instantiate) 해보겠습니다:
+
+```py
+from transformers import pipeline
+
+asr = pipeline("automatic-speech-recognition")
+```
+
+다음으로, 데이터셋에서 원시 데이터를 불러와 파이프라인에 넘겨봅시다:
+
+```py
+example = minds[0]
+asr(example["audio"]["array"])
+```
+
+**Output:**
+```out
+{"text": "I WOULD LIKE TO PAY MY ELECTRICITY BILL USING MY COD CAN YOU PLEASE ASSIST"}
+```
+
+이 출력과 실제값을 비교해보겠습니다:
+
+```py
+example["english_transcription"]
+```
+
+**Output:**
+```out
+"I would like to pay my electricity bill using my card can you please assist"
+```
+
+모델이 오디오를 텍스트로 바꾸는 일을 꽤 잘 해낸것 같습니다! 실제 텍스트와 비교했을때 한 단어("card")만을 틀렸을 뿐입니다. 화자가 호주식 억양인 것을 고려할 때 꽤 괜찮은 결과로 볼 수 있습니다(호주식 억양에선 "r"이 종종 묵음입니다). 그렇긴 하지만, 전기요금을 물고기("cod"는 영어로 대구를 뜻합니다)로 낼 것을 권장하지는 않습니다!
+
+기본적으로 이 파이프라인은 영어의 자동 음성 인식을 위해 학습된 모델을 씁니다. 이 예제에서는 괜찮지만 여러분이 만약 MINDS-14의 다른 언어에 대해 텍스트 변환을 시도해보고 싶으시다면 [🤗 Hub](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&language=fr&sort=downloads)에서 사전학습된 ASR 모델을 찾아보실 수 있습니다.
+모델 리스트에서 작업순으로 필터링을 먼저하고 언어에 대해 필터링을 할 수 있습니다. 마음에 드는 모델을 찾으셨다면, 파이프라인의 `model` 인수(argument)로 넘겨 쓰면 됩니다.
+
+이를 이용해 MINDS-14의 독일어 부분을 다뤄 보겠습니다. "de-DE" 부분을 불러봅시다:
+
+```py
+from datasets import load_dataset
+from datasets import Audio
+
+minds = load_dataset("PolyAI/minds14", name="de-DE", split="train")
+minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
+```
+
+예제를 하나 선택해 텍스트가 어떻게 나와야하는지 확인해봅시다:
+
+```py
+example = minds[0]
+example["transcription"]
+```
+
+**Output:**
+```out
+"ich möchte gerne Geld auf mein Konto einzahlen"
+```
+
+
+🤗 Hub에서 독일어를 위해 사전학습된 ASR 모델을 찾아 파이프라인을 인스턴스화한 후 이 예제에 적용시켜봅시다:
+
+```py
+from transformers import pipeline
+
+asr = pipeline("automatic-speech-recognition", model="maxidl/wav2vec2-large-xlsr-german")
+asr(example["audio"]["array"])
+```
+
+**Output:**
+```out
+{"text": "ich möchte gerne geld auf mein konto einzallen"}
+```
+
+역시나, stimmt's!
+
+여러분이 작업을 시작할 때, 이번 단원에서 보신것처럼 간단한 파이프라인으로 시작해보는것은 여러 장점이 있습니다:
+- 여러분의 문제를 해결할 사전학습된 모델이 이미 있을 수 있습니다. 많은 시간을 아끼실 수 있을겁니다.
+- `pipeline()`은 여러분을 위해 전처리 및 후처리를 대신 해줍니다. 따라서 여러분은 데이터 형식을 모델에 맞추는것에 대해 걱정하지 않으셔도 됩니다.
+- 결과가 이상적이지 않더라도 하나의 기준점을 빠르게 제시해줍니다.
+- 여러분이 커스텀 데이터에 맞춰 모델을 파인튜닝하고 허브에 올린다면 `pipeline()` 메소드를 이용해 모든 커뮤니티가 이를 쉽게 쓸 수 있어 AI를 더욱 사용하기 쉽게 만듭니다.
