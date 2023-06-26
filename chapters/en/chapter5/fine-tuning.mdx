@@ -54,8 +54,12 @@ from datasets import load_dataset, DatasetDict
 
 common_voice = DatasetDict()
 
-common_voice["train"] = load_dataset("mozilla-foundation/common_voice_13_0", "dv", split="train+validation")
-common_voice["test"] = load_dataset("mozilla-foundation/common_voice_13_0", "dv", split="test")
+common_voice["train"] = load_dataset(
+    "mozilla-foundation/common_voice_13_0", "dv", split="train+validation"
+)
+common_voice["test"] = load_dataset(
+    "mozilla-foundation/common_voice_13_0", "dv", split="test"
+)
 
 print(common_voice)
 ```
@@ -134,7 +138,9 @@ as explained above:
 ```python
 from transformers import WhisperProcessor
 
-processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="sinhalese", task="transcribe")
+processor = WhisperProcessor.from_pretrained(
+    "openai/whisper-small", language="sinhalese", task="transcribe"
+)
 ```
 
 It's worth reiterating that in most circumstances, you'll find that the language you want to fine-tune on is in the set of
@@ -196,7 +202,9 @@ remove the columns from the raw training data (the audio and text), leaving just
 `prepare_dataset` function:
 
 ```python
-common_voice = common_voice.map(prepare_dataset, remove_columns=common_voice.column_names["train"], num_proc=2)
+common_voice = common_voice.map(
+    prepare_dataset, remove_columns=common_voice.column_names["train"], num_proc=2
+)
 ```
 
 Finally, we filter any training data with audio samples longer than 30s. These samples would otherwise be truncated by
@@ -205,6 +213,7 @@ samples that are less than 30s, and `False` for those that are longer:
 
 ```python
 max_input_length = 30.0
+
 
 def is_audio_in_length_range(length):
     return length < max_input_length
@@ -277,14 +286,19 @@ import torch
 from dataclasses import dataclass
 from typing import Any, Dict, List, Union
 
+
 @dataclass
 class DataCollatorSpeechSeq2SeqWithPadding:
     processor: Any
 
-    def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
+    def __call__(
+        self, features: List[Dict[str, Union[List[int], torch.Tensor]]]
+    ) -> Dict[str, torch.Tensor]:
         # split inputs and labels since they have to be of different lengths and need different padding methods
         # first treat the audio inputs by simply returning torch tensors
-        input_features = [{"input_features": feature["input_features"][0]} for feature in features]
+        input_features = [
+            {"input_features": feature["input_features"][0]} for feature in features
+        ]
         batch = self.processor.feature_extractor.pad(input_features, return_tensors="pt")
 
         # get the tokenized label sequences
@@ -293,7 +307,9 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         labels_batch = self.processor.tokenizer.pad(label_features, return_tensors="pt")
 
         # replace padding with -100 to ignore loss correctly
-        labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
+        labels = labels_batch["input_ids"].masked_fill(
+            labels_batch.attention_mask.ne(1), -100
+        )
 
         # if bos token is appended in previous tokenization step,
         # cut bos token here as it's append later anyways
@@ -338,6 +354,7 @@ from transformers.models.whisper.english_normalizer import BasicTextNormalizer
 
 normalizer = BasicTextNormalizer()
 
+
 def compute_metrics(pred):
     pred_ids = pred.predictions
     label_ids = pred.label_ids
@@ -356,8 +373,14 @@ def compute_metrics(pred):
     pred_str_norm = [normalizer(pred) for pred in pred_str]
     label_str_norm = [normalizer(label) for label in label_str]
     # filtering step to only evaluate the samples that correspond to non-zero references:
-    pred_str_norm = [pred_str_norm[i] for i in range(len(pred_str_norm)) if len(label_str_norm[i]) > 0]
-    label_str_norm = [label_str_norm[i] for i in range(len(label_str_norm)) if len(label_str_norm[i]) > 0]
+    pred_str_norm = [
+        pred_str_norm[i] for i in range(len(pred_str_norm)) if len(label_str_norm[i]) > 0
+    ]
+    label_str_norm = [
+        label_str_norm[i]
+        for i in range(len(label_str_norm))
+        if len(label_str_norm[i]) > 0
+    ]
 
     wer = 100 * metric.compute(predictions=pred_str_norm, references=label_str_norm)
 

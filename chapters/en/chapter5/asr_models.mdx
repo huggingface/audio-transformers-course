@@ -28,7 +28,9 @@ Wav2Vec2's speech transcription capabilities:
 ```python
 from datasets import load_dataset
 
-dataset = load_dataset("hf-internal-testing/librispeech_pipe_demo", "clean", split="validation")
+dataset = load_dataset(
+    "hf-internal-testing/librispeech_pipe_demo", "clean", split="validation"
+)
 dataset
 ```
 
@@ -69,7 +71,9 @@ Next, we'll take an example from the dataset and pass its raw data to the pipeli
 
 ```python
 pipe(sample["audio"].copy())
-{'text': 'HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAUS AND ROSE BEEF LOOMING BEFORE US SIMALYIS DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND'}
+{
+    "text": "HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAUS AND ROSE BEEF LOOMING BEFORE US SIMALYIS DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND"
+}
 ```
 
 We can see that the Wav2Vec2 model does a pretty good job at transcribing this sample - at a first glance it looks generally correct.
@@ -167,7 +171,9 @@ import torch
 from transformers import pipeline
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
-pipe = pipeline("automatic-speech-recognition", model="openai/whisper-base", device=device)
+pipe = pipeline(
+    "automatic-speech-recognition", model="openai/whisper-base", device=device
+)
 ```
 
 Great! Now let's transcribe the audio as before. The only change we make is passing an extra argument, `max_new_tokens`,
@@ -201,7 +207,9 @@ the multilingual equivalent of the LibriSpeech dataset, with labelled audio data
 from the Spanish split of the MLS dataset, making use of _streaming_ mode so that we don't have to download the entire dataset:
 
 ```python
-dataset = load_dataset("facebook/multilingual_librispeech", "spanish", split="validation", streaming=True)
+dataset = load_dataset(
+    "facebook/multilingual_librispeech", "spanish", split="validation", streaming=True
+)
 sample = next(iter(dataset))
 ```
 
@@ -322,7 +330,13 @@ To activate batching, we need to pass the argument `batch_size` to the pipeline.
 long audio sample with chunking and batching as follows:
 
 ```python
-pipe(long_audio, max_new_tokens=256, generate_kwargs={"task": "transcribe"}, chunk_length_s=30, batch_size=8)
+pipe(
+    long_audio,
+    max_new_tokens=256,
+    generate_kwargs={"task": "transcribe"},
+    chunk_length_s=30,
+    batch_size=8,
+)
 ```
 **Output:**
 ```
@@ -345,7 +359,14 @@ are compatible with both the chunking and batching methods we used previously, s
 argument to our previous call:
 
 ```python
-pipe(long_audio, max_new_tokens=256, generate_kwargs={"task": "transcribe"}, chunk_length_s=30, batch_size=8, return_timestamps=True)["chunks"]
+pipe(
+    long_audio,
+    max_new_tokens=256,
+    generate_kwargs={"task": "transcribe"},
+    chunk_length_s=30,
+    batch_size=8,
+    return_timestamps=True,
+)["chunks"]
 ```
 **Output:**
 ```
