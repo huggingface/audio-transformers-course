@@ -1,0 +1,310 @@
+# Evaluation metrics for ASR
+
+If you're familiar with the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) from NLP, the
+metrics for assessing speech recognition systems will be familiar! Don't worry if you're not, we'll go through the
+explanations start-to-finish to make sure you know the different metrics and understand what they mean.
+
+When assessing speech recognition systems, we compare the system's predictions to the target text transcriptions,
+annotating any errors that are present. We categorise these errors into one of three categories:
+1. Substitutions (S): where we transcribe the **wrong word** in our prediction ("sit" instead of "sat")
+2. Insertions (I): where we add an **extra word** in our prediction
+3. Deletions (D): where we **remove a word** in our prediction
+
+These error categories are the same for all speech recognition metrics. What differs is the level at which we compute
+these errors: we can either compute them on the _word level_ or on the _character level_.
+
+We'll use a running example for each of the metric definitions. Here, we have a _ground truth_ or _reference_ text sequence:
+
+```python
+reference = "the cat sat on the mat"
+```
+
+And a predicted sequence from the speech recognition system that we're trying to assess:
+
+```python
+prediction = "the cat sit on the"
+```
+
+We can see that the prediction is pretty close! But some words are not quite right. We'll evaluate this prediction
+against the reference for the three most popular speech recognition metrics and see what sort of numbers we get for each.
+
+## Word Error Rate
+The _word error rate (WER)_ metric is the 'de facto' metric for speech recognition. It calculates substitutions,
+insertions and deletions on the _word level_. This means errors are annotated on a word-by-word basis. Take our example:
+
+
+| Reference:  | the | cat | sat     | on  | the | mat |
+|-------------|-----|-----|---------|-----|-----|-----|
+| Prediction: | the | cat | **sit** | on  | the |     |  |
+| Label:      | ✅   | ✅   | S       | ✅   | ✅   | D   |
+
+Here, we have:
+* 1 substitution ("sit" instead of "sat")
+* 0 insertions
+* 1 deletion ("mat" is missing)
+
+This gives 2 errors in total. To get our error rate, we divide the number of errors by the total number of words in our
+reference (N), which for this example is 6:
+
+\begin{aligned}
+WER &= \frac{S + I + D}{N} \\
+&= \frac{1 + 0 + 1}{6} \\
+&= 0.333
+\end{aligned}
+
+Alright! So we have a WER of 0.333, or 33.3%. Notice how the word "sit" only has one character that is wrong, but the
+entire word is marked incorrect! This is a defining feature of the WER: spelling errors are penalised heavily, no matter
+how minor they are.
+
+The WER is defined such that _lower is better_: a lower WER means there are fewer errors in our prediction, so a perfect
+speech recognition system would have a WER of zero (no errors).
+
+Let's see how we can compute the WER using 🤗 Evaluate. We'll need two packages to compute our WER metric: 🤗 Evaluate
+for the API interface, and JIWER to do the heavy lifting of running the calculation:
+```
+pip install --upgrade evaluate jiwer
+```
+
+Great! We can now load up the WER metric and compute the figure for our example:
+
+```python
+from evaluate import load
+
+wer_metric = load("wer")
+
+wer = wer_metric.compute(references=[reference], predictions=[prediction])
+
+print(wer)
+```
+**Print Output:**
+```
+0.3333333333333333
+```
+
+0.33, or 33.3%, as expected! We now know what's going on under-the-hood with this WER calculation.
+
+Now, here's something that's quite confusing! What do you think the upper limit of the WER is? You would expect it to be
+1 or 100% right? Nuh uh! Since the WER is the ratio of errors to number of words (N), there is no upper limit on the WER!
+Let's take an example were we predict 10 words and the target only has 2 words. If all of our predictions were wrong (10 errors),
+we'd have a WER of 10 / 2 = 5, or 500%! This is something to bear in mind if you train an ASR system and see a WER of over
+100%. Although if you're seeing this, something has likely gone wrong... 😅
+
+## Word Accuracy
+
+We can flip the WER around to give us a metric where _higher is better_. Rather than measuring the word error rate,
+we can measure the _word accuracy (WAcc)_ of our system:
+
+\begin{equation}
+WAcc = 1 - WER \nonumber
+\end{equation}
+
+The WAcc is also measured on the word-level, it's just the WER reformulated as an accuracy metric rather than an error
+metric. The WAcc is very infrequently quoted in the speech literature - we think of our system predictions in terms of
+word errors, and so prefer error rate metrics that are more associated with these error type annotations.
+
+## Character Error Rate
+It seems a bit unfair that we marked the entire word for "sit" wrong when in fact only one letter was incorrect!
+That's because we were evaluating our system on the word level, thereby annotating errors on a word-by-word basis.
+The _character error rate (CER)_ assesses systems on the _character level_. This means we divide up our words into their
+individual characters, and annotate errors on a character-by-character basis:
+
+| Reference:  | t   | h   | e   |     | c   | a   | t   |     | s   | a     | t   |     | o   | n   |     | t   | h   | e   |     | m   | a   | t   |
+|-------------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+| Prediction: | t   | h   | e   |     | c   | a   | t   |     | s   | **i** | t   |     | o   | n   |     | t   | h   | e   |     |     |     |     |
+| Label:      | ✅   | ✅   | ✅   |     | ✅   | ✅   | ✅   |     | ✅   | S     | ✅   |     | ✅   | ✅   |     | ✅   | ✅   | ✅   |     | D   | D   | D   |
+
+We can see now that for the word "sit", the "s" and "t" are marked as correct! It's only the "i" which is labelled as a
+substitution error (S). Thus, we reward our system for the partially correct prediction 🤝
+
+In our example, we have 1 character substitution, 0 insertions, and 3 deletions. In total, we have 14 characters. So, our CER is:
+
+\begin{aligned}
+CER &= \frac{S + I + D}{N} \\
+&= \frac{1 + 0 + 3}{14} \\
+&= 0.286
+\end{aligned}
+
+Right! We have a CER of 0.286, or 28.6%! Notice how this is lower than our WER - we penalised the spelling error much less.
+
+
+
+```python
+cer_metric = load("cer")
+
+cer = cer_metric.compute(references=[reference], predictions=[prediction])
+
+print(cer)
+```
+**Print Output:**
+```
+TODO(SG)
+```
+
+## Which metric should I use?
+
+In general, the WER is used far more than the CER for assessing speech systems. This is because the WER requires systems
+to have greater understanding of the context of the predictions. In our example, "sit" is in the wrong tense. A system
+that understands the relationship between the verb and tense of the sentence would have predicted the correct verb tense
+of "sat". We want to encourage this level of understanding from our speech systems. So although the WER is less forgiving than
+the CER, it's also more conducive to the kinds of intelligible systems we want to develop. Therefore, we typically use
+the WER and would encourage you to as well! However, there are circumstances where it is not possible to use the WER.
+Certain languages, such as Mandarin and Japanese, have no notion of 'words', and so the WER is meaningless. Here, we revert
+to using the CER.
+
+In our example, we only used one sentence when computing the WER. We would typically use an entire test set consisting
+of several thousand sentences when evaluating a real system. When evaluating over multiple sentences, we aggregate S, I, D
+and N across all sentences, and then compute the WER according to the formula defined above. This gives a better estimate
+of the WER for unseen data.
+
+## Normalisation
+
+If we train an ASR model on data with punctuation and casing, it will learn to predict casing and punctuation in its
+transcriptions. This is great when we want to use out model for actual speech recognition applications, such as
+transcribing meetings or dictation, since the predicted transcriptions will be fully formatted with casing and punctuation,
+a style referred to as _orthographic_.
+
+However, we also have the option of _normalising_ the dataset to remove any casing and punctuation. Normalising the
+dataset makes the speech recognition task easier: the model no longer needs to distinguish between upper and lower case
+characters, or have to predict punctuation from the audio data alone (e.g. what sound does a semi-colon make?).
+Because of this, the word error rates are naturally lower (meaning the results are better). The Whisper paper demonstrates
+the drastic effect that normalising transcriptions can have on WER results (_c.f._ Section 4.4 of the [Whisper paper](https://cdn.openai.com/papers/whisper.pdf)).
+While we get lower WERs, the model isn't necessarily better for production. The lack of casing and punctuation makes the predicted
+text from the model significantly harder to read. Take the example from the [previous section](#asr_models), where we ran
+Wav2Vec2 and Whisper on the same audio sample from the LibriSpeech dataset. The Wav2Vec2 model predicts neither punctuation
+nor casing, whereas Whisper predicts both. Comparing the transcriptions side-by-side, we see that the Whisper transcription
+is far easier to read:
+
+```
+Wav2Vec2:  HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAUS AND ROSE BEEF LOOMING BEFORE US SIMALYIS DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
+Whisper:   He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similarly is drawn from eating and its results occur most readily to the mind.
+```
+
+The Whisper transcription is orthographic and thus ready to go - it's formatted as we'd expect for a meeting transcription
+or dictation script with both punctuation and casing. On the contrary, we would need to use additional post-processing
+to restore punctuation and casing in our Wav2Vec2 predictions if we wanted to use it for downstream applications.
+
+There is a happy medium between normalising and not normalising: we can train our systems on orthographic transcriptions,
+and then normalise the predictions and targets before computing the WER. This way, we train our systems to predict fully
+formatted text, but also benefit from the WER improvements we get by normalising the transcriptions.
+
+The Whisper model was released with a normaliser that effectively handles the normalisation of casing, punctuation and
+number formatting among others. Let's apply the normaliser to the Whisper transcriptions to demonstrate how we can
+normalise them:
+
+```python
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer
+
+normalizer = BasicTextNormalizer()
+
+prediction = " He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similarly is drawn from eating and its results occur most readily to the mind."
+normalized_prediction = normalizer(prediction)
+
+normalized_prediction
+```
+**Output:**
+```
+' he tells us that at this festive season of the year with christmas and roast beef looming before us similarly is drawn from eating and its results occur most readily to the mind '
+```
+
+Great! We can see that the text has been fully lower-cased and all punctuation removed. Let's now define the reference
+transcription and then compute the normalised WER between the reference and target:
+
+```python
+reference = "HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND"
+normalized_referece = normalizer(reference)
+
+wer = wer_metric.compute(references=[normalized_referece], predictions=[normalized_prediction])
+wer
+```
+**Output:**
+```
+0.0625
+```
+
+6.25% - that's about what we'd expect for the Whisper base model on the LibriSpeech validation set. As we see here,
+we've predicted an orthographic transcription, but benefited from the WER boost obtained by normalising the reference and
+prediction prior to computing the WER.
+
+The choice of how you normalise the transcriptions is ultimately down to your needs. We recommend training on
+orthographic text and evaluating on normalised text to get the best of both worlds.
+
+## Putting it all together
+
+Alright! We've covered three topics so far in this Unit: pre-trained models, dataset selection and evaluation.
+Let's have some fun and put them together in one end-to-end example 🚀 We're going to set ourselves up for the next
+section on fine-tuning by evaluating the pre-trained Whisper model on the Common Voice 13 Dhivehi test set. We'll use
+the WER number we get as a _baseline_ for our fine-tuning run, or a target number that we'll try and beat 🥊
+
+First, we'll load the pre-trained Whisper model using the `pipeline()` class. This process will be extremely familiar by now!
+
+```python
+from transformers import pipeline
+import torch
+
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+pipe = pipeline("automatic-speech-recognition", model="openai/whisper-small", device=device)
+```
+
+Next, we'll load the Dhivehi test split of Common Voice 13:
+
+```python
+from datasets import load_dataset
+
+common_voice_test = load_dataset("mozilla-foundation/common_voice_13_0", "dv", split="test")
+```
+
+Evaluating over an entire dataset can be done in much the same way as over a single example - all we have to do is **loop**
+over the predictions, rather than inferring just the first one:
+
+```python
+from tqdm import tqdm
+
+all_predictions = []
+for prediction in tqdm(pipe(common_voice_test, max_new_tokens=256, generate_kwargs={"task": "transcribe"})):
+    all_predictions.append(prediction["text"])
+```
+
+And finally, we can compute the WER. Let's first compute the orthographic WER, i.e. the WER without any post-processing:
+
+```python
+from evaluate import load
+
+wer_metric = load("wer")
+
+all_references = common_voice_test["sentence"]
+wer_ortho = 100 * wer_metric.compute(references=all_references, predictions=all_predictions)
+wer_ortho
+```
+**Output:**
+```
+TODO(SG)
+```
+
+Next, we'll evaluate the normalised WER, i.e. the WER with normalisation post-processing. We have to filter our samples
+that would be empty after normalisation, as otherwise the total number of words in our reference (N) would be zero, which
+would give a divide by zero error in our calculation:
+
+```python
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer
+
+normalizer = BasicTextNormalizer()
+
+# compute normalised WER
+all_predictions_norm = [normalizer(pred) for pred in all_predictions]
+all_references_norm = [normalizer(label) for label in all_references]
+
+# filtering step to only evaluate the samples that correspond to non-zero references
+all_predictions_norm = [all_predictions_norm[i] for i in range(len(all_predictions_norm)) if len(all_references_norm[i]) > 0]
+all_references_norm = [all_references_norm[i] for i in range(len(all_references_norm)) if len(all_references_norm[i]) > 0]
+
+wer = 100 * wer_metric.compute(references=all_references_norm, predictions=all_predictions_norm)
+
+wer
+```
+**Output:**
+```
+TODO(SG)
+```
+
+Great! So the baseline model achieves an orthographic test WER of %, and a normalised WER of %. These are the numbers that
+we want to try and beat when we fine-tune the model, in order to improve the Whisper model for Dhivehi.
