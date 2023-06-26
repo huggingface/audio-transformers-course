@@ -213,7 +213,9 @@ transcription and then compute the normalised WER between the reference and targ
 reference = "HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND"
 normalized_referece = normalizer(reference)
 
-wer = wer_metric.compute(references=[normalized_referece], predictions=[normalized_prediction])
+wer = wer_metric.compute(
+    references=[normalized_referece], predictions=[normalized_prediction]
+)
 wer
 ```
 **Output:**
@@ -236,33 +238,91 @@ section on fine-tuning by evaluating the pre-trained Whisper model on the Common
 the WER number we get as a _baseline_ for our fine-tuning run, or a target number that we'll try and beat 🥊
 
 First, we'll load the pre-trained Whisper model using the `pipeline()` class. This process will be extremely familiar by now!
+The only thing new we'll do is load the model in half-precision (float16) if running on a GPU - this will speed up
+inference at almost no cost to WER accuracy.
 
 ```python
 from transformers import pipeline
 import torch
 
-device = "cuda:0" if torch.cuda.is_available() else "cpu"
-pipe = pipeline("automatic-speech-recognition", model="openai/whisper-small", device=device)
+if torch.cuda.is_available():
+    device = "cuda:0"
+    torch_dtype = torch.float16
+else:
+    device = "cpu"
+    torch_dtype = torch.float32
+
+pipe = pipeline(
+    "automatic-speech-recognition",
+    model="openai/whisper-small",
+    torch_dtype=torch_dtype,
+    device=device,
+)
 ```
 
-Next, we'll load the Dhivehi test split of Common Voice 13:
+Next, we'll load the Dhivehi test split of Common Voice 13. You'll remember from the previous section that the Common
+Voice 13 is *gated*, meaning we had to agree to the dataset terms of use before gaining access to the dataset. We can
+now link our Hugging Face account to our notebook, so that we have access to the dataset from the machine we're currently
+using.
+
+Linking the notebook to the Hub is straightforward - it simply requires entering your Hub authentication token when prompted.
+Find your Hub authentication token [here](https://huggingface.co/settings/tokens) and enter it when prompted:
+
+```python
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+Great! Once we've linked the notebook to our Hugging Face account, we can proceed with downloading the Common Voice
+dataset. This will take a few minutes to download and pre-process, fetching the data from the Hugging Face Hub and
+preparing it automatically on your notebook:
 
 ```python
 from datasets import load_dataset
 
-common_voice_test = load_dataset("mozilla-foundation/common_voice_13_0", "dv", split="test")
+common_voice_test = load_dataset(
+    "mozilla-foundation/common_voice_13_0", "dv", split="test"
+)
 ```
 
 Evaluating over an entire dataset can be done in much the same way as over a single example - all we have to do is **loop**
-over the predictions, rather than inferring just the first one:
+over the input audios, rather than inferring just the first one. We first define a helper function that yields examples
+from our dataset using a generator object, and then pass the generator through the pipeline to get our predictions and
+references. The following code cell will take approximately five minutes if running on a GPU with half-precision, peaking
+at 12GB memory:
 
 ```python
 from tqdm import tqdm
 
+
+def data(dataset):
+    """Helper function that wraps a dataset as a generator object for compatibility with pipeline"""
+    for i, item in enumerate(dataset):
+        yield {**item["audio"], "reference": item["sentence"]}
+
+
 all_predictions = []
-for prediction in tqdm(pipe(common_voice_test, max_new_tokens=256, generate_kwargs={"task": "transcribe"})):
-    all_predictions.append(prediction["text"])
+all_references = []
+
+# run streamed inference
+for out in tqdm(
+    pipe(
+        data(common_voice_test),
+        max_new_tokens=128,
+        generate_kwargs={"task": "transcribe", "language": "sinhalese"},
+        batch_size=32,
+    ),
+    total=len(common_voice_test),
+):
+    all_predictions.append(out["text"])
+    all_references.append(out["reference"][0])
 ```
+
+<Tip>
+    If you experience a CUDA out-of-memory (OOM) when running the above cell, incrementally reduce the `batch_size` by
+    factors of 2 until you find a batch size that fits in your device.
+</Tip>
 
 And finally, we can compute the WER. Let's first compute the orthographic WER, i.e. the WER without any post-processing:
 
@@ -271,14 +331,18 @@ from evaluate import load
 
 wer_metric = load("wer")
 
-all_references = common_voice_test["sentence"]
-wer_ortho = 100 * wer_metric.compute(references=all_references, predictions=all_predictions)
+wer_ortho = 100 * wer_metric.compute(
+    references=all_references, predictions=all_predictions
+)
 wer_ortho
 ```
 **Output:**
 ```
-TODO(SG)
+167.83202172853262
 ```
+
+Okay... 168% essentially means our model is outputting garbage 😜 Not to worry, it'll be our aim to improve this by
+fine-tuning the model on the Dhivehi training set!
 
 Next, we'll evaluate the normalised WER, i.e. the WER with normalisation post-processing. We have to filter our samples
 that would be empty after normalisation, as otherwise the total number of words in our reference (N) would be zero, which
@@ -294,17 +358,30 @@ all_predictions_norm = [normalizer(pred) for pred in all_predictions]
 all_references_norm = [normalizer(label) for label in all_references]
 
 # filtering step to only evaluate the samples that correspond to non-zero references
-all_predictions_norm = [all_predictions_norm[i] for i in range(len(all_predictions_norm)) if len(all_references_norm[i]) > 0]
-all_references_norm = [all_references_norm[i] for i in range(len(all_references_norm)) if len(all_references_norm[i]) > 0]
+all_predictions_norm = [
+    all_predictions_norm[i]
+    for i in range(len(all_predictions_norm))
+    if len(all_references_norm[i]) > 0
+]
+all_references_norm = [
+    all_references_norm[i]
+    for i in range(len(all_references_norm))
+    if len(all_references_norm[i]) > 0
+]
 
-wer = 100 * wer_metric.compute(references=all_references_norm, predictions=all_predictions_norm)
+wer = 100 * wer_metric.compute(
+    references=all_references_norm, predictions=all_predictions_norm
+)
 
 wer
 ```
 **Output:**
 ```
-TODO(SG)
+125.72243279897069
 ```
 
-Great! So the baseline model achieves an orthographic test WER of %, and a normalised WER of %. These are the numbers that
-we want to try and beat when we fine-tune the model, in order to improve the Whisper model for Dhivehi.
+Again we see the drastic reduction in WER we achieve by normalising our references and predictions: the baseline model
+achieves an orthographic test WER of 168%, while the normalised WER is 126%.
+
+Right then! These are the numbers that we want to try and beat when we fine-tune the model, in order to improve the Whisper
+model for Dhivehi.
