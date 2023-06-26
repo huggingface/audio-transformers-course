@@ -149,7 +149,7 @@
 #  - local: chapter9/introduction
 #    title: 单元简介
 #  - local: chapter9/music_generation
-#    title: 音乐申城
+#    title: 音乐生成
 #  - local: chapter9/riffusion
 #    title: Riffusion模型
 #  - local: chapter9/audioldm
