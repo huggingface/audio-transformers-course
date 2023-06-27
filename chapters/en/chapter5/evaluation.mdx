@@ -25,12 +25,12 @@ And a predicted sequence from the speech recognition system that we're trying to
 prediction = "the cat sit on the"
 ```
 
-We can see that the prediction is pretty close! But some words are not quite right. We'll evaluate this prediction
+We can see that the prediction is pretty close, but some words are not quite right. We'll evaluate this prediction
 against the reference for the three most popular speech recognition metrics and see what sort of numbers we get for each.
 
 ## Word Error Rate
-The _word error rate (WER)_ metric is the 'de facto' metric for speech recognition. It calculates substitutions,
-insertions and deletions on the _word level_. This means errors are annotated on a word-by-word basis. Take our example:
+The *word error rate (WER)* metric is the 'de facto' metric for speech recognition. It calculates substitutions,
+insertions and deletions on the *word level*. This means errors are annotated on a word-by-word basis. Take our example:
 
 
 | Reference:  | the | cat | sat     | on  | the | mat |
@@ -55,10 +55,10 @@ WER &= \frac{S + I + D}{N} \\
 $$
 
 Alright! So we have a WER of 0.333, or 33.3%. Notice how the word "sit" only has one character that is wrong, but the
-entire word is marked incorrect! This is a defining feature of the WER: spelling errors are penalised heavily, no matter
+entire word is marked incorrect. This is a defining feature of the WER: spelling errors are penalised heavily, no matter
 how minor they are.
 
-The WER is defined such that _lower is better_: a lower WER means there are fewer errors in our prediction, so a perfect
+The WER is defined such that *lower is better*: a lower WER means there are fewer errors in our prediction, so a perfect
 speech recognition system would have a WER of zero (no errors).
 
 Let's see how we can compute the WER using 🤗 Evaluate. We'll need two packages to compute our WER metric: 🤗 Evaluate
@@ -85,7 +85,7 @@ print(wer)
 
 0.33, or 33.3%, as expected! We now know what's going on under-the-hood with this WER calculation.
 
-Now, here's something that's quite confusing! What do you think the upper limit of the WER is? You would expect it to be
+Now, here's something that's quite confusing... What do you think the upper limit of the WER is? You would expect it to be
 1 or 100% right? Nuh uh! Since the WER is the ratio of errors to number of words (N), there is no upper limit on the WER!
 Let's take an example were we predict 10 words and the target only has 2 words. If all of our predictions were wrong (10 errors),
 we'd have a WER of 10 / 2 = 5, or 500%! This is something to bear in mind if you train an ASR system and see a WER of over
@@ -93,8 +93,8 @@ we'd have a WER of 10 / 2 = 5, or 500%! This is something to bear in mind if you
 
 ## Word Accuracy
 
-We can flip the WER around to give us a metric where _higher is better_. Rather than measuring the word error rate,
-we can measure the _word accuracy (WAcc)_ of our system:
+We can flip the WER around to give us a metric where *higher is better*. Rather than measuring the word error rate,
+we can measure the *word accuracy (WAcc)* of our system:
 
 $$
 \begin{equation}
@@ -107,9 +107,10 @@ metric. The WAcc is very infrequently quoted in the speech literature - we think
 word errors, and so prefer error rate metrics that are more associated with these error type annotations.
 
 ## Character Error Rate
-It seems a bit unfair that we marked the entire word for "sit" wrong when in fact only one letter was incorrect!
+
+It seems a bit unfair that we marked the entire word for "sit" wrong when in fact only one letter was incorrect.
 That's because we were evaluating our system on the word level, thereby annotating errors on a word-by-word basis.
-The _character error rate (CER)_ assesses systems on the _character level_. This means we divide up our words into their
+The *character error rate (CER)* assesses systems on the *character level*. This means we divide up our words into their
 individual characters, and annotate errors on a character-by-character basis:
 
 | Reference:  | t   | h   | e   |     | c   | a   | t   |     | s   | a     | t   |     | o   | n   |     | t   | h   | e   |     | m   | a   | t   |
@@ -117,7 +118,7 @@ individual characters, and annotate errors on a character-by-character basis:
 | Prediction: | t   | h   | e   |     | c   | a   | t   |     | s   | **i** | t   |     | o   | n   |     | t   | h   | e   |     |     |     |     |
 | Label:      | ✅   | ✅   | ✅   |     | ✅   | ✅   | ✅   |     | ✅   | S     | ✅   |     | ✅   | ✅   |     | ✅   | ✅   | ✅   |     | D   | D   | D   |
 
-We can see now that for the word "sit", the "s" and "t" are marked as correct! It's only the "i" which is labelled as a
+We can see now that for the word "sit", the "s" and "t" are marked as correct. It's only the "i" which is labelled as a
 substitution error (S). Thus, we reward our system for the partially correct prediction 🤝
 
 In our example, we have 1 character substitution, 0 insertions, and 3 deletions. In total, we have 14 characters. So, our CER is:
@@ -130,19 +131,7 @@ CER &= \frac{S + I + D}{N} \\
 \end{aligned}
 $$
 
-Right! We have a CER of 0.286, or 28.6%! Notice how this is lower than our WER - we penalised the spelling error much less.
-
-```python
-cer_metric = load("cer")
-
-cer = cer_metric.compute(references=[reference], predictions=[prediction])
-
-print(cer)
-```
-**Print Output:**
-```
-TODO(SG)
-```
+Right! We have a CER of 0.286, or 28.6%. Notice how this is lower than our WER - we penalised the spelling error much less.
 
 ## Which metric should I use?
 
@@ -165,15 +154,15 @@ of the WER for unseen data.
 If we train an ASR model on data with punctuation and casing, it will learn to predict casing and punctuation in its
 transcriptions. This is great when we want to use out model for actual speech recognition applications, such as
 transcribing meetings or dictation, since the predicted transcriptions will be fully formatted with casing and punctuation,
-a style referred to as _orthographic_.
+a style referred to as *orthographic*.
 
-However, we also have the option of _normalising_ the dataset to remove any casing and punctuation. Normalising the
+However, we also have the option of *normalising* the dataset to remove any casing and punctuation. Normalising the
 dataset makes the speech recognition task easier: the model no longer needs to distinguish between upper and lower case
 characters, or have to predict punctuation from the audio data alone (e.g. what sound does a semi-colon make?).
 Because of this, the word error rates are naturally lower (meaning the results are better). The Whisper paper demonstrates
-the drastic effect that normalising transcriptions can have on WER results (_c.f._ Section 4.4 of the [Whisper paper](https://cdn.openai.com/papers/whisper.pdf)).
+the drastic effect that normalising transcriptions can have on WER results (*c.f.* Section 4.4 of the [Whisper paper](https://cdn.openai.com/papers/whisper.pdf)).
 While we get lower WERs, the model isn't necessarily better for production. The lack of casing and punctuation makes the predicted
-text from the model significantly harder to read. Take the example from the [previous section](#asr_models), where we ran
+text from the model significantly harder to read. Take the example from the [previous section](asr_models.mdx), where we ran
 Wav2Vec2 and Whisper on the same audio sample from the LibriSpeech dataset. The Wav2Vec2 model predicts neither punctuation
 nor casing, whereas Whisper predicts both. Comparing the transcriptions side-by-side, we see that the Whisper transcription
 is far easier to read:
@@ -325,7 +314,7 @@ for out in tqdm(
 
 <Tip>
     If you experience a CUDA out-of-memory (OOM) when running the above cell, incrementally reduce the `batch_size` by
-    factors of 2 until you find a batch size that fits in your device.
+    factors of 2 until you find a batch size that fits your device.
 </Tip>
 
 And finally, we can compute the WER. Let's first compute the orthographic WER, i.e. the WER without any post-processing:
@@ -388,4 +377,4 @@ Again we see the drastic reduction in WER we achieve by normalising our referenc
 achieves an orthographic test WER of 168%, while the normalised WER is 126%.
 
 Right then! These are the numbers that we want to try and beat when we fine-tune the model, in order to improve the Whisper
-model for Dhivehi.
+model for Dhivehi speech recognition. Continue reading to get hands-on with a fine-tuning example 🚀
