@@ -79,7 +79,7 @@
     title: How to fine-tune an ASR system with the Trainer API
 #  - local: chapter5/speaker_diarization
 #    title: Automatic speech recognition with speaker diarization
-  - local: chapter4/demo
+  - local: chapter5/demo
     title: Building a demo
   - local: chapter5/quiz
     title: Quiz
