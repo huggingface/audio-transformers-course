@@ -417,8 +417,10 @@ model.generate = partial(
 
 ## Define the Training Configuration
 
-In the final step, we define all the parameters related to training. Here, you can set the `max_steps` to train for longer.
-For more detail on the training arguments, refer to the Seq2SeqTrainingArguments [docs](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.Seq2SeqTrainingArguments).
+In the final step, we define all the parameters related to training. Here, we set the number of training steps to 500.
+This is enough steps to see a big WER improvement compared to the pre-trained Whisper model, while ensuring that fine-tuning can
+be run in approximately 45 minutes on a Google Colab free tier. For more detail on the training arguments, refer to the
+Seq2SeqTrainingArguments [docs](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.Seq2SeqTrainingArguments).
 
 ```python
 from transformers import Seq2SeqTrainingArguments
@@ -429,8 +431,8 @@ training_args = Seq2SeqTrainingArguments(
     gradient_accumulation_steps=1,  # increase by 2x for every 2x decrease in batch size
     learning_rate=1e-5,
     lr_scheduler_type="constant_with_warmup",
-    warmup_steps=500,
-    max_steps=4000,
+    warmup_steps=50,
+    max_steps=500,  # increase to 4000 if you have your own GPU or a Colab paid plan
     gradient_checkpointing=True,
     fp16=True,
     fp16_full_eval=True,
@@ -438,8 +440,8 @@ training_args = Seq2SeqTrainingArguments(
     per_device_eval_batch_size=16,
     predict_with_generate=True,
     generation_max_length=225,
-    save_steps=1000,
-    eval_steps=1000,
+    save_steps=500,
+    eval_steps=500,
     logging_steps=25,
     report_to=["tensorboard"],
     load_best_model_at_end=True,
@@ -479,21 +481,32 @@ To launch training, simply execute:
 trainer.train()
 ```
 
-Training will take approximately 5-10 hours depending on your GPU or the one allocated to the Google Colab. Depending on
+Training will take approximately 45 minutes depending on your GPU or the one allocated to the Google Colab. Depending on
 your GPU, it is possible that you will encounter a CUDA `"out-of-memory"` error when you start training. In this case,
 you can reduce the `per_device_train_batch_size` incrementally by factors of 2 and employ [`gradient_accumulation_steps`](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.Seq2SeqTrainingArguments.gradient_accumulation_steps)
 to compensate.
 
 **Output:**
 
-| Step | Training Loss | Epoch | Validation Loss |  WER  |
-|:----:|:-------------:|:-----:|:---------------:|:-----:|
+| Training Loss | Epoch | Step | Validation Loss | Wer Ortho | Wer     |
+|:-------------:|:-----:|:----:|:---------------:|:---------:|:-------:|
+| 0.136         | 1.63  | 500  | 0.1727          | 63.8972   | 14.0661 |
 
-Our best WER is X% TODO(SG) - not bad for 7h of training data (I hope...)! The big question is how this
-compares to other ASR systems. For that, we can view the autoevaluate [leaderboard](https://huggingface.co/spaces/autoevaluate/leaderboards?dataset=mozilla-foundation%2Fcommon_voice_13_0&only_verified=0&task=automatic-speech-recognition&config=hi&split=test&metric=wer),
+Our final WER is 14.1% - not bad for seven hours of training data and just 500 training steps! That amounts to a 112%
+improvement versus the pre-trained model! That means we've taken a model that previously had no knowledge about Dhivehi,
+and fine-tuned it to recognise Dhivehi speech with adequate accuracy in under one hour 🤯
+
+The big question is how this compares to other ASR systems. For that, we can view the autoevaluate [leaderboard](https://huggingface.co/spaces/autoevaluate/leaderboards?dataset=mozilla-foundation%2Fcommon_voice_13_0&only_verified=0&task=automatic-speech-recognition&config=dv&split=test&metric=wer),
 a leaderboard that categorises models by language and dataset, and subsequently ranks them according to their WER.
 
-We see...
+Looking at the leaderboard, we see that our model trained for 500 steps convincingly beats the pre-trained [Whisper Small](hf.co/openai/whisper-small)
+checkpoint that we evaluated in the previous section. Nice job 👏
+
+We see that there are a few checkpoints that do better than the one we trained. The beauty of the Hugging Face Hub is that
+it's a *collaborative* platform - if we don't have the time or resources to perform a longer training run ourselves, we
+can load a checkpoint that someone else in the community has trained and been kind enough to share (making sure to thank them for it!).
+You'll be able to load these checkpoints in exactly the same way as the pre-trained ones using the `pipeline` class as we
+did previously! So there's nothing stopping you cherry-picking the best model on the leaderboard to use for your task!
 
 We can automatically submit our checkpoint to the leaderboard when we push the training results to the Hub - we simply
 have to set the appropriate key-word arguments (kwargs). You can change these values to match your dataset, language and
@@ -521,8 +534,16 @@ out the upload at `sanchit-gandhi/whisper-small-dv`.
 
 While the fine-tuned model yields satisfactory results on the Common Voice 13 Dhivehi test data, it is by no means optimal.
 The purpose of this guide is to demonstrate how to fine-tune an ASR model using the 🤗 Trainer for multilingual speech
-recognition. The results could likely be improved by optimising the training hyperparameters, such as _learning rate_ and
-_dropout_, and using a larger pre-trained checkpoint (`medium` or `large`).
+recognition.
+
+If you have access to your own GPU or are subscribed to a Google Colab paid plan, you can increase `max_steps` to 4000 steps
+to improve the WER further by training for more steps. Training for 4000 steps will take approximately 3-5 hours depending
+on your GPU and yield WER results approximately 3% lower than training for 500 steps. If you decide to train for 4000 steps,
+we also recommend changing the learning rate scheduler to a *linear* schedule (set `lr_scheduler_type="linear"`), as this will
+yield an additional performance boost over long training runs.
+
+The results could likely be improved further by optimising the training hyperparameters, such as _learning rate_ and
+_dropout_, and using a larger pre-trained checkpoint (`medium` or `large`). We leave this as an exercise to the reader.
 
 ## Sharing Your Model
 
