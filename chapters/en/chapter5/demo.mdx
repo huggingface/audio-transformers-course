@@ -1,0 +1,89 @@
+# Build a demo with Gradio
+
+Now that we've fine-tuned a Whisper model for Dhivehi speech recognition, let's go ahead and build a [Gradio]((https://gradio.app))
+demo to showcase it to the community!
+
+The first thing to do is load up the fine-tuned checkpoint using the `pipeline()` class - this is very familiar now from 
+the section on [pre-trained models](asr_models.mdx). You can change the `model_id` to the namespace of your fine-tuned 
+model on the Hugging Face Hub, or one of the pre-trained [Whisper models](https://huggingface.co/models?sort=downloads&search=openai%2Fwhisper-) 
+to perform zero-shot speech recognition:
+
+```python
+from transformers import pipeline
+
+model_id = "sanchit-gandhi/whisper-small-dv"  # update with your model id
+pipe = pipeline("automatic-speech-recognition", model=model_id)
+```
+
+Secondly, we'll define a function that takes the filepath for an audio input and passes it through the pipeline. Here,
+the pipeline automatically takes care of loading the audio file, resampling it to the correct sampling rate, and running
+inference with the model. We can then simply return the transcribed text as the output of the function. To ensure our 
+model can handle audio inputs of arbitrary length, we'll enable *chunking* as described in the section 
+on [pre-trained models](asr_models.mdx):
+
+```python
+def transcribe_speech(filepath):
+    output = pipe(
+        filepath,
+        max_new_tokens=256,
+        generate_kwargs={
+            "task": "transcribe",
+            "language": "sinhalese",
+        },  # update with the language you've fine-tuned on
+        chunk_length_s=30,
+        batch_size=8,
+    )
+    return output["text"]
+```
+
+We'll use the Gradio [blocks](https://gradio.app/docs/#blocks) feature to launch two tabs on our demo: one for microphone
+transcription, and the other for file upload.
+
+```python
+import gradio as gr
+
+demo = gr.Blocks()
+
+mic_transcribe = gr.Interface(
+    fn=transcribe_speech,
+    inputs=gr.Audio(source="microphone", type="filepath"),
+    outputs=gr.outputs.Textbox(),
+)
+
+file_transcribe = gr.Interface(
+    fn=transcribe_speech,
+    inputs=gr.Audio(source="upload", type="filepath"),
+    outputs=gr.outputs.Textbox(),
+)
+```
+
+Finally, we launch the Gradio demo using the two blocks that we've just defined:
+
+```python
+with demo:
+    gr.TabbedInterface(
+        [mic_transcribe, file_transcribe],
+        ["Transcribe Microphone", "Transcribe Audio File"],
+    )
+
+demo.launch(debug=True)
+```
+
+This will launch a Gradio demo similar to the one running on the Hugging Face Space:
+
+<iframe src="https://course-demos-whisper-small.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
+Should you wish to host your demo on the Hugging Face Hub, you can use this Space as a template for your fine-tuned model.
+
+Click the link to duplicate the template demo to your account: https://huggingface.co/spaces/course-demos/whisper-small?duplicate=true
+
+We recommend giving your space a similar name to your fine-tuned model (e.g. whisper-small-dv-demo) and setting the visibility to "Public".
+
+Once you've duplicated the Space to your account, click "Files and versions" -> "app.py" -> "edit". Then change the
+model identifier to your fine-tuned model (line 6). Scroll to the bottom of the page and click "Commit changes to main".
+he demo will reboot, this time using your fine-tuned model. You can share this demo with your friends and family so that 
+they can use the model that you've trained!
+
+Checkout our video tutorial to get a better understanding of how to duplicate the Space 👉️ [YouTube Video](https://www.youtube.com/watch?v=VQYuvl6-9VE)
+
+We look forward to seeing your demos on the Hub!

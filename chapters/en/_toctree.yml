@@ -65,29 +65,26 @@
   - local: chapter4/hands_on
     title: Hands-on exercise
 
-#- title: Unit 5. Transcribe a meeting recording
-#  sections:
-#  - local: chapter5/introduction
-#    title: What you'll learn and what you'll build
-#  - local: chapter5/choosing_dataset
-#    title: Choosing a dataset
-#  - local: chapter5/asr_models
-#    title: Pre-trained models for automatic speech recognition
-#  - local: chapter5/preprocessing_data
-#    title: Loading and preprocessing data
-#  - local: chapter5/evaluation
-#    title: Evaluation metrics for ASR
-#  - local: chapter5/fine-tuning
-#    title: Fine-tuning the ASR model
+- title: Unit 5. Automatic Speech Recognition
+  sections:
+  - local: chapter5/introduction
+    title: What you'll learn and what you'll build
+  - local: chapter5/asr_models
+    title: Pre-trained models for speech recognition
+  - local: chapter5/choosing_dataset
+    title: Choosing a dataset
+  - local: chapter5/evaluation
+    title: Evaluation and metrics for speech recognition
+  - local: chapter5/fine-tuning
+    title: How to fine-tune an ASR system with the Trainer API
 #  - local: chapter5/speaker_diarization
 #    title: Automatic speech recognition with speaker diarization
-#  - local: chapter5/quiz
-#    title: Quiz
-#    quiz: 5
-#  - local: chapter5/hands_on
-#    title: Hands-on exercise
-#  - local: chapter5/supplemental_reading
-#    title: Supplemental reading and resources
+  - local: chapter5/demo
+    title: Building a demo
+  - local: chapter5/hands_on
+    title: Hands-on exercise
+  - local: chapter5/supplemental_reading
+    title: Supplemental reading and resources
 #
 #- title: Unit 6. From text to speech
 #  sections:
