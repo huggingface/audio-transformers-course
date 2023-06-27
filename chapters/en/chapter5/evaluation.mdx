@@ -46,11 +46,13 @@ Here, we have:
 This gives 2 errors in total. To get our error rate, we divide the number of errors by the total number of words in our
 reference (N), which for this example is 6:
 
+$$
 \begin{aligned}
 WER &= \frac{S + I + D}{N} \\
 &= \frac{1 + 0 + 1}{6} \\
 &= 0.333
 \end{aligned}
+$$
 
 Alright! So we have a WER of 0.333, or 33.3%. Notice how the word "sit" only has one character that is wrong, but the
 entire word is marked incorrect! This is a defining feature of the WER: spelling errors are penalised heavily, no matter
@@ -94,9 +96,11 @@ we'd have a WER of 10 / 2 = 5, or 500%! This is something to bear in mind if you
 We can flip the WER around to give us a metric where _higher is better_. Rather than measuring the word error rate,
 we can measure the _word accuracy (WAcc)_ of our system:
 
+$$
 \begin{equation}
 WAcc = 1 - WER \nonumber
 \end{equation}
+$$
 
 The WAcc is also measured on the word-level, it's just the WER reformulated as an accuracy metric rather than an error
 metric. The WAcc is very infrequently quoted in the speech literature - we think of our system predictions in terms of
@@ -118,15 +122,15 @@ substitution error (S). Thus, we reward our system for the partially correct pre
 
 In our example, we have 1 character substitution, 0 insertions, and 3 deletions. In total, we have 14 characters. So, our CER is:
 
+$$
 \begin{aligned}
 CER &= \frac{S + I + D}{N} \\
 &= \frac{1 + 0 + 3}{14} \\
 &= 0.286
 \end{aligned}
+$$
 
 Right! We have a CER of 0.286, or 28.6%! Notice how this is lower than our WER - we penalised the spelling error much less.
-
-
 
 ```python
 cer_metric = load("cer")
