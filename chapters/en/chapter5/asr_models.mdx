@@ -307,13 +307,9 @@ The way long-form transcription works in 🤗 Transformers is by _chunking_ the 
 Each segment has a small amount of overlap with the previous one. This allows us to accurately stitch the segments back together
 at the boundaries, since we can find the overlap between segments and merge the transcriptions accordingly:
 
-<!--- Fast render, don't display figs
-
 <div class="flex justify-center">
      <img src="https://huggingface.co/blog/assets/49_asr_chunking/Striding.png" alt="🤗 Transformers chunking algorithm. Source: https://huggingface.co/blog/asr-chunking.">
 </div>
-
---->
 
 The advantage of chunking the samples is that we don't need the result of chunk \\( i \\) to transcribe the subsequent
 chunk \\( i + 1 \\). The stitching is done after we have transcribed all the chunks at the chunk boundaries, so it doesn't
