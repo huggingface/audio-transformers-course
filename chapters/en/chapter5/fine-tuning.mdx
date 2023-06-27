@@ -409,7 +409,9 @@ from functools import partial
 model.config.use_cache = False
 
 # set language and task for generation and re-enable cache
-model.generate = partial(model.generate, language="sinhalese", task="transcribe", use_cache=True)
+model.generate = partial(
+    model.generate, language="sinhalese", task="transcribe", use_cache=True
+)
 ```
 
 ## Define the Training Configuration
