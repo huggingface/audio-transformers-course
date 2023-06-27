@@ -11,7 +11,7 @@ to perform zero-shot speech recognition:
 ```python
 from transformers import pipeline
 
-model_id = "sanchit-gandhi/whisper-small-dv"
+model_id = "sanchit-gandhi/whisper-small-dv"  # update with your model id
 pipe = pipeline("automatic-speech-recognition", model=model_id)
 ```
 
@@ -26,7 +26,7 @@ def transcribe_speech(filepath):
     output = pipe(
         filepath,
         max_new_tokens=256,
-        generate_kwargs={"task": "transcribe", "language": "sinhalese"},
+        generate_kwargs={"task": "transcribe", "language": "sinhalese"},  # update with the language you've fine-tuned on
         chunk_length_s=30,
         batch_size=8,
     )
