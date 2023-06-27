@@ -12,11 +12,11 @@
   - local: chapter1/introduction
     title: 单元简介
   - local: chapter1/audio_data
-    title: 音频数据介绍
+    title: 音频数据处理入门
   - local: chapter1/load_and_explore
     title: 加载音频数据集
   - local: chapter1/preprocessing
-    title: 音频数据预处理
+    title: 音频数据集的预处理
   - local: chapter1/streaming
     title: 音频数据的流式加载
   - local: chapter1/quiz
