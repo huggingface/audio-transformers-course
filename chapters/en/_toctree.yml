@@ -81,9 +81,6 @@
 #    title: Automatic speech recognition with speaker diarization
   - local: chapter5/demo
     title: Building a demo
-  - local: chapter5/quiz
-    title: Quiz
-    quiz: 5
   - local: chapter5/hands_on
     title: Hands-on exercise
   - local: chapter5/supplemental_reading
