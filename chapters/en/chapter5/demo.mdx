@@ -23,11 +23,13 @@ on [pre-trained models](asr_models.mdx):
 
 ```python
 def transcribe_speech(filepath):
-    output = pipe(filepath, max_new_tokens=256,
-    generate_kwargs={"task": "transcribe", "language": "sinhalese"},
-    chunk_length_s=30,
-    batch_size=8,
-)
+    output = pipe(
+        filepath,
+        max_new_tokens=256,
+        generate_kwargs={"task": "transcribe", "language": "sinhalese"},
+        chunk_length_s=30,
+        batch_size=8,
+    )
     return output["text"]
 ```
 
@@ -40,11 +42,15 @@ import gradio as gr
 demo = gr.Blocks()
 
 mic_transcribe = gr.Interface(
-    fn=transcribe_speech, inputs=gr.Audio(source="microphone", type="filepath"), outputs=gr.outputs.Textbox()
+    fn=transcribe_speech,
+    inputs=gr.Audio(source="microphone", type="filepath"),
+    outputs=gr.outputs.Textbox(),
 )
 
 file_transcribe = gr.Interface(
-    fn=transcribe_speech, inputs=gr.Audio(source="upload", type="filepath"), outputs=gr.outputs.Textbox()
+    fn=transcribe_speech,
+    inputs=gr.Audio(source="upload", type="filepath"),
+    outputs=gr.outputs.Textbox(),
 )
 ```
 
@@ -52,7 +58,10 @@ Finally, we launch the Gradio demo using the two blocks that we've just defined:
 
 ```python
 with demo:
-    gr.TabbedInterface([mic_transcribe, file_transcribe], ["Transcribe Microphone", "Transcribe Audio File"])
+    gr.TabbedInterface(
+        [mic_transcribe, file_transcribe],
+        ["Transcribe Microphone", "Transcribe Audio File"],
+    )
 
 demo.launch(debug=True)
 ```
