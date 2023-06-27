@@ -26,7 +26,10 @@ def transcribe_speech(filepath):
     output = pipe(
         filepath,
         max_new_tokens=256,
-        generate_kwargs={"task": "transcribe", "language": "sinhalese"},  # update with the language you've fine-tuned on
+        generate_kwargs={
+            "task": "transcribe",
+            "language": "sinhalese",
+        },  # update with the language you've fine-tuned on
         chunk_length_s=30,
         batch_size=8,
     )
