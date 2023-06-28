@@ -279,37 +279,35 @@ common_voice_test = load_dataset(
 )
 ```
 
+<Tip>
+    If you face an authentication issue when loading the dataset, ensure that you have accepted the dataset's terms of use
+    on the Hugging Face Hub through the following link: https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
+</Tip>
+
 Evaluating over an entire dataset can be done in much the same way as over a single example - all we have to do is **loop**
-over the input audios, rather than inferring just the first one. We first define a helper function that yields examples
-from our dataset using a generator object, and then pass the generator through the pipeline to get our predictions and
-references. The following code cell will take approximately five minutes if running on a GPU with half-precision, peaking
-at 12GB memory:
+over the input audios, rather than inferring just a single sample. To do this, we first transform our dataset into a
+`KeyDataset`. All this does is pick out the particular dataset column that we want to forward to the model (in our case, that's
+the `"audio"` column), ignoring the rest (like the target transcriptions, which we don't want to use for inference). We
+then iterate over this transformed datasets, appending the model outputs to a list to save the predictions. The
+following code cell will take approximately five minutes if running on a GPU with half-precision, peaking at 12GB memory:
 
 ```python
 from tqdm import tqdm
-
-
-def data(dataset):
-    """Helper function that wraps a dataset as a generator object for compatibility with pipeline"""
-    for i, item in enumerate(dataset):
-        yield {**item["audio"], "reference": item["sentence"]}
-
+from transformers.pipelines.pt_utils import KeyDataset
 
 all_predictions = []
-all_references = []
 
 # run streamed inference
-for out in tqdm(
+for prediction in tqdm(
     pipe(
-        data(common_voice_test),
+        KeyDataset(common_voice_test, "audio"),
         max_new_tokens=128,
-        generate_kwargs={"task": "transcribe", "language": "sinhalese"},
+        generate_kwargs={"task": "transcribe"},
         batch_size=32,
     ),
     total=len(common_voice_test),
 ):
-    all_predictions.append(out["text"])
-    all_references.append(out["reference"][0])
+    all_predictions.append(prediction["text"])
 ```
 
 <Tip>
@@ -325,16 +323,16 @@ from evaluate import load
 wer_metric = load("wer")
 
 wer_ortho = 100 * wer_metric.compute(
-    references=all_references, predictions=all_predictions
+    references=common_voice_test["sentence"], predictions=all_predictions
 )
 wer_ortho
 ```
 **Output:**
 ```
-167.83202172853262
+167.29577268612022
 ```
 
-Okay... 168% essentially means our model is outputting garbage 😜 Not to worry, it'll be our aim to improve this by
+Okay... 167% essentially means our model is outputting garbage 😜 Not to worry, it'll be our aim to improve this by
 fine-tuning the model on the Dhivehi training set!
 
 Next, we'll evaluate the normalised WER, i.e. the WER with normalisation post-processing. We have to filter our samples
@@ -348,7 +346,7 @@ normalizer = BasicTextNormalizer()
 
 # compute normalised WER
 all_predictions_norm = [normalizer(pred) for pred in all_predictions]
-all_references_norm = [normalizer(label) for label in all_references]
+all_references_norm = [normalizer(label) for label in common_voice_test["sentence"]]
 
 # filtering step to only evaluate the samples that correspond to non-zero references
 all_predictions_norm = [
@@ -370,7 +368,7 @@ wer
 ```
 **Output:**
 ```
-125.72243279897069
+125.69809089960707
 ```
 
 Again we see the drastic reduction in WER we achieve by normalising our references and predictions: the baseline model
