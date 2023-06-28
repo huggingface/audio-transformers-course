@@ -22,14 +22,14 @@ be prone to phonetic spelling errors. We'll demonstrate this for the Wav2Vec2 mo
 
 ## Probing CTC Models
 
-Let's load a small excerpt of the [LibriSpeech](https://huggingface.co/datasets/librispeech_pipe) dataset to demonstrate
+Let's load a small excerpt of the [LibriSpeech ASR](hf-internal-testing/librispeech_asr_dummy) dataset to demonstrate
 Wav2Vec2's speech transcription capabilities:
 
 ```python
 from datasets import load_dataset
 
 dataset = load_dataset(
-    "hf-internal-testing/librispeech_pipe_demo", "clean", split="validation"
+    "hf-internal-testing/librispeech_internal", "clean", split="validation"
 )
 dataset
 ```
