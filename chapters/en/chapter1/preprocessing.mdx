@@ -95,7 +95,7 @@ dataset. However, we can create one, filter based on the values in that column, 
 
 ```py
 # use librosa to get example's duration from the audio file
-new_column = [librosa.get_duration(filename=x) for x in minds["path"]]
+new_column = [librosa.get_duration(path=x) for x in minds["path"]]
 minds = minds.add_column("duration", new_column)
 
 # use 🤗 Datasets' `filter` method to apply the filtering function
