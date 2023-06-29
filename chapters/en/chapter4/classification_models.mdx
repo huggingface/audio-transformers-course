@@ -17,7 +17,7 @@ models for audio classification.
 Decoder-only models introduce unnecessary complexity to the task, since they assume that the outputs can also be a _sequence_
 of predictions (rather than a single class label prediction), and so generate multiple outputs. Therefore, they have slower
 inference speed and tend not to be used. Encoder-decoder models are largely omitted for the same reason. These architecture
-choices are analogous to those in NLP, where encoder-only models such as [BERT]((https://huggingface.co/blog/bert-101))
+choices are analogous to those in NLP, where encoder-only models such as [BERT](<(https://huggingface.co/blog/bert-101)>)
 are favoured for sequence classification tasks, and decoder-only models such as GPT reserved for sequence generation tasks.
 
 Now that we've recapped the standard transformer architecture for audio classification, let's jump into the different
@@ -65,10 +65,13 @@ classifier = pipeline(
 ```
 
 Finally, we can pass a sample to the classification pipeline to make a prediction:
+
 ```python
 classifier(minds[0]["path"])
 ```
+
 **Output:**
+
 ```
 [
     {"score": 0.9631525278091431, "label": "pay_bill"},
@@ -133,7 +136,9 @@ classifier = pipeline(
 )
 classifier(sample["audio"])
 ```
+
 **Output:**
+
 ```
 [{'score': 0.9999892711639404, 'label': 'backward'},
  {'score': 1.7504888774055871e-06, 'label': 'happy'},
@@ -144,6 +149,7 @@ classifier(sample["audio"])
 
 Cool! Looks like the example contains the word "backward" with high probability. We can take a listen to the sample
 and verify this is correct:
+
 ```
 from IPython.display import Audio
 
@@ -211,10 +217,13 @@ classifier = pipeline(
 ```
 
 We can then pass the audio through our classifier and generate a prediction:
+
 ```python
-classifier(sample["audio"])
+classifier(sample["audio"]["array"])
 ```
+
 **Output:**
+
 ```
 [{'score': 0.9999330043792725, 'label': 'Afrikaans'},
  {'score': 7.093023668858223e-06, 'label': 'Northern-Sotho'},
@@ -279,7 +288,9 @@ classifier = pipeline(
 )
 classifier(audio_sample, candidate_labels=candidate_labels)
 ```
+
 **Output:**
+
 ```
 [{'score': 0.9997242093086243, 'label': 'Sound of a dog'}, {'score': 0.0002758323971647769, 'label': 'Sound of vacuum cleaner'}]
 ```
