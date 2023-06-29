@@ -134,7 +134,8 @@ In theory, you can use any vocoder that works on 80-bin mel spectrograms. Conven
 based on HiFi-GAN. Its weights were kindly provided by the original authors of SpeechT5.
 
 <Tip>
-	[HiFi-GAN](https://arxiv.org/pdf/2010.05646v2.pdf) is a state-of-the-art generative adversarial network (GAN) designed 
+
+[HiFi-GAN](https://arxiv.org/pdf/2010.05646v2.pdf) is a state-of-the-art generative adversarial network (GAN) designed 
 for high-fidelity speech synthesis. It is capable of generating high-quality and realistic audio waveforms.
 
 On the high level, HiFi-GAN consists of one generator and two discriminators. The generator is a fully convolutional 
@@ -147,6 +148,7 @@ audio, and the discriminator can easily differentiate it from real audio. As tra
 its output, aiming to fool the discriminator. The discriminator, in turn, becomes more accurate in distinguishing real 
 and generated audio. This adversarial feedback loop helps both networks improve over time. Ultimately, HiFi-GAN learns to 
 generate high-fidelity audio that closely resembles the characteristics of the training data.
+
 </Tip>
 
 Loading the vocoder is as easy as any other 🤗 Transformers model.
