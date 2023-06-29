@@ -1,0 +1,41 @@
+# What you'll learn and what you'll build
+
+In this section, we’ll take a look at how Transformers can be used to convert spoken speech into text, a task known _speech recognition_.
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/asr_diagram.png" alt="Diagram of speech to text">
+</div>
+
+Speech recognition, also known as automatic speech recognition (ASR) or speech-to-text (STT), is one of the most popular
+and exciting spoken language processing tasks. It’s used in a wide range of applications, including dictation, voice assistants,
+video captioning and meeting transcriptions.
+
+You’ve probably made use of a speech recognition system many times before without realising! Consider the digital
+assistant in your smartphone device (Siri, Google Assistant, Alexa). When you use these assistants, the first thing that
+they do is transcribe your spoken speech to written text, ready to be used for any downstream tasks (such as finding you
+the weather 🌤️).
+
+Have a play with the speech recognition demo below. You can either record yourself using your microphone, or drag and
+drop an audio sample for transcription:
+
+<iframe src="https://course-demos-whisper-small.hf.space" frameborder="0" width="850" height="450"> </iframe>
+
+Speech recognition is a challenging task as it requires joint knowledge of audio and text. The input audio might have
+lots of background noise and be spoken by speakers with different accents, making it difficult to pick out the spoken
+speech. The written text might have characters which don’t have an acoustic sound, such as punctuation, which are difficult
+to infer from audio alone. These are all hurdles we have to tackle when building effective speech recognition systems!
+
+Now that we’ve defined our task, we can begin looking into speech recognition in more detail. By the end of this Unit,
+you'll have a good fundamental understanding of the different pre-trained speech recognition models available and how to
+use them with the 🤗 Transformers library. You'll also know the procedure for fine-tuning an ASR model on a domain or
+language of choice, enabling you to build a performant system for whatever task you encounter. You'll be able to showcase
+your model to your friends and family by building a live demo, one that takes any spoken speech and converts it to text!
+
+Specifically, we’ll cover:
+
+* [Pre-trained models for speech recognition](asr_models.mdx)
+* [Choosing a dataset](choosing_dataset.mdx)
+* [Evaluation and metrics for speech recognition](evaluation.mdx)
+* [How to fine-tune an ASR system with the Trainer API](fine-tuning.mdx)
+* [Building a demo](demo.mdx)
+* [Hands-on exercise](hands_on.mdx)

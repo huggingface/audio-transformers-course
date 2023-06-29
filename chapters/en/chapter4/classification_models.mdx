@@ -23,6 +23,16 @@ are favoured for sequence classification tasks, and decoder-only models such as 
 Now that we've recapped the standard transformer architecture for audio classification, let's jump into the different
 subsets of audio classification and cover the most popular models!
 
+## 🤗 Transformers Installation
+
+At the time of writing, the latest updates required for audio classification pipeline are only on the `main` version of
+the 🤗 Transformers repository, rather than the latest PyPi version. To make sure we have these updates locally, we'll
+install Transformers from the `main` branch with the following command:
+
+```
+pip install git+https://github.com/huggingface/transformers
+```
+
 ## Keyword Spotting
 
 Keyword spotting (KWS) is the task of identifying a keyword in a spoken utterance. The set of possible keywords forms the

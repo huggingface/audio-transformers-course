@@ -109,9 +109,11 @@ were obtained from the [CMU ARCTIC dataset](http://www.festvox.org/cmu_arctic/) 
 
 ```python
 from datasets import load_dataset
+
 embeddings_dataset = load_dataset("Matthijs/cmu-arctic-xvectors", split="validation")
 
 import torch
+
 speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze(0)
 ```
 
@@ -151,6 +153,7 @@ Loading the vocoder is as easy as any other 🤗 Transformers model.
 
 ```python
 from transformers import SpeechT5HifiGan
+
 vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
 ```
 

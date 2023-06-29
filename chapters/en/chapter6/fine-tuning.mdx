@@ -19,9 +19,9 @@ pip install transformers datasets soundfile speechbrain accelerate
 Finally, don't forget to log in to your Hugging Face account so that you could upload and share your model with the community:
 
 ```py
->>> from huggingface_hub import notebook_login
+from huggingface_hub import notebook_login
 
->>> notebook_login()
+notebook_login()
 ```
 
 ## The dataset
@@ -136,7 +136,7 @@ To identify any unsupported characters in the dataset, you can take the differen
 set will contain the characters that are in the dataset but not in the tokenizer.
 
 ```py
->>> dataset_vocab - tokenizer_vocab
+dataset_vocab - tokenizer_vocab
 ```
 
 **Output:**
@@ -397,25 +397,36 @@ from typing import Any, Dict, List, Union
 class TTSDataCollatorWithPadding:
     processor: Any
 
-    def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
+    def __call__(
+        self, features: List[Dict[str, Union[List[int], torch.Tensor]]]
+    ) -> Dict[str, torch.Tensor]:
         input_ids = [{"input_ids": feature["input_ids"]} for feature in features]
         label_features = [{"input_values": feature["labels"]} for feature in features]
         speaker_features = [feature["speaker_embeddings"] for feature in features]
 
         # collate the inputs and targets into a batch
-        batch = processor.pad(input_ids=input_ids, labels=label_features, return_tensors="pt")
+        batch = processor.pad(
+            input_ids=input_ids, labels=label_features, return_tensors="pt"
+        )
 
         # replace padding with -100 to ignore loss correctly
-        batch["labels"] = batch["labels"].masked_fill(batch.decoder_attention_mask.unsqueeze(-1).ne(1), -100)
+        batch["labels"] = batch["labels"].masked_fill(
+            batch.decoder_attention_mask.unsqueeze(-1).ne(1), -100
+        )
 
         # not used during fine-tuning
         del batch["decoder_attention_mask"]
 
         # round down target lengths to multiple of reduction factor
         if model.config.reduction_factor > 1:
-            target_lengths = torch.tensor([len(feature["input_values"]) for feature in label_features])
+            target_lengths = torch.tensor(
+                [len(feature["input_values"]) for feature in label_features]
+            )
             target_lengths = target_lengths.new(
-                [length - length % model.config.reduction_factor for length in target_lengths]
+                [
+                    length - length % model.config.reduction_factor
+                    for length in target_lengths
+                ]
             )
             max_length = max(target_lengths)
             batch["labels"] = batch["labels"][:, :max_length]
@@ -514,7 +525,9 @@ Once you have fine-tuned a model, you can use it for inference! Load the model f
 account name in the following code snippet): 
 
 ```py
-model = SpeechT5ForTextToSpeech.from_pretrained("YOUR_ACCOUNT/speecht5_finetuned_voxpopuli_nl")
+model = SpeechT5ForTextToSpeech.from_pretrained(
+    "YOUR_ACCOUNT/speecht5_finetuned_voxpopuli_nl"
+)
 ```
 
 Pick an example, here we'll take one from the test dataset. Obtain a speaker embedding. 
