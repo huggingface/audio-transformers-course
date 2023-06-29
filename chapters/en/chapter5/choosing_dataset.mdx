@@ -1,0 +1,126 @@
+# Choosing a dataset
+
+As with any machine learning problem, our model is only as good as the data that we train it on. Speech recognition
+datasets vary considerably in how they are curated and the domains that they cover. To pick the right dataset, we need
+to match our criteria with the features that a dataset offers.
+
+Before we pick a dataset, we first need to understand the key defining features.
+
+## Features of speech datasets
+
+### 1. Number of hours
+Simply put, the number of training hours indicates how large the dataset is. It’s analogous to the number of training
+examples in an NLP dataset. However, bigger datasets aren’t necessarily better. If we want a model that generalises well,
+we want a **diverse** dataset with lots of different speakers, domains and speaking styles.
+
+### 2. Domain
+The domain entails where the data was sourced from, whether it be audiobooks, podcasts, YouTube or financial meetings.
+Each domain has a different distribution of data. For example, audiobooks are recorded in high-quality studio conditions
+(with no background noise) and text that is taken from written literature. Whereas for YouTube, the audio likely contains
+more background noise and a more informal style of speech.
+
+We need to match our domain to the conditions we anticipate at inference time. For instance, if we train our model on
+audiobooks, we can’t expect it to perform well in noisy environments.
+
+### 3. Speaking style
+The speaking style falls into one of two categories:
+
+* Narrated: read from a script
+* Spontaneous: un-scripted, conversational speech
+
+The audio and text data reflect the style of speaking. Since narrated text is scripted, it tends to be spoken articulately
+and without any errors:
+
+```
+“Consider the task of training a model on a speech recognition dataset”
+```
+
+Whereas for spontaneous speech, we can expect a more colloquial style of speech, with the inclusion of repetitions,
+hesitations and false-starts:
+
+```
+“Let’s uhh let's take a look at how you'd go about training a model on uhm a sp- speech recognition dataset”
+```
+
+### 4. Transcription style
+The transcription style refers to whether the target text has punctuation, casing or both. If we want a system to generate
+fully formatted text that could be used for a publication or meeting transcription, we require training data with punctuation
+and casing. If we just require the spoken words in an un-formatted structure, neither punctuation nor casing are necessary.
+In this case, we can either pick a dataset without punctuation or casing, or pick one that has punctuation and casing and
+then subsequently remove them from the target text through pre-processing.
+
+## A summary of datasets on the Hub
+
+Here is a summary of the most popular English speech recognition datasets on the Hugging Face Hub:
+
+| Dataset                                                                                 | Train Hours | Domain                      | Speaking Style        | Casing | Punctuation | License         | Recommended Use                  |
+|-----------------------------------------------------------------------------------------|-------------|-----------------------------|-----------------------|--------|-------------|-----------------|----------------------------------|
+| [LibriSpeech](https://huggingface.co/datasets/librispeech_asr)                          | 960         | Audiobook                   | Narrated              | ❌      | ❌           | CC-BY-4.0       | Academic benchmarks              |
+| [Common Voice 11](https://huggingface.co/datasets/mozilla-foundation/common_voice_11_0) | 3000        | Wikipedia                   | Narrated              | ✅      | ✅           | CC0-1.0         | Non-native speakers              |
+| [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli)                         | 540         | European Parliament         | Oratory               | ❌      | ✅           | CC0             | Non-native speakers              |
+| [TED-LIUM](https://huggingface.co/datasets/LIUM/tedlium)                                | 450         | TED talks                   | Oratory               | ❌      | ❌           | CC-BY-NC-ND 3.0 | Technical topics                 |
+| [GigaSpeech](https://huggingface.co/datasets/speechcolab/gigaspeech)                    | 10000       | Audiobook, podcast, YouTube | Narrated, spontaneous | ❌      | ✅           | apache-2.0      | Robustness over multiple domains |
+| [SPGISpeech](https://huggingface.co/datasets/kensho/spgispeech)                         | 5000        | Financial meetings          | Oratory, spontaneous  | ✅      | ✅           | User Agreement  | Fully formatted transcriptions   |
+| [Earnings-22](https://huggingface.co/datasets/revdotcom/earnings22)                     | 119         | Financial meetings          | Oratory, spontaneous  | ✅      | ✅           | CC-BY-SA-4.0    | Diversity of accents             |
+| [AMI](https://huggingface.co/datasets/edinburghcstr/ami)                                | 100         | Meetings                    | Spontaneous           | ✅      | ✅           | CC-BY-4.0       | Noisy speech conditions          |
+
+This table serves as a reference for selecting a dataset based on your criterion. Below is an equivalent table for
+multilingual speech recognition. Note that we omit the train hours column, since this varies depending on the language
+for each dataset, and replace it with the number of languages per dataset:
+
+| Dataset                                                                                       | Languages | Domain                                | Speaking Style | Casing | Punctuation | License   | Recommended Usage       |
+|-----------------------------------------------------------------------------------------------|-----------|---------------------------------------|----------------|--------|-------------|-----------|-------------------------|
+| [Multilingual LibriSpeech](https://huggingface.co/datasets/facebook/multilingual_librispeech) | 6         | Audiobooks                            | Narrated       | ❌      | ❌           | CC-BY-4.0 | Academic benchmarks     |
+| [Common Voice 13](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0)       | 108       | Wikipedia text & crowd-sourced speech | Narrated       | ✅      | ✅           | CC0-1.0   | Diverse speaker set     |
+| [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli)                               | 15        | European Parliament recordings        | Spontaneous    | ❌      | ✅           | CC0       | European languages      |
+| [FLEURS](https://huggingface.co/datasets/google/fleurs)                                       | 101       | European Parliament recordings        | Spontaneous    | ❌      | ❌           | CC-BY-4.0 | Multilingual evaluation |
+
+For a detailed breakdown of the audio datasets covered in both tables, refer to the blog post [A Complete Guide to Audio Datasets](https://huggingface.co/blog/audio-datasets#a-tour-of-audio-datasets-on-the-hub).
+While there are over 180 speech recognition datasets on the Hub, it may be possible that there isn't a dataset that matches
+your needs. In this case, it's also possible to use your own audio data with 🤗 Datasets. To create a custom audio dataset,
+refer to the guide [Create an audio dataset](https://huggingface.co/docs/datasets/audio_dataset). When creating a custom
+audio dataset, consider sharing the final dataset on the Hub so that others in the community can benefit from your
+efforts - the audio community is inclusive and wide-ranging, and others will appreciate your work as you do theirs.
+
+Alright! Now that we've gone through all the criterion for selecting an ASR dataset, let's pick one for the purpose of this tutorial.
+We know that Whisper already does a pretty good job at transcribing data in high-resource languages (such as English and Spanish), so
+we'll focus ourselves on low-resource multilingual transcription. We want to retain Whisper's ability to predict punctuation and casing,
+so it seems from the second table that Common Voice 13 is a great candidate dataset!
+
+## Common Voice 13
+
+Common Voice 13 is a crowd-sourced dataset where speakers record text from Wikipedia in various languages. It forms part of
+the Common Voice series, a collection of Common Voice datasets released by Mozilla Foundation. At the time of writing,
+Common Voice 13 is the latest edition of the dataset, with the most languages and hours per language out of any release to date.
+
+We can get the full list of languages for the Common Voice 13 dataset by checking-out the dataset page on the Hub:
+[mozilla-foundation/common_voice_13_0](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0).
+The first time you view this page, you'll be asked to accept the terms of use. After that, you'll be given full access to the dataset.
+
+Once we've provided authentication to use the dataset, we'll be presented with the dataset preview. The dataset preview
+shows us the first 100 samples of the dataset for each language. What's more, it's loaded up with audio samples ready for us
+to listen to in real time. For this Unit, we'll select [_Dhivehi_](https://en.wikipedia.org/wiki/Maldivian_language)
+(or _Maldivian_), an Indo-Aryan language spoken in the South Asian island country of the Maldives. While we're selecting
+Dhivehi for this tutorial, the steps covered here apply to any one of the 108 languages in the Common Voice 13 dataset, and
+more generally to any one of the 180+ audio datasets on the Hugging Face Hub, so there's no restriction on language or dialect.
+
+We can select the Dhivehi subset of Common Voice 13 by setting the subset to `dv` using the dropdown menu (`dv` being the language
+identifier code for Dhivehi):
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/cv_13_dv_selection.png" alt="Selecting the Dhivehi split from the Dataset's Preview">
+</div>
+
+If we hit the play button on the first sample, we can listen to the audio and see the corresponding text. Have a scroll
+through the samples for the train and test sets to get a better feel for the audio and text data that we're dealing with.
+You can tell from the intonation and style that the recordings are taken from narrated speech. You'll also likely notice
+the large variation in speakers and recording quality, a common trait of crowd-sourced data.
+
+The Dataset Preview is a brilliant way of experiencing audio datasets before committing to using them. You can pick any
+dataset on the Hub, scroll through the samples and listen to the audio for the different subsets and splits, gauging whether
+it's the right dataset for your needs. Once you've selected a dataset, it's trivial to load the data so that you can
+start using it.
+
+Now, I personally don't speak Dhivehi, and expect the vast majority of readers not to either! To know if our fine-tuned model
+is any good, we'll need a rigorous way of _evaluating_ it on unseen data and measuring its transcription accuracy.
+We'll cover exactly this in the next section!
