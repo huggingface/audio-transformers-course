@@ -100,10 +100,24 @@ inputs = processor(text="Don't count the days, make the days count.", return_ten
 ```
 
 The SpeechT5 TTS model is not limited to creating speech for a single speaker. Instead, it uses so-called speaker embeddings 
-that capture a particular speaker's voice characteristics. 
+that capture a particular speaker's voice characteristics.
 
-[//]: # (TODO: We should elaborate here how the speaker embeddings are obtained, what they represent, etc.)
-[//]: # (As an example we can talk about use the pre-trained [spkrec-xvect-voxceleb](https://huggingface.co/speechbrain/spkrec-xvect-voxceleb model from SpeechBrain. )
+<Tip>
+
+Speaker embeddings is a method of representing a speaker's identity in a compact way, as a vector of 
+fixed size, regardless of the length of the utterance. These embeddings capture essential information about a speaker's 
+voice, accent, intonation, and other unique characteristics that distinguish one speaker from another. Such embeddings can 
+be used for speaker verification, speaker diarization, speaker identification, and more. 
+The most common techniques for generating speaker embeddings include:
+
+* I-Vectors (identity vectors): I-Vectors are based on a Gaussian mixture model (GMM). They represent speakers as low-dimensional fixed-length vectors derived from the statistics of a speaker-specific GMM, and are obtained in unsupervised manner. 
+* X-Vectors: X-Vectors are derived using deep neural networks (DNNs) and capture frame-level speaker information by incorporating temporal context. 
+
+[X-Vectors](https://www.danielpovey.com/files/2018_icassp_xvectors.pdf) are a SOTA method that shows superior performance 
+on evaluation datasets compared to i-vectors. The deep neural network is used to obtain X-Vectors: it trains to discriminate 
+between speakers, and maps variable-length utterances to fixed-dimensional embeddings. 
+
+</Tip>
 
 Let's load such a speaker embedding from a dataset on the Hub. The embeddings 
 were obtained from the [CMU ARCTIC dataset](http://www.festvox.org/cmu_arctic/) using 
