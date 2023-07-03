@@ -456,11 +456,18 @@ from transformers import SpeechT5ForTextToSpeech
 model = SpeechT5ForTextToSpeech.from_pretrained(checkpoint)
 ```
 
-The `use_cache=True` option is incompatible with gradient checkpointing. Disable it for training.
+The `use_cache=True` option is incompatible with gradient checkpointing. Disable it for training, and re-enable cache for 
+generation to speed-up inference time:
 
 ```py 
+from functools import partial
+
+# disable cache during training since it's incompatible with gradient checkpointing
 model.config.use_cache = False
-```
+
+# set language and task for generation and re-enable cache
+model.generate = partial(model.generate, use_cache=True)
+``` 
 
 Define the training arguments. Here we are not computing any evaluation metrics during the training process, 
 we'll talk about evaluation later in this chapter. Instead, we'll only look at the loss:

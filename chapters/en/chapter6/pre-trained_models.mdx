@@ -27,7 +27,8 @@ SpeechT5 and Massive Multilingual Speech (MMS).
 
 ## SpeechT5 
 
-[SpeechT5](https://arxiv.org/abs/2110.07205) is a model published by Junyi Ao et al. from Microsoft that is capable of handling a range of speech tasks. While in this unit, we focus on the text-to-speech aspect, 
+[SpeechT5](https://arxiv.org/abs/2110.07205) is a model published by Junyi Ao et al. from Microsoft that is capable of 
+handling a range of speech tasks. While in this unit, we focus on the text-to-speech aspect, 
 this model can be tailored to speech-to-text tasks (automatic speech recognition or speaker identification), 
 as well as speech-to-speech (e.g. speech enhancement or converting between different voices). This is due to how the model 
 is designed and pre-trained. 
@@ -56,8 +57,9 @@ need the text encoder pre-net for the text inputs and the speech decoder pre- an
 This approach allows to obtain several models fine-tuned for different speech tasks that all benefit from the initial 
 pre-training on unlabeled data.  
 
-<Tip> 
-	Even though the fine-tuned models start out using the same set of weights from the shared pre-trained model, the 
+<Tip>
+
+Even though the fine-tuned models start out using the same set of weights from the shared pre-trained model, the 
 final versions are all quite different in the end. You can't take a fine-tuned ASR model and swap out the pre-nets and 
 post-net to get a working TTS model, for example. SpeechT5 is flexible, but not that flexible ;)
 
@@ -209,6 +211,15 @@ for better and more flexible speaker-specific adjustments.
 Essentially, adapter layers act like linguistic bridges, enabling the model to leverage knowledge from one language when 
 deciphering another. MMS's Adapter training achieves astonishingly low word error rates after just 10-20 minutes of fine-tuning.
 
-Currently, MMS model is being actively integrated in 🤗 Transformers. If you install the library from source (`!pip install git+https://github.com/huggingface/transformers.git`), 
-you can already try it for ASR and language identification. In the near future, speech synthesis will be available in  🤗 Transformers as well.
+Currently, MMS model is being actively integrated in 🤗 Transformers. To try it out, you need to install the library from source
+
+```bash
+pip install git+https://github.com/huggingface/transformers.git
+```
+
+Let's give it a go, and see how we can synthesize speech in a language other than English, e.g. German. 
+
+
+
+
 
