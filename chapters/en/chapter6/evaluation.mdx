@@ -1,6 +1,11 @@
 # Evaluating text-to-speech models
 
-The evaluation of text-to-speech (TTS) models is notoriously difficult. Unlike many other computational tasks that can be objectively 
+During the training time, text-to-speech models optimize for the mean-square error loss (or mean absolute error) between 
+the predicted spectrogram values and the generated ones. Both MSE and MAE encourage the model to minimize the difference 
+between the predicted and target spectrograms. However, evaluation of the resulting text-to-speech (TTS) models is much 
+more difficult. 
+
+Unlike many other computational tasks that can be objectively 
 measured using quantitative metrics, such as accuracy or precision, evaluating TTS relies heavily on subjective human analysis.
 
 One of the most commonly employed evaluation methods for TTS systems is conducting qualitative assessments using mean 
