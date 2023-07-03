@@ -9,10 +9,9 @@ tips that you can try should you have a smaller GPU and encounter memory issues 
 
 ### Python Packages
 
-We require four Python packages to fine-tune a model with the 🤗 Trainer: PyTorch, 🤗 Transformers, 🤗 Datasets and 🤗
-Accelerate (that's a lot of Hugging Faces 😅). To install PyTorch, follow the local installation instructions for your
-device on the [PyTorch installation page](https://pytorch.org/get-started/locally/). Note that PyTorch comes pre-installed
-on Google Colab instances, so you can skip this step if this applies to you.
+We require five Python packages to fine-tune a model with the 🤗 Trainer: PyTorch, Transformers, Accelerate, Datasets
+and Evaluate. To install PyTorch, follow the local installation instructions for your device on the [PyTorch installation page](https://pytorch.org/get-started/locally/).
+Note that PyTorch comes pre-installed on Google Colab instances, so you can skip this step if this applies to you.
 
 The remaining three Python packages can be installed using a `pip install` command. We'll install 🤗 Transformers from
 main since it has updates required for audio classification fine-tuning that are only on the `main` version of the 🤗
@@ -20,7 +19,7 @@ Transformers repository, rather than the latest PyPi version:
 
 ```bash
 pip install --upgrade --quiet pip
-pip install --upgrade git+https://github.com/huggingface/transformers datasets[audio] accelerate
+pip install --upgrade git+https://github.com/huggingface/transformers accelerate datasets[audio] evaluate
 ```
 
 ### Linking your HF Account
