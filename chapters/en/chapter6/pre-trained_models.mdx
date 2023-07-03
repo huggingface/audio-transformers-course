@@ -1,4 +1,4 @@
-# Pre-trained models for text-to-speech
+# Pre-trained models and datasets for text-to-speech
 
 Text-to-speech task (also called _speech synthesis_) comes with a range of challenges.
 
@@ -20,12 +20,41 @@ pick out speach from a noisy street recording, but not so much if your voice ass
 and construction going full-swing in the background. Still, some ASR datasets can sometimes be useful for fine-tuning, 
 as finding top-quality, multilingual, and multi-speaker TTS datasets can be quite challenging.
 
+Let's explore a few datasets suitable for TTS that you can find on the 🤗 Hub.
+
+## TTS Datasets 
+
+### LJSpeech
+
+[LJSpeech](https://huggingface.co/datasets/lj_speech) is a dataset that consists of 13,100 English-language audio clips 
+paired with their corresponding transcriptions. The dataset contains recording of a single speaker reading sentences 
+from 7 non-fiction books in English. LJSpeech is often used as a benchmark for evaluating TTS models 
+due to its high audio quality and diverse linguistic content.
+
+### Multilingual LibriSpeech
+
+[Multilingual LibriSpeech](https://huggingface.co/datasets/facebook/multilingual_librispeech) is a multilingual extension 
+of the LibriSpeech dataset, which is a large-scale collection of read English-language audiobooks. Multilingual LibriSpeech 
+expands on this by including additional languages, such as German, Dutch, Spanish, French, Italian, Portuguese, and Polish. 
+It offers audio recordings along with aligned transcriptions for each language. The dataset provides a valuable resource 
+for developing multilingual TTS systems and exploring cross-lingual speech synthesis techniques.
+
+### VCTK (Voice Cloning Toolkit)
+
+[VCTK](https://huggingface.co/datasets/vctk) is a dataset specifically designed for text-to-speech research and development.
+It contains audio recordings of 110 English speakers with various accents. Each speaker reads out about 400 sentences, 
+which were selected from a newspaper, the rainbow passage and an elicitation paragraph used for the speech accent archive.
+VCTK offers a valuable resource for training TTS models with varied voices and accents, enabling more natural and diverse 
+speech synthesis.
+
+## Pre-trained TTS models
+
 Compared to ASR (automatic speech recognition) and audio classification tasks, there are significantly fewer pretrained 
 model checkpoints available. On the Hugging Face Hub, you'll find close to 300 suitable checkpoints. Among 
 these pretrained models we'll focus on two architectures that are readily available for you in the 🤗 Transformers library - 
 SpeechT5 and Massive Multilingual Speech (MMS).
 
-## SpeechT5 
+### SpeechT5 
 
 [SpeechT5](https://arxiv.org/abs/2110.07205) is a model published by Junyi Ao et al. from Microsoft that is capable of 
 handling a range of speech tasks. While in this unit, we focus on the text-to-speech aspect, 
@@ -202,7 +231,7 @@ pre-trained checkpoint only supports English language:
 	height="450">
 </iframe>
 
-## Massive Multilingual Speech (MMS)
+### Massive Multilingual Speech (MMS)
 
 Now, what if you are looking for a pre-trained model in a language other than English? Massive Multilingual Speech (MMS) is 
 another model that covers an array of speech tasks, however, it supports a large number of languages. For instance, it can 
@@ -281,4 +310,4 @@ from IPython.display import Audio
 Audio(speech, rate=16000)
 ```
 
-Wunderbar! If you'd like to try MMS with another language, find other suitable `vits` checkpoints checkpoints [on 🤗 Hub](https://huggingface.co/models?filter=vits).
+Wunderbar! If you'd like to try MMS with another language, find other suitable `vits` checkpoints [on 🤗 Hub](https://huggingface.co/models?filter=vits).
