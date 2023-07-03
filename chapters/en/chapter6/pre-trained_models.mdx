@@ -294,19 +294,21 @@ This means that you do not need to add a vocoder for inference, it's already "bu
 Let's pick an example text in German, like these first two lines from a children's song: 
 
 ```python
-text_example = "Ich bin Schnappi das kleine Krokodil, komm aus Ägypten das liegt direkt am Nil."
+text_example = (
+    "Ich bin Schnappi das kleine Krokodil, komm aus Ägypten das liegt direkt am Nil."
+)
 ```
 
 To generate a waveform output, preprocess the text with the tokenizer, and pass it to the model: 
 ```python
-import torch 
+import torch
 
 inputs = tokenizer(text_example, return_tensors="pt")
 input_ids = inputs["input_ids"]
 
 
-with torch.no_grad():\
-  outputs = model(input_ids)
+with torch.no_grad():
+    outputs = model(input_ids)
 
 speech = outputs.audio[0]
 ```
