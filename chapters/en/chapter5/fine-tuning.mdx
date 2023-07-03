@@ -17,6 +17,27 @@ Right! Now that's out the way, let's get started and kick-off our fine-tuning pi
 
 ## Prepare Environment
 
+### Python Packages
+
+We require four Python packages to fine-tune a model with the 🤗 Trainer: PyTorch, 🤗 Transformers, 🤗 Datasets and 🤗
+Accelerate (that's a lot of Hugging Faces 😅). These are the same four packages that we installed for audio classification
+fine-tuning, so feel free to skip these if you have them already.
+
+To install PyTorch, follow the local installation instructions for your device on the [PyTorch installation page](https://pytorch.org/get-started/locally/).
+Note that PyTorch comes pre-installed on Google Colab instances, so you can skip the PyTorch installation if this applies
+to you.
+
+The remaining three Python packages can be installed using a `pip install` command. We'll install 🤗 Transformers from
+main since it has several updates for the previous audio classification section that are only on the `main` version of the 🤗
+Transformers repository, rather than the latest PyPi version:
+
+```bash
+pip install --upgrade --quiet pip
+pip install --upgrade git+https://github.com/huggingface/transformers datasets[audio] accelerate
+```
+
+### Linking your HF Account
+
 We strongly advise you to upload model checkpoints directly the [Hugging Face Hub](https://huggingface.co/) while training.
 The Hub provides:
 - Integrated version control: you can be sure that no model checkpoint is lost during training.
