@@ -190,9 +190,6 @@ pre-trained checkpoint only supports English language:
 
 ## Massive Multilingual Speech (MMS)
 
-[//]: # (This is the only other TTS model that I could find, and it's still not fully available, it's WIP. Should we write about it? 
-It may feel odd to have only SpeechT5)
-
 Now, what if you are looking for a pre-trained model in a language other than English? Massive Multilingual Speech (MMS) is 
 another model that covers an array of speech tasks, however, it supports a large number of languages. For instance, it can 
 synthesize speech in over 1,100 languages.
@@ -211,15 +208,63 @@ for better and more flexible speaker-specific adjustments.
 Essentially, adapter layers act like linguistic bridges, enabling the model to leverage knowledge from one language when 
 deciphering another. MMS's Adapter training achieves astonishingly low word error rates after just 10-20 minutes of fine-tuning.
 
-Currently, MMS model is being actively integrated in 🤗 Transformers. To try it out, you need to install the library from source
+<Tip warning={true}>
+	
+MMS model has been added to 🤗 Transformers very recently, so the API may still slightly change. At the moment of this Unit's 
+release, you have to install the library from source, if you'd like to try it out:
 
 ```bash
 pip install git+https://github.com/huggingface/transformers.git
 ```
 
-Let's give it a go, and see how we can synthesize speech in a language other than English, e.g. German. 
+</Tip>
+
+Let's give MMS a go, and see how we can synthesize speech in a language other than English, e.g. German.
+First, we'll load the model checkpoint and the tokenizer for the correct language: 
+
+```python
+from transformers import VitsModel, VitsTokenizer
+
+model = VitsModel.from_pretrained("Matthijs/mms-tts-deu")
+tokenizer = VitsTokenizer.from_pretrained("Matthijs/mms-tts-deu")
+```
+
+You may notice that to load the MMS model you need to use `VitsModel` and `VitsTokenizer`. This is because MMS for text-to-speech 
+is based on the VITS model ([VITS, Kim et al., 2021](https://arxiv.org/pdf/2106.06103.pdf)), which is one of the state of-the-art 
+TTS approaches. 
+
+VITS is a speech generation network that converts text into raw speech waveforms. It works like a conditional variational 
+auto-encoder, estimating audio features from the input text. First, acoustic features, represented as spectrograms, are 
+generated. The waveform is then decoded using transposed convolutional layers adapted from HiFi-GAN. 
+During inference, the text encodings are upsampled and transformed into waveforms using the flow module and HiFi-GAN decoder.
+This means that you do not need to add a vocoder for inference, it's already "built-in".  
+
+Let's pick an example text in German, like these first two lines from a children's song: 
+
+```python
+text_example = "Ich bin Schnappi das kleine Krokodil, komm aus Ägypten das liegt direkt am Nil."
+```
+
+To generate a waveform output, preprocess the text with the tokenizer, and pass it to the model: 
+```python
+import torch 
+
+inputs = tokenizer(text_example, return_tensors="pt")
+input_ids = inputs["input_ids"]
 
 
+with torch.no_grad():\
+  outputs = model(input_ids)
 
+speech = outputs.audio[0]
+```
 
+Let's listen to it:
 
+```python
+from IPython.display import Audio
+
+Audio(speech, rate=16000)
+```
+
+Wunderbar! If you'd like to try MMS with another language, find other suitable `vits` checkpoints checkpoints [on 🤗 Hub](https://huggingface.co/models?filter=vits).
