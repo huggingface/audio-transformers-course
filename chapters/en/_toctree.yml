@@ -91,14 +91,11 @@
   - local: chapter6/introduction
     title: What you'll learn and what you'll build
   - local: chapter6/pre-trained_models
-    title: Pre-trained models for text-to-speech
+    title: Pre-trained models and datasets for text-to-speech
   - local: chapter6/fine-tuning
     title: Fine-tuning SpeechT5
   - local: chapter6/evaluation
     title: Evaluating text-to-speech models
-  - local: chapter6/quiz
-    title: Quiz
-    quiz: 6
   - local: chapter6/hands_on
     title: Hands-on exercise
   - local: chapter6/supplemental_reading

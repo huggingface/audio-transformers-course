@@ -47,11 +47,20 @@ which were selected from a newspaper, the rainbow passage and an elicitation par
 VCTK offers a valuable resource for training TTS models with varied voices and accents, enabling more natural and diverse 
 speech synthesis.
 
+Assembling a good dataset for TTS is no easy task as such dataset would have to possess several key characteristics:
+
+* High-quality and diverse recordings that cover a wide range of speech patterns, accents, languages, and emotions. The recordings should be clear, free from background noise, and exhibit natural speech characteristics.
+* Transcriptions: Each audio recording should be accompanied by its corresponding text transcription.
+* Variety of linguistic content: The dataset should contain a diverse range of linguistic content, including different types of sentences, phrases, and words. It should cover various topics, genres, and domains to ensure the model's ability to handle different linguistic contexts.
+
+Good news is, it is unlikely that you would have to train a TTS model from scratch, so let's look into what pre-trained models 
+are available on the 🤗 Hub.
+
 ## Pre-trained TTS models
 
-Compared to ASR (automatic speech recognition) and audio classification tasks, there are significantly fewer pretrained 
-model checkpoints available. On the Hugging Face Hub, you'll find close to 300 suitable checkpoints. Among 
-these pretrained models we'll focus on two architectures that are readily available for you in the 🤗 Transformers library - 
+Compared to ASR (automatic speech recognition) and audio classification tasks, there are significantly fewer pre-trained 
+model checkpoints available. On the 🤗 Hub, you'll find close to 300 suitable checkpoints. Among 
+these pre-trained models we'll focus on two architectures that are readily available for you in the 🤗 Transformers library - 
 SpeechT5 and Massive Multilingual Speech (MMS).
 
 ### SpeechT5 
@@ -142,7 +151,7 @@ The most common techniques for generating speaker embeddings include:
 * I-Vectors (identity vectors): I-Vectors are based on a Gaussian mixture model (GMM). They represent speakers as low-dimensional fixed-length vectors derived from the statistics of a speaker-specific GMM, and are obtained in unsupervised manner. 
 * X-Vectors: X-Vectors are derived using deep neural networks (DNNs) and capture frame-level speaker information by incorporating temporal context. 
 
-[X-Vectors](https://www.danielpovey.com/files/2018_icassp_xvectors.pdf) are a SOTA method that shows superior performance 
+[X-Vectors](https://www.danielpovey.com/files/2018_icassp_xvectors.pdf) are a state-of-the-art method that shows superior performance 
 on evaluation datasets compared to i-vectors. The deep neural network is used to obtain X-Vectors: it trains to discriminate 
 between speakers, and maps variable-length utterances to fixed-dimensional embeddings. 
 
@@ -150,7 +159,8 @@ between speakers, and maps variable-length utterances to fixed-dimensional embed
 
 Let's load such a speaker embedding from a dataset on the Hub. The embeddings 
 were obtained from the [CMU ARCTIC dataset](http://www.festvox.org/cmu_arctic/) using 
-[this script](https://huggingface.co/mechanicalsea/speecht5-vc/blob/main/manifest/utils/prep_cmu_arctic_spkemb.py), but any X-Vector embedding should work.
+[this script](https://huggingface.co/mechanicalsea/speecht5-vc/blob/main/manifest/utils/prep_cmu_arctic_spkemb.py), but 
+any X-Vector embedding should work.
 
 ```python
 from datasets import load_dataset
@@ -204,7 +214,6 @@ from transformers import SpeechT5HifiGan
 vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
 ```
 
-
 Now all you need to do is pass it as an argument when generating speech, and the outputs will be automatically converted to the speech waveform.
 
 ```python
@@ -233,7 +242,7 @@ pre-trained checkpoint only supports English language:
 
 ### Massive Multilingual Speech (MMS)
 
-Now, what if you are looking for a pre-trained model in a language other than English? Massive Multilingual Speech (MMS) is 
+What if you are looking for a pre-trained model in a language other than English? Massive Multilingual Speech (MMS) is 
 another model that covers an array of speech tasks, however, it supports a large number of languages. For instance, it can 
 synthesize speech in over 1,100 languages.
 
@@ -253,7 +262,7 @@ deciphering another. MMS's Adapter training achieves astonishingly low word erro
 
 <Tip warning={true}>
 	
-MMS model has been added to 🤗 Transformers very recently, so the API may still slightly change. At the moment of this Unit's 
+MMS model has been added to 🤗 Transformers very recently, so the API may still slightly change. At the time of this Unit's 
 release, you have to install the library from source, if you'd like to try it out:
 
 ```bash
@@ -311,3 +320,5 @@ Audio(speech, rate=16000)
 ```
 
 Wunderbar! If you'd like to try MMS with another language, find other suitable `vits` checkpoints [on 🤗 Hub](https://huggingface.co/models?filter=vits).
+
+Now let's see how you can fine-tune a TTS model yourself!
