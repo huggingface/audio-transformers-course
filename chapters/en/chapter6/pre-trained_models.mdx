@@ -207,10 +207,12 @@ based on HiFi-GAN. Its weights were kindly provided by the original authors of S
 
 [HiFi-GAN](https://arxiv.org/pdf/2010.05646v2.pdf) is a state-of-the-art generative adversarial network (GAN) designed 
 for high-fidelity speech synthesis. It is capable of generating high-quality and realistic audio waveforms from spectrogram inputs.
+</br>
 
 On a high level, HiFi-GAN consists of one generator and two discriminators. The generator is a fully convolutional 
 neural network that takes a mel-spectrogram as input and learns to produce raw audio waveforms. The discriminators' 
-role is to distinguish between real and generated audio. The two discriminators focus on different aspects of the audio. 
+role is to distinguish between real and generated audio. The two discriminators focus on different aspects of the audio.
+</br>
 
 HiFi-GAN is trained on a large dataset of high-quality audio recordings. It uses a so-called <em>adversarial training</em>, 
 where the generator and discriminator networks compete against each other. Initially, the generator produces low-quality 
