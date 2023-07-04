@@ -47,6 +47,20 @@ which were selected from a newspaper, the rainbow passage and an elicitation par
 VCTK offers a valuable resource for training TTS models with varied voices and accents, enabling more natural and diverse 
 speech synthesis.
 
+### Libri-TTS/ LibriTTS-R
+
+[Libri-TTS/ LibriTTS-R](https://huggingface.co/datasets/cdminix/libritts-r-aligned) is a multi-speaker English corpus of 
+approximately 585 hours of read English speech at 24kHz sampling rate, prepared by Heiga Zen with the assistance of Google 
+Speech and Google Brain team members. The LibriTTS corpus is designed for TTS research. It is derived from the original 
+materials (mp3 audio files from LibriVox and text files from Project Gutenberg) of the LibriSpeech corpus. The main 
+differences from the LibriSpeech corpus are listed below: 
+
+* The audio files are at 24kHz sampling rate. 
+* The speech is split at sentence breaks. 
+* Both original and normalized texts are included. 
+* Contextual information (e.g., neighbouring sentences) can be extracted. 
+* Utterances with significant background noise are excluded.
+
 Assembling a good dataset for TTS is no easy task as such dataset would have to possess several key characteristics:
 
 * High-quality and diverse recordings that cover a wide range of speech patterns, accents, languages, and emotions. The recordings should be clear, free from background noise, and exhibit natural speech characteristics.
@@ -61,7 +75,8 @@ are available on the 🤗 Hub.
 Compared to ASR (automatic speech recognition) and audio classification tasks, there are significantly fewer pre-trained 
 model checkpoints available. On the 🤗 Hub, you'll find close to 300 suitable checkpoints. Among 
 these pre-trained models we'll focus on two architectures that are readily available for you in the 🤗 Transformers library - 
-SpeechT5 and Massive Multilingual Speech (MMS).
+SpeechT5 and Massive Multilingual Speech (MMS). In this section, we'll explore how to use these pre-trained models in the 
+Transformers library for TTS.
 
 ### SpeechT5 
 
@@ -246,19 +261,14 @@ What if you are looking for a pre-trained model in a language other than English
 another model that covers an array of speech tasks, however, it supports a large number of languages. For instance, it can 
 synthesize speech in over 1,100 languages.
 
-At the core of MMS is wav2vec2, a CTC model. If you don't remember what a Connectionist Temporal Classification (CTC) approach is, 
-refer to [Unit 3](../chapter3/ctc) for a refresher. Just as before, first, the model is pre-trained in unsupervised manner 
-on more than half a million hours of audio in over 1,400 languages.   
+MMS for text-to-speech is based on [VITS Kim et al., 2021](https://arxiv.org/pdf/2106.06103.pdf), which is one of the 
+state-of-the-art TTS approaches.
 
-Next, MMS uses so-called _adapter training_, a training method where only a small fraction of model weights are trained to 
-adapt the model to 1000+ different vocabularies. It is important to note that the original model parameters remain 
-unchanged. How does it work? Small, trainable modules, called adapter layers, are inserted between the pre-existing layers 
-of the model, which then adapt the model to a specific task without requiring extensive retraining.
-This approach not only greatly reduces computational requirements compared to training the full model, but also allows 
-for better and more flexible speaker-specific adjustments.
-
-Essentially, adapter layers act like linguistic bridges, enabling the model to leverage knowledge from one language when 
-deciphering another. MMS's Adapter training achieves astonishingly low word error rates after just 10-20 minutes of fine-tuning.
+VITS is a speech generation network that converts text into raw speech waveforms. It works like a conditional variational 
+auto-encoder, estimating audio features from the input text. First, acoustic features, represented as spectrograms, are 
+generated. The waveform is then decoded using transposed convolutional layers adapted from HiFi-GAN. 
+During inference, the text encodings are upsampled and transformed into waveforms using the flow module and HiFi-GAN decoder.
+This means that you do not need to add a vocoder for inference, it's already "built-in".  
 
 <Tip warning={true}>
 	
@@ -282,14 +292,7 @@ tokenizer = VitsTokenizer.from_pretrained("Matthijs/mms-tts-deu")
 ```
 
 You may notice that to load the MMS model you need to use `VitsModel` and `VitsTokenizer`. This is because MMS for text-to-speech 
-is based on the VITS model ([VITS, Kim et al., 2021](https://arxiv.org/pdf/2106.06103.pdf)), which is one of the state of-the-art 
-TTS approaches. 
-
-VITS is a speech generation network that converts text into raw speech waveforms. It works like a conditional variational 
-auto-encoder, estimating audio features from the input text. First, acoustic features, represented as spectrograms, are 
-generated. The waveform is then decoded using transposed convolutional layers adapted from HiFi-GAN. 
-During inference, the text encodings are upsampled and transformed into waveforms using the flow module and HiFi-GAN decoder.
-This means that you do not need to add a vocoder for inference, it's already "built-in".  
+is based on the VITS model as mentioned earlier. 
 
 Let's pick an example text in German, like these first two lines from a children's song: 
 

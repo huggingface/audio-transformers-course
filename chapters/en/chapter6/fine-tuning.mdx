@@ -280,10 +280,10 @@ It's important to note that the `speechbrain/spkrec-xvect-voxceleb` model was tr
 dataset, whereas the training examples in this guide are in Dutch. While we believe that this model will still generate 
 reasonable speaker embeddings for our Dutch dataset, this assumption may not hold true in all cases.
 
-For optimal results, you should train an X-vector model on the target speech first. This will ensure that the model 
-is better able to capture the unique voice characteristics present in the Dutch language.
-
-[//]: # (TODO: We should probably link to some resource that illustrated how to train an X-vector model to get speaker embeddings)
+For optimal results, we would need to train an X-vector model on the target speech first. This will ensure that the model 
+is better able to capture the unique voice characteristics present in the Dutch language. If you'd like to train your own 
+X-vector model, you can use [this script](https://huggingface.co/mechanicalsea/speecht5-vc/blob/main/manifest/utils/prep_cmu_arctic_spkemb.py) 
+as an example.   
 
 ### Processing the dataset
 
