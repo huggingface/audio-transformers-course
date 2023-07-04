@@ -3,7 +3,7 @@
 Text-to-speech task (also called _speech synthesis_) comes with a range of challenges.
 
 First, just like in the previously discussed automatic speech recognition, the alignment between text and speech can be tricky.  
-The model has to learn to generate the correct duration and timing for each phoneme, word, or sentence which can be challenging, 
+However, unlike ASR, TTS is a one-to-many mapping problem, i.e. the same text can be synthesised in many different ways. Even different outputs (spectrograms or audio waveforms) can correspond to the same ground truth. The model has to learn to generate the correct duration and timing for each phoneme, word, or sentence which can be challenging, 
 especially for long and complex sentences.
 
 Next, there's the long-distance dependency problem: language has a temporal aspect, and understanding the meaning of a 
