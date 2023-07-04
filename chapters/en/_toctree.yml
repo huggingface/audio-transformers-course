@@ -90,8 +90,10 @@
   sections:
   - local: chapter6/introduction
     title: What you'll learn and what you'll build
+  - local: chapter6/tts_datasets
+    title: Text-to-speech datasets
   - local: chapter6/pre-trained_models
-    title: Pre-trained models and datasets for text-to-speech
+    title: Pre-trained models for text-to-speech
   - local: chapter6/fine-tuning
     title: Fine-tuning SpeechT5
   - local: chapter6/evaluation
