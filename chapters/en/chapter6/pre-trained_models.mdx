@@ -3,7 +3,7 @@
 Text-to-speech task (also called _speech synthesis_) comes with a range of challenges.
 
 First, just like in the previously discussed automatic speech recognition, the alignment between text and speech can be tricky.  
-However, unlike ASR, TTS is a one-to-many mapping problem, i.e. the same text can be synthesised in many different ways. Even different outputs (spectrograms or audio waveforms) can correspond to the same ground truth. The model has to learn to generate the correct duration and timing for each phoneme, word, or sentence which can be challenging, 
+However, unlike ASR, TTS is a **one-to-many** mapping problem, i.e. the same text can be synthesised in many different ways. Think about the diversity of voices and speaking styles in the speech you hear on a daily basis - each person has a different way of speaking the same sentence, but they are all valid and correct! Even different outputs (spectrograms or audio waveforms) can correspond to the same ground truth. The model has to learn to generate the correct duration and timing for each phoneme, word, or sentence which can be challenging, 
 especially for long and complex sentences.
 
 Next, there's the long-distance dependency problem: language has a temporal aspect, and understanding the meaning of a 
@@ -167,8 +167,8 @@ The most common techniques for generating speaker embeddings include:
 * X-Vectors: X-Vectors are derived using deep neural networks (DNNs) and capture frame-level speaker information by incorporating temporal context. 
 
 [X-Vectors](https://www.danielpovey.com/files/2018_icassp_xvectors.pdf) are a state-of-the-art method that shows superior performance 
-on evaluation datasets compared to i-vectors. The deep neural network is used to obtain X-Vectors: it trains to discriminate 
-between speakers, and maps variable-length utterances to fixed-dimensional embeddings. 
+on evaluation datasets compared to I-Vectors. The deep neural network is used to obtain X-Vectors: it trains to discriminate 
+between speakers, and maps variable-length utterances to fixed-dimensional embeddings. You can also load an X-Vector speaker embedding that has been computed ahead of time, which will encapsulate the speaking characteristics of a particular speaker.
 
 </Tip>
 
@@ -206,13 +206,13 @@ based on HiFi-GAN. Its weights were kindly provided by the original authors of S
 <Tip>
 
 [HiFi-GAN](https://arxiv.org/pdf/2010.05646v2.pdf) is a state-of-the-art generative adversarial network (GAN) designed 
-for high-fidelity speech synthesis. It is capable of generating high-quality and realistic audio waveforms.
+for high-fidelity speech synthesis. It is capable of generating high-quality and realistic audio waveforms from spectrogram inputs.
 
-On the high level, HiFi-GAN consists of one generator and two discriminators. The generator is a fully convolutional 
+On a high level, HiFi-GAN consists of one generator and two discriminators. The generator is a fully convolutional 
 neural network that takes a mel-spectrogram as input and learns to produce raw audio waveforms. The discriminators' 
 role is to distinguish between real and generated audio. The two discriminators focus on different aspects of the audio. 
 
-HiFi-GAN is trained on a large dataset of high-quality audio recordings. It uses a so-called called adversarial training, 
+HiFi-GAN is trained on a large dataset of high-quality audio recordings. It uses a so-called <em>adversarial training</em>, 
 where the generator and discriminator networks compete against each other. Initially, the generator produces low-quality 
 audio, and the discriminator can easily differentiate it from real audio. As training progresses, the generator improves 
 its output, aiming to fool the discriminator. The discriminator, in turn, becomes more accurate in distinguishing real 
