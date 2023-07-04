@@ -165,7 +165,7 @@ common_voice["train"].features
 Since our input audio is sampled at 48kHz, we need to _downsample_ it to 16kHz prior to passing it to the Whisper feature
 extractor, 16kHz being the sampling rate expected by the Whisper model.
 
-We'll set the audio inputs to the correct sampling rate using dataset's [`cast_column`](https://huggingface.co/docs/datasets/package_reference/main_classes.html?highlight=cast_column#datasets.DatasetDict.cast_column)
+We'll set the audio inputs to the correct sampling rate using dataset's [`cast_column`](https://huggingface.co/docs/datasets/main/en/package_reference/main_classes#datasets.Dataset.cast_column)
 method. This operation does not change the audio in-place, but rather signals to datasets to resample audio samples
 on-the-fly when they are loaded:
 
