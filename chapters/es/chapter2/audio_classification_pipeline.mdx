@@ -1,0 +1,79 @@
+# Clasificación de audio con una pipeline
+
+La clasificación de audio consiste en asignar o más etiquetas a una grabación de audio basado en su contenido. Las etiquetas
+pueden corresponder a diferentes categorias del sonido, como música, voz o ruido, o etiquetas más especificas como canto de ave o
+sonido de motor de carro.
+
+Antes de entrar en los detalles sobre el funcionamiento de los transformers más populares para audio, y antes de hacer fine-tunning 
+de un modelo personalizado. Revisemos como se puede usar un modelo pre-entrenado para clasificación de audio con solo una lineas de 
+código de  🤗 Transformers.
+
+Usemos el mismo conjunto de [MINDS-14](https://huggingface.co/datasets/PolyAI/minds14) que hemos estado explorando en la 
+unidad anterior. Como recordarás, MINDS-14 contiene grabaciones de personas haciendo preguntas a un sistema de banca electrónica 
+en diferentes idiomas y dialectos, y tiene la etiqueta de `intent_class` para cada grabación. Podemos clasificar las grabaciones por 
+la intención de la llamada.
+
+Tal como hemos hecho antes, carguemos el subset de `en-AU` probar esta pipeline, y hagamos un upsampling a 16kHz que es 
+la frecuencia de muestreo que el modelo espera. 
+
+```py
+from datasets import load_dataset
+from datasets import Audio
+
+minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
+```
+
+Para clasificar una grabación de audio en alguna de las clases, podemos usar la pipeline de `audio-classification` que tiene 🤗 Transformers.
+En nuestro caso, necesitamos un modelo que ha sido entrenado para clasificar la intención en donde especificamente hayan la base de datos de 
+MINDS-14. Afortunadamente para nosotros, el Hub tiene un modelo que hace justamente esto. Carguemoslo usando la función `pipeline()`:
+
+```py
+from transformers import pipeline
+
+classifier = pipeline(
+    "audio-classification",
+    model="anton-l/xtreme_s_xlsr_300m_minds14",
+)
+```
+Esta pipeline espera los datos de audio como un array de Numpy. Todo el preprocesamiento de los datos de audio será hecha por 
+la pipeline. Seleccionemos un ejemplo para probarlo:
+
+```py
+example = minds[0]
+```
+Si recuerdas la estructura del conjunto de datos, los datos en bruto de audio se almacenan en un array de Numpy en 
+la columna `["audio"]["array"]`, que podemos pasar directamente al  `classifier`:
+
+```py
+classifier(example["audio"]["array"])
+```
+
+**Output:**
+```out
+[
+    {"score": 0.9631525278091431, "label": "pay_bill"},
+    {"score": 0.02819698303937912, "label": "freeze"},
+    {"score": 0.0032787492964416742, "label": "card_issues"},
+    {"score": 0.0019414445850998163, "label": "abroad"},
+    {"score": 0.0008378693601116538, "label": "high_value_payment"},
+]
+```
+Este modelo esta bastante seguro que la intención al llamar fue preguntar sobre el pago de una cuenta. Revisemos que la
+etiqueta original para este ejemplo es:
+
+```py
+id2label = minds.features["intent_class"].int2str
+id2label(example["intent_class"])
+```
+
+**Output:**
+```out
+"pay_bill"
+```
+¡Hurra! la etiqueta predecida por el modelo ¡era la correcta! Aqui tuvimos suerte de encontrar un modelo que tenia exactamente 
+las etiquetas que necesitabamos. La mayoria de las veces, cuando estamos tratando con una tarea de clasificación, el conjunto de clases
+de un modelo pre-entrenado no son exactamente las que necesitamos. En este caso, puedes hacer un fine-tunning del modelo pre entrenado
+para "calibralo" a tu conjunto de clases. Aprenderemos como se puede hacer este proceso en las próximas unidad. Por ahora, echemos un
+vistazo a otra tarea muy común en el procesamiento del habla, _automatic speech recognition_.
+
