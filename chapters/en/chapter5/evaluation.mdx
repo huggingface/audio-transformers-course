@@ -275,7 +275,7 @@ preparing it automatically on your notebook:
 from datasets import load_dataset
 
 common_voice_test = load_dataset(
-    "mozilla-foundation/common_voice_13_0", "dv", split="test"
+    "mozilla-foundation/common_voice_13_0", "dv", split="test", use_auth_token=True
 )
 ```
 
