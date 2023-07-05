@@ -1,0 +1,154 @@
+# Cargar y explorar una base de datos de audio
+
+En este curso usaremos la libreria 🤗 Datasets para trabajar con bases de datos de audio. 🤗 Datasets es una libreria de
+código abierto para descargar y preparar conjuntos de datos de todos los tipos, incluyendo audio. La libreria ofrece un 
+acceso fácil a una gran cantidad de conjuntos de datos públicos almacenados en el Hugging Face Hub. Además, 🤗 Datasets incluye
+multiples funcionalidades pensadas para simplificar el trabajo con conjuntos de datos de audio para investigadores y desarrolladores. 
+
+Para empezar a trabajar con bases de datos de audio, asegurate de tener la librería 🤗 Datasets instalada:
+
+```bash
+pip install datasets[audio]
+```
+Una de las principales características de 🤗 Datasets es la posibilidad de descargar y preparar un conjunto de datos 
+en una sola linea de código usando la función `load_dataset()`
+
+Carguemos y exploremos un conjunto de audios llamado [MINDS-14](https://huggingface.co/datasets/PolyAI/minds14), el cual contiene
+grabaciones de personas haciendo preguntas sobre sistemas electrónicos bancarios en diferentes lenguajes y dialectos. 
+
+Para cargar MINDS-14, necesitamos copiar el identificador de la base de datos que aparece en el Hub (`PolyAI/minds14`) y pasarlo 
+como argumento a la función `load_dataset`. Tambien especificaremos que solo estamos interesados en el subconjunto de inglés Australiano(`en-AU`) 
+y la partición de entrenamiento("train"):
+
+
+```py
+from datasets import load_dataset
+
+minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+minds
+```
+
+**Output:**
+```out
+Dataset(
+    {
+        features: [
+            "path",
+            "audio",
+            "transcription",
+            "english_transcription",
+            "intent_class",
+            "lang_id",
+        ],
+        num_rows: 654,
+    }
+)
+```
+El conjunto de datos contiene 654 audios, cada uno acompañado de su transcripción, una transcripción en inglés, y una etiqueta
+que indica la intención de la pregunta de la persona. La columna de audio, contiene la información en bruto del audio. Examinemos
+ahora uno de los ejemplos:
+
+```py
+example = minds[0]
+example
+```
+
+**Output:**
+```out
+{
+    "path": "/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav",
+    "audio": {
+        "path": "/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav",
+        "array": array(
+            [0.0, 0.00024414, -0.00024414, ..., -0.00024414, 0.00024414, 0.0012207],
+            dtype=float32,
+        ),
+        "sampling_rate": 8000,
+    },
+    "transcription": "I would like to pay my electricity bill using my card can you please assist",
+    "english_transcription": "I would like to pay my electricity bill using my card can you please assist",
+    "intent_class": 13,
+    "lang_id": 2,
+}
+```
+Puedes ver que la columna de audio se compone de las siguiente información:
+* `path`: La ruta al archivo de audio (`*.wav` en este caso).
+* `array`: Los datos decodificados de audios, representedos como un NumPy array de 1 dimensión.
+* `sampling_rate`. La frecuencia de muestreo del archivo (8,000 Hz en este ejemplo).
+
+La columna `intent_class` es de tipo categórico codificado en enteros. Para convertir este número en una texto con significado 
+podemos usar el método `int2str()`: 
+
+```py
+id2label = minds.features["intent_class"].int2str
+id2label(example["intent_class"])
+```
+
+**Output:**
+```out
+"pay_bill"
+```
+Si miras la columna de `transcription`, puedes ver que en efecto la persona ha grabado un audio haciendo una pregunta sobre 
+pagar una cuenta. 
+
+Si planeas entrenar un clasificador de audio en este subconjunto de datos, no necesitas toda la información contenida en las
+columnas del conjunto de datos. Por ejemplo, la información en `lang_id` sera igual para todos los ejemplos y no nos será útil. 
+La columna `english_transcription' seguramente sera un duplicado de la columna `transcription` en este subconjunto, por lo que 
+podemos removerla tambien.
+
+Puedes eliminar características irrelevantes usando el método ``remove_columns`de 🤗 Datasets
+
+```py
+columns_to_remove = ["lang_id", "english_transcription"]
+minds = minds.remove_columns(columns_to_remove)
+minds
+```
+
+**Output:**
+```out
+Dataset({features: ["path", "audio", "transcription", "intent_class"], num_rows: 654})
+```
+Ahora que hemos cargado e inspeccionado los contenidos del conjunto de datos, ¡escuchemos algunos ejemplos! Usaremos `Blocks`
+y `Audio` de `Gradio` para cargar algunos ejemplos del dataset. 
+
+```py
+import gradio as gr
+
+
+def generate_audio():
+    example = minds.shuffle()[0]
+    audio = example["audio"]
+    return (
+        audio["sampling_rate"],
+        audio["array"],
+    ), id2label(example["intent_class"])
+
+
+with gr.Blocks() as demo:
+    with gr.Column():
+        for _ in range(4):
+            audio, label = generate_audio()
+            output = gr.Audio(audio, label=label)
+
+demo.launch(debug=True)
+```
+Podemos visulizar tambien algunos de los ejemplos. Grafiquemos ahora la forma de onda del primer ejemplo. 
+
+```py
+import librosa
+import matplotlib.pyplot as plt
+import librosa.display
+
+array = example["audio"]["array"]
+sampling_rate = example["audio"]["sampling_rate"]
+
+plt.figure().set_figwidth(12)
+librosa.display.waveshow(array, sr=sampling_rate)
+```
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/waveform_unit1.png" alt="Waveform plot">
+</div>
+
+¡Pruebalo! Decarga otro dialecto o lenguaje del conjunto MINDS-14, escucha y visualiza ajgunos ejemplos para tener un 
+sentido de la variación de toda la base de datos. Puedes ver una lista de todos los lenguajes [aqui](https://huggingface.co/datasets/PolyAI/minds14). 

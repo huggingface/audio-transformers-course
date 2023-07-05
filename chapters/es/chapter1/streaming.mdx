@@ -1,0 +1,160 @@
+# Streaming datos de audio
+
+Uno de los mayores desafíos que se enfrenta con los conjuntos de datos de audio es su gran tamaño. Un solo minuto de audio sin comprimir de calidad
+ de CD (44.1kHz, 16 bits) ocupa un poco más de 5 MB de almacenamiento. Por lo general, un conjunto de datos de audio contiene horas de grabaciones.
+
+En el ejemplo anterior usamos un subconjunto pequeño de MIND-14, sin embargo, las bases de datos de audios suelen ser mucho mas extensas.
+Por ejemplo, la partición `xs`(más pequeña) de [GigaSpeech de SpeechColab](https://huggingface.co/datasets/speechcolab/gigaspeech)
+aunque solo contiene 10 horas de grabaciones, su tamaño es mayor a los 13GB. ¿Qué pasa entonces cuando queremos entrenar en subconjunto
+más grande? la partición `xl` de este mismo dataset contiene 10,000 horas de datos para entrenamiento, cuyo tamaño asciende a 1TB. Para la 
+mayoria de nosotros, este tamaño excede las especificaiones de un disco duro tipico. ¿Necesitamos comprar almacenamiento adicional? ¿O hay alguna forma
+ de entrenar con estos conjuntos de datos sin restricciones de espacio en disco?
+
+ 🤗 Datasets resuelve este reto al ofrecer el modo de transmisión (streaming). La transmisión nos permite cargar los datos de forma 
+ progresiva a medida que iteramos sobre el conjunto de datos. En lugar de descargar todo el conjunto de datos de una vez, cargamos el 
+ conjunto de datos un ejemplo a la vez. Iteramos sobre el conjunto de datos, cargando y preparando ejemplos sobre la marcha cuando
+  se necesitan. De esta manera, solo cargamos los ejemplos que estamos utilizando y no los que no necesitamos.
+  Una vez que hemos terminado con un ejemplo, continuamos iterando sobre el conjunto de datos y cargamos el siguiente.
+
+El modo de transmisión tiene tres ventajas principales sobre el modo tradicional de descargar la base de datos completa:
+
+* Espacio en disco: Los ejemplos son cargados en memoria uno a uno a medida que iteramos cobre el conjunto de datos. Ya que los datos
+no son descargados localmente, no hay requerimientos de espacio de disco, por lo que puedes utilizar cualquier base de datos sin preocuparte 
+por el tamaño. 
+
+* Descarga y tiempo de procesamiento: Las bases de datos de audios son extensas y necesitan una cantidad considerable de 
+tiempo para descargarse y procesarse. Con la funcionalidad de streaming, la carga y el procesamiento se hacen en la marcha,
+lo que significa que puedes empezar a usar los audios tan pronto como el primer ejemplo este listo.
+
+* Fácil experimentación: puedes experimentar con un subconjunto de ejemplos para verificar que tu script funciona sin tener 
+que descargar la base de datos completa. 
+
+Existe un inconveniente en el modo de transmisión. Cuando se descarga un conjunto de datos completo sin el modo de transmisión,
+ tanto los datos en bruto como los datos procesados se guardan localmente en el disco. Si deseamos reutilizar este conjunto de datos, 
+ podemos cargar directamente los datos procesados desde el disco, omitiendo los pasos de descarga y procesamiento. En consecuencia,
+solo tenemos que realizar las operaciones de descarga y procesamiento una vez, después de lo cual podemos reutilizar los datos preparados.
+
+Con el modo de streaming, los datos no se descargan en el disco. De esta manera, tanto los datos descargados como los datos preprocesados
+no se almacenan en caché. Si deseamos reutilizar el conjunto de datos, los pasos de transmisión deben repetirse, cargando y procesando
+los archivos de audio sobre la marcha nuevamente. Por esta razón, se recomienda descargar las bases de datos que es probable que 
+se utilicen múltiples veces.
+
+¿Cómo se puede habilitar el modo de transmisión? ¡Es fácil! Simplemente pasa el parámetro `streaming=True` al cargar tu conjunto de datos.
+ El resto lo hara Datasets:
+
+```py
+gigaspeech = load_dataset("speechcolab/gigaspeech", "xs", streaming=True)
+```
+De la misma manera que se aplicaron los pasos de preprocesamiento al subconjunto descargado de MINDS-14, se puede aplicar a 
+un conjunto de datos en modo streaming.
+
+La única diferencia es que no puedes acceder a ejemplos individuales usando el indexado de Python (i.e. `gigaspeech["train"][sample_idx]`).
+Al contrario, tienes que iterar sobre el conjunto de datos. A continuación puedes ver como se accede a un ejemplo del conjunto de datos 
+cuando se usa streaming:
+
+```py
+next(iter(gigaspeech["train"]))
+```
+
+**Output:**
+```out
+{
+    "segment_id": "YOU0000000315_S0000660",
+    "speaker": "N/A",
+    "text": "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+    "audio": {
+        "path": "xs_chunks_0000/YOU0000000315_S0000660.wav",
+        "array": array(
+            [0.0005188, 0.00085449, 0.00012207, ..., 0.00125122, 0.00076294, 0.00036621]
+        ),
+        "sampling_rate": 16000,
+    },
+    "begin_time": 2941.89,
+    "end_time": 2945.07,
+    "audio_id": "YOU0000000315",
+    "title": "Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43",
+    "url": "https://www.youtube.com/watch?v=zr2n1fLVasU",
+    "source": 2,
+    "category": 24,
+    "original_full_path": "audio/youtube/P0004/YOU0000000315.opus",
+}
+```
+Si quiere previsualizar varios ejemplos de un gran conjunto de datos, usa `take()` para obtener los primeros n ejemplos. 
+Obtengamos ahora 
+If you'd like to preview several examples from a large dataset, use the `take()` to get the first n elements. Vamos a obtener
+ los primeros dos ejemplos en el conjunto de datos de Gigaspeech:
+
+```py
+gigaspeech_head = gigaspeech["train"].take(2)
+list(gigaspeech_head)
+```
+
+**Output:**
+```out
+[
+    {
+        "segment_id": "YOU0000000315_S0000660",
+        "speaker": "N/A",
+        "text": "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+        "audio": {
+            "path": "xs_chunks_0000/YOU0000000315_S0000660.wav",
+            "array": array(
+                [
+                    0.0005188,
+                    0.00085449,
+                    0.00012207,
+                    ...,
+                    0.00125122,
+                    0.00076294,
+                    0.00036621,
+                ]
+            ),
+            "sampling_rate": 16000,
+        },
+        "begin_time": 2941.89,
+        "end_time": 2945.07,
+        "audio_id": "YOU0000000315",
+        "title": "Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43",
+        "url": "https://www.youtube.com/watch?v=zr2n1fLVasU",
+        "source": 2,
+        "category": 24,
+        "original_full_path": "audio/youtube/P0004/YOU0000000315.opus",
+    },
+    {
+        "segment_id": "AUD0000001043_S0000775",
+        "speaker": "N/A",
+        "text": "SIX TOMATOES <PERIOD>",
+        "audio": {
+            "path": "xs_chunks_0000/AUD0000001043_S0000775.wav",
+            "array": array(
+                [
+                    1.43432617e-03,
+                    1.37329102e-03,
+                    1.31225586e-03,
+                    ...,
+                    -6.10351562e-05,
+                    -1.22070312e-04,
+                    -1.83105469e-04,
+                ]
+            ),
+            "sampling_rate": 16000,
+        },
+        "begin_time": 3673.96,
+        "end_time": 3675.26,
+        "audio_id": "AUD0000001043",
+        "title": "Asteroid of Fear",
+        "url": "http//www.archive.org/download/asteroid_of_fear_1012_librivox/asteroid_of_fear_1012_librivox_64kb_mp3.zip",
+        "source": 0,
+        "category": 28,
+        "original_full_path": "audio/audiobook/P0011/AUD0000001043.opus",
+    },
+]
+```
+El modo de transmisión puede llevar tu investigación al siguiente nivel: no solo tendrás acceso a los conjuntos de datos más grandes,
+sino que también podrás evaluar sistemas en múltiples conjuntos de datos de manera simultánea sin preocuparte por el espacio en disco.
+En comparación con la evaluación en un solo conjunto de datos, la evaluación en múltiples conjuntos de datos proporciona una mejor
+métrica para las capacidades de generalización de un sistema de reconocimiento de voz (ver End-to-end Speech Benchmark, ESB).
+
+
+
+
