@@ -1,0 +1,259 @@
+# Pre-trained models for text-to-speech
+
+Compared to ASR (automatic speech recognition) and audio classification tasks, there are significantly fewer pre-trained 
+model checkpoints available. On the 🤗 Hub, you'll find close to 300 suitable checkpoints. Among 
+these pre-trained models we'll focus on two architectures that are readily available for you in the 🤗 Transformers library - 
+SpeechT5 and Massive Multilingual Speech (MMS). In this section, we'll explore how to use these pre-trained models in the 
+Transformers library for TTS.
+
+## SpeechT5 
+
+[SpeechT5](https://arxiv.org/abs/2110.07205) is a model published by Junyi Ao et al. from Microsoft that is capable of 
+handling a range of speech tasks. While in this unit, we focus on the text-to-speech aspect, 
+this model can be tailored to speech-to-text tasks (automatic speech recognition or speaker identification), 
+as well as speech-to-speech (e.g. speech enhancement or converting between different voices). This is due to how the model 
+is designed and pre-trained. 
+
+At the heart of SpeechT5 is a regular Transformer encoder-decoder model. Just like any other Transformer, the encoder-decoder 
+network models a sequence-to-sequence transformation using hidden representations. This Transformer backbone is the same 
+for all tasks SpeechT5 supports.
+
+This Transformer is complemented with six modal-specific (speech/text) _pre-nets_ and _post-nets_. The input speech or text
+(depending on the task) is preprocessed through a corresponding pre-net to obtain the hidden representations that Transformer 
+can use. The Transformer's output is then passed to a post-net that will use it to generate the output in the target modality.
+
+This is what the architecture looks like (image from the original paper): 
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/speecht5/architecture.jpg" alt="SpeechT5 architecture from the original paper">
+</div>
+
+SpeechT5 is first pre-trained using large-scale unlabeled speech and text data, to acquire a unified representation 
+of different modalities. During the pre-training phase all pre-nets and post-nets are used simultaneously.
+
+After pre-training, the entire encoder-decoder backbone is fine-tuned for each individual task. At this step, only the 
+pre-nets and post-nets relevant to the specific task are employed. For example, to use SpeechT5 for text-to-speech, you'd 
+need the text encoder pre-net for the text inputs and the speech decoder pre- and post-nets for the speech outputs. 
+
+This approach allows to obtain several models fine-tuned for different speech tasks that all benefit from the initial 
+pre-training on unlabeled data.  
+
+<Tip>
+
+Even though the fine-tuned models start out using the same set of weights from the shared pre-trained model, the 
+final versions are all quite different in the end. You can't take a fine-tuned ASR model and swap out the pre-nets and 
+post-net to get a working TTS model, for example. SpeechT5 is flexible, but not that flexible ;)
+
+</Tip>
+
+Let's see what are the pre- and post-nets that SpeechT5 uses for the TTS task specifically:
+
+* Text encoder pre-net: A text embedding layer that maps text tokens to the hidden representations that the encoder expects. This is similar to what happens in an NLP model such as BERT.
+* Speech decoder pre-net: This takes a log mel spectrogram as input and uses a sequence of linear layers to compress the spectrogram into hidden representations. 
+* Speech decoder post-net: This predicts a residual to add to the output spectrogram and is used to refine the results.
+
+When combined, this is what SpeechT5 architecture for text-to-speech looks like:
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/speecht5/tts.jpg" alt="SpeechT5 architecture for TTS">
+</div>
+
+As you can see, the output is a log mel spectrogram and not a final waveform. If you recall, we briefly touched on 
+this topic in [Unit 3](../chapter3/introduction#spectrogram-output). It is common for models that generate audio to produce 
+a log mel spectrogram, which needs to be converted to a waveform with an additional neural network known as a vocoder.
+
+Let's see how you could do that.
+
+First, let's load the fine-tuned TTS SpeechT5 model from the 🤗 Hub, along with the processor object used for tokenization 
+and feature extraction:
+
+```python
+from transformers import SpeechT5Processor, SpeechT5ForTextToSpeech
+
+processor = SpeechT5Processor.from_pretrained("microsoft/speecht5_tts")
+model = SpeechT5ForTextToSpeech.from_pretrained("microsoft/speecht5_tts")
+```
+
+Next, tokenize the input text.
+
+```python
+inputs = processor(text="Don't count the days, make the days count.", return_tensors="pt")
+```
+
+The SpeechT5 TTS model is not limited to creating speech for a single speaker. Instead, it uses so-called speaker embeddings 
+that capture a particular speaker's voice characteristics.
+
+<Tip>
+
+Speaker embeddings is a method of representing a speaker's identity in a compact way, as a vector of 
+fixed size, regardless of the length of the utterance. These embeddings capture essential information about a speaker's 
+voice, accent, intonation, and other unique characteristics that distinguish one speaker from another. Such embeddings can 
+be used for speaker verification, speaker diarization, speaker identification, and more. 
+The most common techniques for generating speaker embeddings include:
+
+* I-Vectors (identity vectors): I-Vectors are based on a Gaussian mixture model (GMM). They represent speakers as low-dimensional fixed-length vectors derived from the statistics of a speaker-specific GMM, and are obtained in unsupervised manner. 
+* X-Vectors: X-Vectors are derived using deep neural networks (DNNs) and capture frame-level speaker information by incorporating temporal context. 
+
+[X-Vectors](https://www.danielpovey.com/files/2018_icassp_xvectors.pdf) are a state-of-the-art method that shows superior performance 
+on evaluation datasets compared to I-Vectors. The deep neural network is used to obtain X-Vectors: it trains to discriminate 
+between speakers, and maps variable-length utterances to fixed-dimensional embeddings. You can also load an X-Vector speaker embedding that has been computed ahead of time, which will encapsulate the speaking characteristics of a particular speaker.
+
+</Tip>
+
+Let's load such a speaker embedding from a dataset on the Hub. The embeddings 
+were obtained from the [CMU ARCTIC dataset](http://www.festvox.org/cmu_arctic/) using 
+[this script](https://huggingface.co/mechanicalsea/speecht5-vc/blob/main/manifest/utils/prep_cmu_arctic_spkemb.py), but 
+any X-Vector embedding should work.
+
+```python
+from datasets import load_dataset
+
+embeddings_dataset = load_dataset("Matthijs/cmu-arctic-xvectors", split="validation")
+
+import torch
+
+speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze(0)
+```
+
+The speaker embedding is a tensor of shape (1, 512). This particular speaker embedding describes a female voice.
+
+At this point we already have enough inputs to generate a log mel spectrogram as an output, you can do it like this:
+
+```python
+spectrogram = model.generate_speech(inputs["input_ids"], speaker_embeddings)
+```
+
+This outputs a tensor of shape (140, 80) containing a log mel spectrogram. The first dimension is the sequence length, and 
+it may vary between runs as the speech decoder pre-net always applies dropout to the input sequence. This adds a bit of 
+random variability to the generated speech.
+
+However, if we are looking to generate speech waveform, we need to specify a vocoder to use for the spectrogram to waveform conversion.
+In theory, you can use any vocoder that works on 80-bin mel spectrograms. Conveniently, 🤗 Transformers offers a vocoder 
+based on HiFi-GAN. Its weights were kindly provided by the original authors of SpeechT5.
+
+<Tip>
+
+[HiFi-GAN](https://arxiv.org/pdf/2010.05646v2.pdf) is a state-of-the-art generative adversarial network (GAN) designed 
+for high-fidelity speech synthesis. It is capable of generating high-quality and realistic audio waveforms from spectrogram inputs.
+
+On a high level, HiFi-GAN consists of one generator and two discriminators. The generator is a fully convolutional 
+neural network that takes a mel-spectrogram as input and learns to produce raw audio waveforms. The discriminators' 
+role is to distinguish between real and generated audio. The two discriminators focus on different aspects of the audio.
+
+HiFi-GAN is trained on a large dataset of high-quality audio recordings. It uses a so-called <em>adversarial training</em>, 
+where the generator and discriminator networks compete against each other. Initially, the generator produces low-quality 
+audio, and the discriminator can easily differentiate it from real audio. As training progresses, the generator improves 
+its output, aiming to fool the discriminator. The discriminator, in turn, becomes more accurate in distinguishing real 
+and generated audio. This adversarial feedback loop helps both networks improve over time. Ultimately, HiFi-GAN learns to 
+generate high-fidelity audio that closely resembles the characteristics of the training data.
+
+</Tip>
+
+Loading the vocoder is as easy as any other 🤗 Transformers model.
+
+```python
+from transformers import SpeechT5HifiGan
+
+vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
+```
+
+Now all you need to do is pass it as an argument when generating speech, and the outputs will be automatically converted to the speech waveform.
+
+```python
+speech = model.generate_speech(inputs["input_ids"], speaker_embeddings, vocoder=vocoder)
+```
+
+Let's listen to the result. The sample rate used by SpeechT5 is always 16 kHz.
+
+```python
+from IPython.display import Audio
+
+Audio(speech, rate=16000)
+```
+
+Neat! 
+
+Feel free to play with the SpeechT5 text-to-speech demo, explore other voices, experiment with inputs. Note that this 
+pre-trained checkpoint only supports English language:
+
+<iframe
+	src="https://matthijs-speecht5-tts-demo.hf.space"
+	frameborder="0"
+	width="850"
+	height="450">
+</iframe>
+
+## Massive Multilingual Speech (MMS)
+
+What if you are looking for a pre-trained model in a language other than English? Massive Multilingual Speech (MMS) is 
+another model that covers an array of speech tasks, however, it supports a large number of languages. For instance, it can 
+synthesize speech in over 1,100 languages.
+
+MMS for text-to-speech is based on [VITS Kim et al., 2021](https://arxiv.org/pdf/2106.06103.pdf), which is one of the 
+state-of-the-art TTS approaches.
+
+VITS is a speech generation network that converts text into raw speech waveforms. It works like a conditional variational 
+auto-encoder, estimating audio features from the input text. First, acoustic features, represented as spectrograms, are 
+generated. The waveform is then decoded using transposed convolutional layers adapted from HiFi-GAN. 
+During inference, the text encodings are upsampled and transformed into waveforms using the flow module and HiFi-GAN decoder.
+This means that you do not need to add a vocoder for inference, it's already "built-in".  
+
+<Tip warning={true}>
+	
+MMS model has been added to 🤗 Transformers very recently, so the API may still slightly change. At the time of this Unit's 
+release, the MMS for TTS is scheduled to be merged in Transformers `main` in a couple of days. 
+Once it's merged, you will have to install the library from source. Meanwhile, if you're eager to try the following inference 
+example, you can install the model from the PR's branch:
+
+```bash
+pip install git+https://github.com/hollance/transformers.git@vits
+```
+
+</Tip>
+
+Let's give MMS a go, and see how we can synthesize speech in a language other than English, e.g. German.
+First, we'll load the model checkpoint and the tokenizer for the correct language: 
+
+```python
+from transformers import VitsModel, VitsTokenizer
+
+model = VitsModel.from_pretrained("Matthijs/mms-tts-deu")
+tokenizer = VitsTokenizer.from_pretrained("Matthijs/mms-tts-deu")
+```
+
+You may notice that to load the MMS model you need to use `VitsModel` and `VitsTokenizer`. This is because MMS for text-to-speech 
+is based on the VITS model as mentioned earlier. 
+
+Let's pick an example text in German, like these first two lines from a children's song: 
+
+```python
+text_example = (
+    "Ich bin Schnappi das kleine Krokodil, komm aus Ägypten das liegt direkt am Nil."
+)
+```
+
+To generate a waveform output, preprocess the text with the tokenizer, and pass it to the model: 
+```python
+import torch
+
+inputs = tokenizer(text_example, return_tensors="pt")
+input_ids = inputs["input_ids"]
+
+
+with torch.no_grad():
+    outputs = model(input_ids)
+
+speech = outputs.audio[0]
+```
+
+Let's listen to it:
+
+```python
+from IPython.display import Audio
+
+Audio(speech, rate=16000)
+```
+
+Wunderbar! If you'd like to try MMS with another language, find other suitable `vits` checkpoints [on 🤗 Hub](https://huggingface.co/models?filter=vits).
+
+Now let's see how you can fine-tune a TTS model yourself!
