@@ -67,9 +67,7 @@ Italian (`it`) split of the [VoxPopuli](https://huggingface.co/datasets/facebook
 ```python
 from datasets import load_dataset
 
-dataset = load_dataset(
-    "facebook/voxpopuli", "it", split="validation", streaming=True
-)
+dataset = load_dataset("facebook/voxpopuli", "it", split="validation", streaming=True)
 sample = next(iter(dataset))
 ```
 
@@ -151,8 +149,8 @@ vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
 
 As with the Whisper model, we'll place the SpeechT5 model and vocoder on our GPU accelerator device if we have one:
 ```python
-model.to(device);
-vocoder.to(device);
+model.to(device)
+vocoder.to(device)
 ```
 
 Great! Let's load up the speaker embeddings:
@@ -170,7 +168,9 @@ generated speech, bringing it back to the CPU so that we can play it back in our
 ```python
 def synthesise(text):
     inputs = processor(text=text, return_tensors="pt")
-    speech = model.generate_speech(inputs["input_ids"].to(device), speaker_embeddings.to(device), vocoder=vocoder)
+    speech = model.generate_speech(
+        inputs["input_ids"].to(device), speaker_embeddings.to(device), vocoder=vocoder
+    )
     return speech.cpu()
 ```
 
@@ -194,6 +194,7 @@ the synthesised speech to an `int16` array, which is the output audio file forma
 ```python
 import numpy as np
 
+
 def speech_to_speech_translation(audio):
     translated_text = translate(audio)
     synthesised_speech = synthesise(translated_text)
@@ -216,7 +217,9 @@ and playback the system's prediction:
 import gradio as gr
 
 demo = gr.Interface(
-    fn=speech_to_speech_translation, inputs=gr.Audio(type="filepath"), outputs=gr.Audio(label="Generated Speech", type="numpy"),
+    fn=speech_to_speech_translation,
+    inputs=gr.Audio(type="filepath"),
+    outputs=gr.Audio(label="Generated Speech", type="numpy"),
 )
 demo.launch(debug=True)
 ```
