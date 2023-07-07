@@ -202,7 +202,12 @@ def tuple_to_string(start_end_tuple, ndigits=1):
 
 
 def format_as_transcription(raw_segments):
-    return "\n\n".join([chunk["speaker"] + " " + tuple_to_string(chunk["timestamp"]) +  chunk["text"] for chunk in raw_segments])
+    return "\n\n".join(
+        [
+            chunk["speaker"] + " " + tuple_to_string(chunk["timestamp"]) + chunk["text"]
+            for chunk in raw_segments
+        ]
+    )
 ```
 
 Let's re-run the pipeline, this time formatting the transcription according to the function we've just defined:
