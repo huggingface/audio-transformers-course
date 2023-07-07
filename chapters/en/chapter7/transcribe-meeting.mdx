@@ -29,7 +29,9 @@ Once complete, we can load the pre-trained speaker diarization pipeline locally 
 ```python
 from pyannote.audio import Pipeline
 
-diarization_pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization@2.1", use_auth_token=True)
+diarization_pipeline = Pipeline.from_pretrained(
+    "pyannote/speaker-diarization@2.1", use_auth_token=True
+)
 ```
 
 Let's try it out on a sample audio file! For this, we'll load two samples of the [LibriSpeech ASR](https://huggingface.co/datasets/librispeech_asr)
@@ -38,7 +40,9 @@ dataset from two different speakers that have been concatenated together to give
 ```python
 from datasets import load_dataset
 
-concatenated_librispeech = load_dataset("sanchit-gandhi/concatenated_librispeech", split="train", streaming=True)
+concatenated_librispeech = load_dataset(
+    "sanchit-gandhi/concatenated_librispeech", split="train", streaming=True
+)
 sample = next(iter(concatenated_librispeech))
 ```
 
@@ -58,7 +62,9 @@ PyTorch tensor of shape `(channels, seq_len)`, so we need to perform this conver
 import torch
 
 input_tensor = torch.from_numpy(sample["audio"]["array"][None, :]).float()
-outputs = diarization_pipeline({"waveform": input_tensor, "sample_rate": sample["audio"]["sampling_rate"]})
+outputs = diarization_pipeline(
+    {"waveform": input_tensor, "sample_rate": sample["audio"]["sampling_rate"]}
+)
 
 outputs.for_json()["content"]
 ```
@@ -87,7 +93,8 @@ including Wav2Vec2, MMS ASR or other Whisper checkpoints:
 from transformers import pipeline
 
 asr_pipeline = pipeline(
-    "automatic-speech-recognition", model="openai/whisper-base",
+    "automatic-speech-recognition",
+    model="openai/whisper-base",
 )
 ```
 
@@ -96,21 +103,34 @@ start / end times for each segment. You'll remember from Unit 5 that we need to 
 `return_timestamps=True` to activate the timestamp prediction task for Whisper:
 
 ```python
-asr_pipeline(sample["audio"].copy(), generate_kwargs={"max_new_tokens": 256}, return_timestamps=True)
+asr_pipeline(
+    sample["audio"].copy(),
+    generate_kwargs={"max_new_tokens": 256},
+    return_timestamps=True,
+)
 ```
 
 ```python
-{'text': " The second and importance is as follows. Sovereignty may be defined to be the right of making laws. In France, the king really exercises a portion of the sovereign power, since the laws have no weight. He was in a favored state of mind, owing to the blight his wife's action threatened to cast upon his entire future.",
- 'chunks': [{'timestamp': (0.0, 3.56),
-   'text': ' The second and importance is as follows.'},
-  {'timestamp': (3.56, 7.84),
-   'text': ' Sovereignty may be defined to be the right of making laws.'},
-  {'timestamp': (7.84, 13.88),
-   'text': ' In France, the king really exercises a portion of the sovereign power, since the laws have'},
-  {'timestamp': (13.88, 15.48), 'text': ' no weight.'},
-  {'timestamp': (15.48, 19.44),
-   'text': " He was in a favored state of mind, owing to the blight his wife's action threatened to"},
-  {'timestamp': (19.44, 21.28), 'text': ' cast upon his entire future.'}]}
+{
+    "text": " The second and importance is as follows. Sovereignty may be defined to be the right of making laws. In France, the king really exercises a portion of the sovereign power, since the laws have no weight. He was in a favored state of mind, owing to the blight his wife's action threatened to cast upon his entire future.",
+    "chunks": [
+        {"timestamp": (0.0, 3.56), "text": " The second and importance is as follows."},
+        {
+            "timestamp": (3.56, 7.84),
+            "text": " Sovereignty may be defined to be the right of making laws.",
+        },
+        {
+            "timestamp": (7.84, 13.88),
+            "text": " In France, the king really exercises a portion of the sovereign power, since the laws have",
+        },
+        {"timestamp": (13.88, 15.48), "text": " no weight."},
+        {
+            "timestamp": (15.48, 19.44),
+            "text": " He was in a favored state of mind, owing to the blight his wife's action threatened to",
+        },
+        {"timestamp": (19.44, 21.28), "text": " cast upon his entire future."},
+    ],
+}
 ```
 
 Alright! We see that each segment of the transcript has a start and end time, with the speakers changing at the 15.48 second 
@@ -139,7 +159,9 @@ ASR model to the `ASRDiarizationPipeline` class:
 ```python
 from speechbox import ASRDiarizationPipeline
 
-pipeline = ASRDiarizationPipeline(asr_pipeline=asr_pipeline, diarization_pipeline=diarization_pipeline)
+pipeline = ASRDiarizationPipeline(
+    asr_pipeline=asr_pipeline, diarization_pipeline=diarization_pipeline
+)
 ```
 
 <Tip>
@@ -177,7 +199,15 @@ def tuple_to_string(start_end_tuple, ndigits=1):
 
 def format_as_transcription(raw_segments, with_timestamps=False):
     if with_timestamps:
-        return "\n\n".join([chunk["speaker"] + " " + tuple_to_string(chunk["timestamp"]) +  chunk["text"] for chunk in raw_segments])
+        return "\n\n".join(
+            [
+                chunk["speaker"]
+                + " "
+                + tuple_to_string(chunk["timestamp"])
+                + chunk["text"]
+                for chunk in raw_segments
+            ]
+        )
     else:
         return "\n\n".join([chunk["speaker"] + chunk["text"] for chunk in raw_segments])
 ```
