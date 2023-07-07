@@ -162,7 +162,7 @@ characters, or have to predict punctuation from the audio data alone (e.g. what 
 Because of this, the word error rates are naturally lower (meaning the results are better). The Whisper paper demonstrates
 the drastic effect that normalising transcriptions can have on WER results (*c.f.* Section 4.4 of the [Whisper paper](https://cdn.openai.com/papers/whisper.pdf)).
 While we get lower WERs, the model isn't necessarily better for production. The lack of casing and punctuation makes the predicted
-text from the model significantly harder to read. Take the example from the [previous section](asr_models.mdx), where we ran
+text from the model significantly harder to read. Take the example from the [previous section](asr_models), where we ran
 Wav2Vec2 and Whisper on the same audio sample from the LibriSpeech dataset. The Wav2Vec2 model predicts neither punctuation
 nor casing, whereas Whisper predicts both. Comparing the transcriptions side-by-side, we see that the Whisper transcription
 is far easier to read:
