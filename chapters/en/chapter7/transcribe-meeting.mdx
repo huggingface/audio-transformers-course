@@ -4,7 +4,11 @@ In this final section, we'll use the Whisper model to generate a transcription f
 two or more speakers. We'll then pair it with a *speaker diarization* model to predict "who spoke when". By matching
 the timestamps from the Whisper transcriptions with the timestamps from the speaker diarization model, we can predict an 
 end-to-end meeting transcription with fully formatted start / end times for each speaker. This is a basic version of 
-the meeting transcription services you might have seen online from the likes of [Otter.ai](https://otter.ai).
+the meeting transcription services you might have seen online from the likes of [Otter.ai](https://otter.ai) and co:
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/diarization_transcription.png">
+ </div>
 
 ## Speaker Diarization
 
@@ -34,8 +38,8 @@ diarization_pipeline = Pipeline.from_pretrained(
 )
 ```
 
-Let's try it out on a sample audio file! For this, we'll load two samples of the [LibriSpeech ASR](https://huggingface.co/datasets/librispeech_asr)
-dataset from two different speakers that have been concatenated together to give a single audio file:
+Let's try it out on a sample audio file! For this, we'll load a sample of the [LibriSpeech ASR](https://huggingface.co/datasets/librispeech_asr)
+dataset that consists of two different speakers that have been concatenated together to give a single audio file:
 
 ```python
 from datasets import load_dataset
@@ -79,7 +83,7 @@ outputs.for_json()["content"]
 ```
 
 This looks pretty good! We can see that the first speaker is predicted as speaking up until the 14.5 second mark, and the 
-second speaker after that. Now we need to get our transcription!
+second speaker from 15.4s onwards. Now we need to get our transcription!
 
 ## Speech transcription
 
@@ -140,9 +144,9 @@ final transcription.
 ## Speechbox
 
 To get the final transcription, we'll align the timestamps from the diarization model with those from the Whisper model.
-The diarization model predicted the change of speakers at 14.5 seconds, whereas Whisper predicted segment boundaries at
+The diarization model predicted the first speaker to end at 14.5 seconds, and the second speaker to start at 15.4s, whereas Whisper predicted segment boundaries at
 13.88, 15.48 and 19.44 seconds respectively. Since the timestamps from Whisper don't match perfectly with those from the 
-diarization model, we need to find which of these boundaries is closest to 14.5 seconds, and segment the transcription by 
+diarization model, we need to find which of these boundaries are closest to 14.5 and 15.4 seconds, and segment the transcription by
 speakers accordingly. Specifically, we'll find the closest alignment between diarization and transcription timestamps by 
 minimising the absolute distance between both.
 
@@ -154,7 +158,7 @@ pip install git+https://github.com/huggingface/speechbox
 ```
 
 We can now instantiate our combined diarization plus transcription pipeline, by passing the diarization model and 
-ASR model to the `ASRDiarizationPipeline` class:
+ASR model to the [`ASRDiarizationPipeline`](https://github.com/huggingface/speechbox/tree/main#asr-with-speaker-diarization) class:
 
 ```python
 from speechbox import ASRDiarizationPipeline
@@ -165,7 +169,7 @@ pipeline = ASRDiarizationPipeline(
 ```
 
 <Tip>
-    You can also instantiate the <code>ASRDiarizationPipeline</code> directly from pretrained, specifying the model id
+    You can also instantiate the <code>ASRDiarizationPipeline</code> directly from pre-trained by specifying the model id
     of an ASR model on the Hub:
     <p><code>pipeline = ASRDiarizationPipeline.from_pretrained("openai/whisper-base")</code></p>
 </Tip>
@@ -197,26 +201,15 @@ def tuple_to_string(start_end_tuple, ndigits=1):
     return str((round(start_end_tuple[0], ndigits), round(start_end_tuple[1], ndigits)))
 
 
-def format_as_transcription(raw_segments, with_timestamps=False):
-    if with_timestamps:
-        return "\n\n".join(
-            [
-                chunk["speaker"]
-                + " "
-                + tuple_to_string(chunk["timestamp"])
-                + chunk["text"]
-                for chunk in raw_segments
-            ]
-        )
-    else:
-        return "\n\n".join([chunk["speaker"] + chunk["text"] for chunk in raw_segments])
+def format_as_transcription(raw_segments):
+    return "\n\n".join([chunk["speaker"] + " " + tuple_to_string(chunk["timestamp"]) +  chunk["text"] for chunk in raw_segments])
 ```
 
 Let's re-run the pipeline, this time formatting the transcription according to the function we've just defined:
 ```python
 outputs = pipeline(sample["audio"].copy())
 
-format_as_transcription(outputs, with_timestamps=True)
+format_as_transcription(outputs)
 ```
 
 ```
@@ -228,3 +221,6 @@ his entire future.
 ```
 
 There we go! With that, we've both diarized and transcribe our input audio and returned speaker-segmented transcriptions.
+While the minimum distance algoirthm to align the diarized timestamps and transcribed timestamps is simple, it
+works well in practice. If you want to explore more advanced methods for combining the timestamps, the
+source code for the `ASRDiarizationPipeline` is a good place to start: [speechbox/diarize.py](https://github.com/huggingface/speechbox/blob/96d2d1a180252d92263f862a1cd25a48860f1aed/src/speechbox/diarize.py#L12)
