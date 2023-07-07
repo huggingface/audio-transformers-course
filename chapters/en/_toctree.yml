@@ -111,6 +111,8 @@
     title: Speech-to-speech translation
   - local: chapter7/voice-assistant
     title: Creating a voice assistant
+  - local: chapter7/transcribe-meeting
+    title: Transcribe a meeting
 #  - local: chapter7/quiz
 #    title: Quiz
 #    quiz: 7
