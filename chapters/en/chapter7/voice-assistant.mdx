@@ -9,8 +9,7 @@ We can break down the voice assistant pipeline into four stages, each of which r
 ### 1. Wake word detection
 
 Voice assistants are constantly listening to the audio inputs coming through your device's microphone, however they only 
-boot into action when a particular 'wake word' or 'trigger word' is spoken. Only once this wake word is detected does  
-your device start recording the microphone input and transcribe the speech using a speech recognition model.
+boot into action when a particular 'wake word' or 'trigger word' is spoken.
 
 The wake word detection task is handled by a small on-device audio classification model, which is much smaller and lighter 
 than the speech recognition model, often only several millions of parameters compared to several hundred millions for 
@@ -19,10 +18,11 @@ word is detected is the larger speech recognition model launched, and afterwards
 
 ### 2. Speech transcription
 
-The next stage in the pipeline is transcribing the spoken query to text. Since want the speech recognition system to be 
-near real-time, this also tends to be done on-device. Transferring audio files from your local device to the Cloud tends 
-to be slow due to the large nature of audio files, so it's more efficient to transcribe them directly using an automatic
-speech recognition (ASR) model on-device rather than using a model in the Cloud.
+The next stage in the pipeline is transcribing the spoken query to text. In practice, transferring audio files from your 
+local device to the Cloud is slow due to the large nature of audio files, so it's more efficient to transcribe them 
+directly using an automatic speech recognition (ASR) model on-device rather than using a model in the Cloud. The on-device
+model might be smaller and thus less accurate than one hosted in the Cloud, but the faster inference speed makes it 
+worthwhile since we can run speech recognition in near real-time, our spoken audio utterance being transcribed as we say it.
 
 We're very familiar with the speech recognition process now, so this should be a piece of cake!
 
@@ -33,24 +33,28 @@ Now that we know what the user asked, we need to generate a response! The best c
 generate a suitable response.
 
 Since our text query is small (just a few text tokens), and language models large (many billions of parameters), the most
-efficient way of running LLM inference is to send our text query to an LLM running in the Cloud and generate a text response.
+efficient way of running LLM inference is to send our text query from our device to an LLM running in the Cloud, 
+generate a text response, and return the response back to the device.
 
 ### 4. Synthesise speech
 
-Finally, we'll use a text-to-speech (TTS) model to synthesise the text response as spoken speech. Again, we've done this 
-several times now, so the process will be very familiar!
+Finally, we'll use a text-to-speech (TTS) model to synthesise the text response as spoken speech. This is done
+on-device, but you could feasibly run a TTS model in the Cloud, generating the audio output and transferring it back to 
+the device.
+
+Again, we've done this several times now, so the process will be very familiar!
 
 ## Wake word detection
 
-The first stage in the voice assistant pipeline is detecting when the wake word is spoken, so we need to find ourselves
-an appropriate pre-trained model for the task! You'll remember from our section on [pre-trained models for audio classification](../chapter4/classification_models.mdx) 
-that the [Speech Commands](https://huggingface.co/datasets/speech_commands) is a dataset of spoken words designed to 
-evaluate audio classification models on 15+ simple command words like "up", "down", "yes", "no" and a "silence" label to 
-classify no speech. Take a minute to listen through some of the samples on the datasets viewer on the Hub and re-acquaint 
-yourself with the Speech Commands dataset.
+The first stage in the voice assistant pipeline is detecting whether the wake word was spoken, and we need to find ourselves
+an appropriate pre-trained model for this task! You'll remember from the section on [pre-trained models for audio classification](../chapter4/classification_models.mdx) 
+that [Speech Commands](https://huggingface.co/datasets/speech_commands) is a dataset of spoken words designed to 
+evaluate audio classification models on 15+ simple command words like `"up"`, `"down"`, `"yes"` and `"no"`, as well as a 
+`"silence"` label to classify no speech. Take a minute to listen through the samples on the datasets viewer on 
+the Hub and re-acquaint yourself with the Speech Commands dataset: [datasets viewer](https://huggingface.co/datasets/speech_commands/viewer/v0.01/train).
 
 We can take an audio classification model pre-trained on the Speech Commands dataset and pick one of these simple command 
-words to be chosen our wake word. Out of the 15+ possible command words, if the model predicts our chosen wake word with the 
+words to be our chosen wake word. Out of the 15+ possible command words, if the model predicts our chosen wake word with the 
 highest probability, we can be fairly certain that the wake word has been said.
 
 Let's head to the Hugging Face Hub and click on the "Models" tab: https://huggingface.co/models
@@ -100,7 +104,7 @@ classifier.model.config.id2label
 ```
 
 Alright! We see that the model was trained on 35 class labels, including some simple command words that we described above,
-as well as some more particular objects like "bed", "house" and "cat". We see that there is one name in these class labels:
+as well as some particular objects like `"bed"`, `"house"` and `"cat"`. We see that there is one name in these class labels:
 id 27 corresponds to the label **"marvin"**:
 
 ```python
@@ -112,11 +116,12 @@ classifier.model.config.id2label[27]
 ```
 
 Perfect! We can use this name as our wake word for our voice assistant, similar to how "Alexa" is used for Amazon's Alexa,
-or "Hey Siri" is used for Apple's Siri.
+or "Hey Siri" is used for Apple's Siri. Of all the possible labels, if the model predicts `"marvin"` with the highest class
+probability, we can be fairly sure that our chosen wake word has been said. 
 
 Now we need to define a function that is constantly listening to our device's microphone input, and continuously 
-passes the most recent audio input to the audio classification model for inference. To do this, we'll use a handy 
-helper function that comes with 🤗 Transformers called [`ffmpeg_microphone_live`](https://github.com/huggingface/transformers/blob/fb78769b9c053876ed7ae152ee995b0439a4462a/src/transformers/pipelines/audio_utils.py#L98).
+passes the audio to the classification model for inference. To do this, we'll use a handy helper function that comes 
+with 🤗 Transformers called [`ffmpeg_microphone_live`](https://github.com/huggingface/transformers/blob/fb78769b9c053876ed7ae152ee995b0439a4462a/src/transformers/pipelines/audio_utils.py#L98).
 
 This function forwards small chunks of audio of specified length `chunk_length_s` to the model to be classified. To ensure that 
 we get smooth boundaries across chunks of audio, we run a sliding window across our audio with stride `chunk_length_s / 6`. 
@@ -125,14 +130,16 @@ temporary audio input length `stream_chunk_s` that is forwarded to the model bef
 
 The function `ffmpeg_microphone_live` returns a *generator* object, yielding a sequence of audio chunks that can each 
 be passed to the classification model to make a prediction. We can pass this generator directly to the `pipeline`, 
-which in turn returns a sequence of output predictions, one for each chunk of audio input.
+which in turn returns a sequence of output predictions, one for each chunk of audio input. We can inspect the class 
+label probabilities for each audio chunk, and stop our wake word detection loop when we detect that the wake word 
+has been spoken.
 
-We'll use a very simple criteria for classifying whether our wake word was spoken: if the prediction with highest 
+We'll use a very simple criteria for classifying whether our wake word was spoken: if the class label with the highest 
 probability was our wake word, and this probability exceeds a threshold `prob_threshold`, we declare that the wake word 
 as having been spoken. Using a probability threshold to gate our classifier this way ensures that the wake word is not 
-erroneously predicted if the audio input is noise and thus all the class label probabilities low. You might want to tune
-this probability threshold, or explore more sophisticated means of making the wake word decision through [*entropy*](https://en.wikipedia.org/wiki/Entropy_(information_theory))
-(or uncertainty) based metrics.
+erroneously predicted if the audio input is noise, which is typically when the model is very uncertain and all the class 
+label probabilities low. You might want to tune this probability threshold, or explore more sophisticated means for 
+the wake word decision through an [*entropy*](https://en.wikipedia.org/wiki/Entropy_(information_theory)) (or uncertainty) based metric.
 
 ```python
 from transformers.pipelines.audio_utils import ffmpeg_microphone_live
@@ -189,16 +196,16 @@ Listening for wake word...
 ```
 
 Awesome! As we expect, the model generates garbage predictions for the first few seconds. There is no speech input, so the
-model makes close to random predictions but with very low probability. As soon as we say the wake word, the model predicts
+model makes close to random predictions, but with very low probability. As soon as we say the wake word, the model predicts
 `"marvin"` with probability close to 1 and terminates the loop, signalling that the wake word has been detected and that the
 ASR system should be activated!
 
 ## Speech transcription
 
 Once again, we'll use the Whisper model for our speech transcription system. Specifically, we'll load the [Whisper Base English](https://huggingface.co/openai/whisper-base.en) 
-checkpoint, since it's small enough that we'll be able to get near real-time transcription if we're clever with how we 
-forward our audio inputs, but still gives reasonable transcription accuracy. As before, feel free to use any speech 
-recognition checkpoint on [the Hub](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&library=transformers&sort=trending),
+checkpoint, since it's small enough to give good inference speed with reasonable transcription accuracy. We'll use a trick
+to get near real-time transcription by being clever with how we forward our audio inputs to the model. As before, feel 
+free to use any speech recognition checkpoint on [the Hub](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&library=transformers&sort=trending),
 including Wav2Vec2, MMS ASR or other Whisper checkpoints:
 
 ```python
@@ -207,13 +214,22 @@ transcriber = pipeline(
 )
 ```
 
+
+
+<Tip>
+    If you're using a GPU, you can increase the checkpoint size to use the <a href="https://huggingface.co/openai/whisper-small.en">Whisper Small English</a> 
+    checkpoint, which will return better transcription accuracy and still be within the required latency threshold. Simply swap the 
+    model id to: <code>"openai/whisper-small.en"</code>.
+</Tip>
+
 We can now define a function to record our microphone input and transcribe the corresponding text. With the `ffmpeg_microphone_live`
 helper function, we can control how 'real-time' our speech recognition model is. Using a smaller `stream_chunk_s` lends
 itself to more real-time speech recognition, since we divide our input audio into smaller chunks and transcribe them on
 the fly. However, this comes at the expense of poorer accuracy, since there's less context for the model to infer from. 
+
 As we're transcribing the speech, we also need to have an idea of when the user **stops** speaking, so that we can terminate 
-the recording. For simplicity, we'll terminate our microphone recording after the first `chunk_length_s`, but you can 
-experiment with using a [voice activity detection (VAD)](https://huggingface.co/models?pipeline_tag=voice-activity-detection&sort=trending) 
+the recording. For simplicity, we'll terminate our microphone recording after the first `chunk_length_s` (which is set to 
+5 seconds by default), but you can experiment with using a [voice activity detection (VAD)](https://huggingface.co/models?pipeline_tag=voice-activity-detection&sort=trending) 
 model to predict when the user has stopped speaking.
 
 ```python
@@ -251,7 +267,8 @@ Start speaking...
 ```
 
 Nice! You can adjust the maximum audio length `chunk_length_s` based on how fast or slow you speak (increase it if you
-felt like you didn't have enough time to speak), and the `stream_chunk_s` for the real-time factor.
+felt like you didn't have enough time to speak, decrease it if you were left waiting at the end), and the 
+`stream_chunk_s` for the real-time factor. Just pass these as arguments to the `transcribe` function.
 
 ## Language model query
 
@@ -259,15 +276,15 @@ Now that we have our spoken query transcribed, we want to generate a meaningful 
 hosted on the Cloud. Specifically, we'll pick an LLM on the Hugging Face Hub and use the [Inference API](https://huggingface.co/inference-api)
 to easily query the model.
 
-First, let's head over to the Hugging Face Hub. To find our LLM, we'll use the [🤗 Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard)
-that ranks LLM models by performance over four tasks. We'll search by "instruct" to filter out models that have been 
-instruction fine-tuned, since these should work better for our querying task:
+First, let's head over to the Hugging Face Hub. To find our LLM, we'll use the [🤗 Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard),
+a Space that ranks LLM models by performance over four generation tasks. We'll search by "instruct" to filter out models 
+that have been instruction fine-tuned, since these should work better for our querying task:
 
 <div class="flex justify-center">
      <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/llm_leaderboard.png">
  </div>
 
-We'll use the checkpoint [Flacon-7B-Instruct](https://huggingface.co/tiiuae/falcon-7b-instruct) by [TII](https://www.tii.ae/),
+We'll use the [tiiuae/falcon-7b-instruct](https://huggingface.co/tiiuae/falcon-7b-instruct) checkpoint by [TII](https://www.tii.ae/),
 a 7B parameter decoder-only LM fine-tuned on a mixture of chat and instruction datasets. You can use any LLM on the Hugging 
 Face Hub that has the "Hosted inference API" enabled, just look out for the widget on the right-side of the model card:
 
@@ -384,7 +401,7 @@ the time it was required, and subsequently un-load them afterwards. Thirdly, we'
 in our transcription function, transcribing for a fixed amount of time, which in some cases is too long, and in others too
 short.
 
-## Generalising to anything
+## Generalise to anything 🪄
 
 So far, we've seen how we can generate speech outputs with our voice assistant Marvin. To finish, we'll demonstrate how 
 we can generalise these speech outputs to text, audio and image.
@@ -394,9 +411,10 @@ Transformers Agents provides a natural language API on top of the 🤗 Transform
 a natural language input using an LLM with carefully crafted prompts, and using a set of curated tools to provide 
 multimodal outputs.
 
-Let's go ahead and instantiate an agent. There are three LLMs available for Transformers Agents, two of which are open-source
-and free on the Hugging Face Hub. The third is a model from OpenAI that requires an OpenAI API key. We'll use the free
-[Bigcode Starcoder](https://huggingface.co/bigcode/starcoder) model in this example:
+Let's go ahead and instantiate an agent. There are [three LLMs available](https://huggingface.co/docs/transformers/transformers_agents#quickstart) 
+for Transformers Agents, two of which are open-source and free on the Hugging Face Hub. The third is a model from OpenAI 
+that requires an OpenAI API key. We'll use the free [Bigcode Starcoder](https://huggingface.co/bigcode/starcoder) model 
+in this example, but you can also try either of the other LLMs available:
 
 ```python
 from transformers import HfAgent
@@ -406,16 +424,24 @@ agent = HfAgent(
 )
 ```
 
-To use the agent, we simply have to call `agent.run`. As an example, we'll get it to generate an image of a cat 🐈
-(that hopefully looks a bit better than this emoji), which will use [Stable Diffusion](https://huggingface.co/docs/diffusers/using-diffusers/conditional_image_generation) 
-under the hood. Note that the first time calling this will trigger the model weights to be downloaded, which might take 
-some time depending on your Hub download speed:
+To use the agent, we simply have to call `agent.run` with our text prompt. As an example, we'll get it to generate an 
+image of a cat 🐈 (that hopefully looks a bit better than this emoji):
 
 ```python
 agent.run("Generate an image of a cat")
 ```
 
-Easy as that! We can now replace our LLM query function and text synthesis with our Transformers Agent in our voice assistant:
+<Tip>
+    Note that the first time calling this will trigger the model weights to be downloaded, which might take 
+    some time depending on your Hub download speed.
+</Tip>
+
+Easy as that! The Agent interpreted our prompt, and used [Stable Diffusion](https://huggingface.co/docs/diffusers/using-diffusers/conditional_image_generation) 
+under the hood to generate the image, without us having to worry about loading the model, writing the function or executing 
+the code.
+
+We can now replace our LLM query function and text synthesis step with our Transformers Agent in our voice assistant, 
+since the Agent is going to take care of both of these steps for us:
 
 ```python
 launch_fn()
@@ -425,5 +451,10 @@ agent.run(transcription)
 
 Try speaking the same prompt "Generate an image of a cat" and see how the system gets on. If you ask the Agent a simple
 question / answer query, the Agent will respond with a text answer. You can encourage it to generate multimodal outputs 
-by asking it to return an image or speech. For example, you can ask it to: "Generate an image of a cat, and speak a 
-caption of the image"
+by asking it to return an image or speech. For example, you can ask it to: "Generate an image of a cat, caption it, and 
+speak the caption".
+
+While the Agent is more flexible than our first iteration Marvin 🤖 assistant, generalising the voice assistant task in this way
+may lead to inferior performance on standard voice assistant queries. To recover performance, you can try using a 
+more performant LLM checkpoint, such as the one from OpenAI, or define a set of [custom tools](https://huggingface.co/docs/transformers/transformers_agents#custom-tools)
+that are specific to the voice assistant task.

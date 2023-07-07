@@ -109,6 +109,8 @@
     title: What you'll learn and what you'll build
   - local: chapter7/speech-to-speech
     title: Speech-to-speech translation
+  - local: chapter7/voice-assistant
+    title: Creating a voice assistant
 #  - local: chapter7/quiz
 #    title: Quiz
 #    quiz: 7
