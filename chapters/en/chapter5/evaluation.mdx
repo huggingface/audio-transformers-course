@@ -152,7 +152,7 @@ of the WER for unseen data.
 ## Normalisation
 
 If we train an ASR model on data with punctuation and casing, it will learn to predict casing and punctuation in its
-transcriptions. This is great when we want to use out model for actual speech recognition applications, such as
+transcriptions. This is great when we want to use our model for actual speech recognition applications, such as
 transcribing meetings or dictation, since the predicted transcriptions will be fully formatted with casing and punctuation,
 a style referred to as *orthographic*.
 
@@ -231,7 +231,7 @@ section on fine-tuning by evaluating the pre-trained Whisper model on the Common
 the WER number we get as a _baseline_ for our fine-tuning run, or a target number that we'll try and beat 🥊
 
 First, we'll load the pre-trained Whisper model using the `pipeline()` class. This process will be extremely familiar by now!
-The only thing new we'll do is load the model in half-precision (float16) if running on a GPU - this will speed up
+The only new thing we'll do is load the model in half-precision (float16) if running on a GPU - this will speed up
 inference at almost no cost to WER accuracy.
 
 ```python
@@ -335,9 +335,9 @@ wer_ortho
 Okay... 167% essentially means our model is outputting garbage 😜 Not to worry, it'll be our aim to improve this by
 fine-tuning the model on the Dhivehi training set!
 
-Next, we'll evaluate the normalised WER, i.e. the WER with normalisation post-processing. We have to filter our samples
+Next, we'll evaluate the normalised WER, i.e. the WER with normalisation post-processing. We have to filter out samples
 that would be empty after normalisation, as otherwise the total number of words in our reference (N) would be zero, which
-would give a divide by zero error in our calculation:
+would give a division by zero error in our calculation:
 
 ```python
 from transformers.models.whisper.english_normalizer import BasicTextNormalizer
