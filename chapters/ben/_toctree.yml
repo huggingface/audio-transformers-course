@@ -25,17 +25,17 @@
   - local: chapter1/supplemental_reading
     title: পরিপূরক পাঠ এবং সংস্থান
 
-#- title: অধ্যায় ২. A gentle introduction to audio applications
-#  sections:
-#  - local: chapter2/introduction
-#    title: অডিও অ্যাপ্লিকেশন এর পরিদর্শন
-#  - local: chapter2/audio_classification_pipeline
-#    title: Pipeline এর মাদ্ধমে Audio classification
-#  - local: chapter2/asr_pipeline
-#    title: pipeline এর মাদ্ধমে Automatic speech recognition
-#  - local: chapter2/hands_on
-#    title: হাতে-করি অনুশীলন
-#
+- title: অধ্যায় ২. অডিও অ্যাপ্লিকেশনের সূচনা
+  sections:
+  - local: chapter2/introduction
+    title: অডিও অ্যাপ্লিকেশন এর পরিদর্শন
+  - local: chapter2/audio_classification_pipeline
+    title: Pipeline এর মাদ্ধমে Audio classification
+  - local: chapter2/asr_pipeline
+    title: pipeline এর মাদ্ধমে Automatic speech recognition
+  - local: chapter2/hands_on
+    title: হাতে-করি অনুশীলন
+
 #- title: অধ্যায় ৩. Transformer architectures for audio
 #  sections:
 #  - local: chapter3/introduction
