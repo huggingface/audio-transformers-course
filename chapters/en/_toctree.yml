@@ -130,6 +130,18 @@
 #  - local: chapter8/stay_in_touch
 #    title: Stay in touch
 #
+#  - local: chapter7/hands_on
+#    title: Hands-on exercise
+#  - local: chapter7/supplemental_reading
+#    title: Supplemental reading and resources
+
+- title: Unit 8. Finish line
+  sections:
+  - local: chapter8/introduction
+    title: Congratulations!
+  - local: chapter8/certification
+    title: Get your certification of completion
+
 #- title: Bonus unit. Diffusion models for audio
 #  sections:
 #  - local: chapter9/introduction
