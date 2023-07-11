@@ -211,16 +211,28 @@ Audio(synthesised_speech, rate=sampling_rate)
 ```
 
 Perfect! Now we'll wrap this up into a nice Gradio demo so that we can record our source speech using a microphone input
-and playback the system's prediction:
+or file input and playback the system's prediction:
 
 ```python
 import gradio as gr
 
-demo = gr.Interface(
+demo = gr.Blocks()
+
+mic_translate = gr.Interface(
     fn=speech_to_speech_translation,
-    inputs=gr.Audio(type="filepath"),
+    inputs=gr.Audio(source="microphone", type="filepath"),
     outputs=gr.Audio(label="Generated Speech", type="numpy"),
 )
+
+file_translate = gr.Interface(
+    fn=speech_to_speech_translation,
+    inputs=gr.Audio(source="upload", type="filepath"),
+    outputs=gr.Audio(label="Generated Speech", type="numpy"),
+)
+
+with demo:
+    gr.TabbedInterface([mic_translate, file_translate], ["Microphone", "Audio File"])
+
 demo.launch(debug=True)
 ```
 
@@ -239,4 +251,4 @@ error propagation and additive latency described above. Recent works have explor
 does not predict an intermediate text output and instead maps directly from source speech to target speech. These systems
 are also capable of retaining the speaking characteristics of the source speaker in the target speech (such a prosody, 
 pitch and intonation). If you're interested in finding out more about these systems, check-out the resources listed in 
-the section on [supplemental reading](supplemenatal_reading).
+the section on [supplemental reading](supplemental_reading).
