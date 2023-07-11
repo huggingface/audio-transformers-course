@@ -17,7 +17,7 @@ models for audio classification.
 Decoder-only models introduce unnecessary complexity to the task, since they assume that the outputs can also be a _sequence_
 of predictions (rather than a single class label prediction), and so generate multiple outputs. Therefore, they have slower
 inference speed and tend not to be used. Encoder-decoder models are largely omitted for the same reason. These architecture
-choices are analogous to those in NLP, where encoder-only models such as [BERT]((https://huggingface.co/blog/bert-101))
+choices are analogous to those in NLP, where encoder-only models such as [BERT](https://huggingface.co/blog/bert-101)
 are favoured for sequence classification tasks, and decoder-only models such as GPT reserved for sequence generation tasks.
 
 Now that we've recapped the standard transformer architecture for audio classification, let's jump into the different
