@@ -116,7 +116,7 @@
 #  - local: chapter7/quiz
 #    title: Quiz
 #    quiz: 7
-  - local: chapter6/hands-on
+  - local: chapter7/hands-on
     title: Hands-on exercise
   - local: chapter7/supplemental_reading
     title: Supplemental reading and resources
