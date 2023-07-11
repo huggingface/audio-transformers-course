@@ -88,7 +88,7 @@ gtzan["train"][0]
 }
 ```
 
-As we saw in [Unit 1](chapter1/audio_data), the audio files are represented as 1-dimensional NumPy arrays,
+As we saw in [Unit 1](../chapter1/audio_data), the audio files are represented as 1-dimensional NumPy arrays,
 where the value of the array represents the amplitude at that timestep. For these songs, the sampling rate is 22,050 Hz,
 meaning there are 22,050 amplitude values sampled per second. We'll have to keep this in mind when using a pretrained model
 with a different sampling rate, converting the sampling rates ourselves to ensure they match. We can also see the genre
