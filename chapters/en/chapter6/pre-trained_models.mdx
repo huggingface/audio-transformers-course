@@ -243,7 +243,7 @@ input_ids = inputs["input_ids"]
 with torch.no_grad():
     outputs = model(input_ids)
 
-speech = outputs.audio[0]
+speech = outputs.waveform[0]
 ```
 
 Let's listen to it:
