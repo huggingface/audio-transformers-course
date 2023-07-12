@@ -43,7 +43,7 @@ example = minds[0]
 ```
 
 If you recall the structure of the dataset, the raw audio data is stored in a NumPy array under `["audio"]["array"]`, let's
-pass is straight to the `classifier`:
+pass it straight to the `classifier`:
 
 ```py
 classifier(example["audio"]["array"])
