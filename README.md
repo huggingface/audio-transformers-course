@@ -47,8 +47,10 @@ cd ~/path/to/audio-transformers-course
 cp -r chapters/en/CHAPTER-NUMBER chapters/LANG-ID/CHAPTER-NUMBER
 ```
 
-Here, `CHAPTER-NUMBER` refers to the chapter you'd like to work on and `LANG-ID` should be ISO 639-1 (two-letter) 
+Here, `CHAPTER-NUMBER` refers to the chapter you'd like to work on and `LANG-ID` should be ISO 639-1 (two lower case letters) 
 language code -- see [here](https://www.loc.gov/standards/iso639-2/php/code_list.php) for a handy table.
+Alternatively, {two lowercase letters}-{two uppercase letters} format is also supported, e.g. `zh-CN`, here's 
+an [example](https://huggingface.co/learn/nlp-course/zh-CN/chapter1/1).
 
 **✍️ Start translating**
 
