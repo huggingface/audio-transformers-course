@@ -103,27 +103,23 @@
   - local: chapter6/supplemental_reading
     title: Supplemental reading and resources
 
-#- title: Unit 7. Audio to audio
-#  sections:
-#  - local: chapter7/introduction
-#    title: What you'll learn and what you'll build
-#  - local: chapter7/tasks
-#    title: Examples of audio-to-audio tasks
-#  - local: chapter7/choosing_dataset
-#    title: Choosing a dataset
-#  - local: chapter7/preprocessing
-#    title: Loading and preprocessing data
-#  - local: chapter7/evaluation
-#    title: Evaluation metrics for audio-to-audio
-#  - local: chapter7/fine-tuning
-#    title: Fine-tuning the model
+- title: Unit 7. Putting it all together
+  sections:
+  - local: chapter7/introduction
+    title: What you'll learn and what you'll build
+  - local: chapter7/speech-to-speech
+    title: Speech-to-speech translation
+  - local: chapter7/voice-assistant
+    title: Creating a voice assistant
+  - local: chapter7/transcribe-meeting
+    title: Transcribe a meeting
 #  - local: chapter7/quiz
 #    title: Quiz
 #    quiz: 7
-#  - local: chapter7/hands_on
-#    title: Hands-on exercise
-#  - local: chapter7/supplemental_reading
-#    title: Supplemental reading and resources
+  - local: chapter7/hands-on
+    title: Hands-on exercise
+  - local: chapter7/supplemental_reading
+    title: Supplemental reading and resources
 #
 #- title: Unit 8. Finish line
 #  sections:
