@@ -47,8 +47,8 @@ cd ~/path/to/audio-transformers-course
 cp -r chapters/en/CHAPTER-NUMBER chapters/LANG-ID/CHAPTER-NUMBER
 ```
 
-Here, `CHAPTER-NUMBER` refers to the chapter you'd like to work on and `LANG-ID` should be one of the ISO 639-1 or ISO 639-2 
-language codes -- see [here](https://www.loc.gov/standards/iso639-2/php/code_list.php) for a handy table.
+Here, `CHAPTER-NUMBER` refers to the chapter you'd like to work on and `LANG-ID` should be ISO 639-1 (two-letter) 
+language code -- see [here](https://www.loc.gov/standards/iso639-2/php/code_list.php) for a handy table.
 
 **✍️ Start translating**
 
