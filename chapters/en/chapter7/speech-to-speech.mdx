@@ -92,10 +92,13 @@ def translate(audio):
 ```
 
 <Tip>
+
     Whisper can also be 'tricked' into translating from speech in any language X to any language Y. Simply set the task to
-    <code>"transcribe"</code> and the <code>"language"</code> to your target language in the generation key-word arguments, 
+    `"transcribe"` and the `"language"` to your target language in the generation key-word arguments, 
     e.g. for Spanish, one would set:
-    <p><code>generate_kwargs={"task": "transcribe", "language": "es"}</code></p>
+
+	`generate_kwargs={"task": "transcribe", "language": "es"&rcub;`
+
 </Tip>
 
 Great! Let's quickly check that we get a sensible result from the model:
