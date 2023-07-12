@@ -73,7 +73,7 @@ outputs = diarization_pipeline(
 outputs.for_json()["content"]
 ```
 
-```
+```text
 [{'segment': {'start': 0.4978125, 'end': 14.520937500000002},
   'track': 'B',
   'label': 'SPEAKER_01'},
@@ -114,7 +114,7 @@ asr_pipeline(
 )
 ```
 
-```python
+```text
 {
     "text": " The second and importance is as follows. Sovereignty may be defined to be the right of making laws. In France, the king really exercises a portion of the sovereign power, since the laws have no weight. He was in a favored state of mind, owing to the blight his wife's action threatened to cast upon his entire future.",
     "chunks": [
@@ -180,7 +180,7 @@ Let's pass the audio file to the composite pipeline and see what we get out:
 pipeline(sample["audio"].copy())
 ```
 
-```
+```text
 [{'speaker': 'SPEAKER_01',
   'text': ' The second and importance is as follows. Sovereignty may be defined to be the right of making laws. In France, the king really exercises a portion of the sovereign power, since the laws have no weight.',
   'timestamp': (0.0, 15.48)},
@@ -217,7 +217,7 @@ outputs = pipeline(sample["audio"].copy())
 format_as_transcription(outputs)
 ```
 
-```
+```text
 SPEAKER_01 (0.0, 15.5) The second and importance is as follows. Sovereignty may be defined to be the right of making laws.
 In France, the king really exercises a portion of the sovereign power, since the laws have no weight.
 
