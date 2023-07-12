@@ -189,16 +189,21 @@ Before we create a [Gradio](https://gradio.app) demo to showcase our STST system
 to make sure we can concatenate the two models, putting an audio sample in and getting an audio sample out. We'll do 
 this by concatenating the two functions we defined in the previous two sub-sections, such that we input the source audio 
 and retrieve the translated text, then synthesise the translated text to get the translated speech. Finally, we'll convert 
-the synthesised speech to an `int16` array, which is the output audio file format expected by Gradio:
+the synthesised speech to an `int16` array, which is the output audio file format expected by Gradio. To do this, we
+first have to normalise the audio array by the dynamic range of the target dtype (`int16`), and then convert from the
+default NumPy dtype (`float64`) to the target dtype (`int16`):
 
 ```python
 import numpy as np
+
+target_dtype = np.int16
+max_range = np.iinfo(target_dtype).max
 
 
 def speech_to_speech_translation(audio):
     translated_text = translate(audio)
     synthesised_speech = synthesise(translated_text)
-    synthesised_speech = (synthesised_speech.numpy() * 32767).astype(np.int16)
+    synthesised_speech = (synthesised_speech.numpy() * max_range).astype(np.int16)
     return 16000, synthesised_speech
 ```
 
