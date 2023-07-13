@@ -1,0 +1,131 @@
+#  오디오 데이터 스트리밍하기[[streaming-audio-data]]
+
+오디오 데이터셋을 다룰 때 마주치는 가장 큰 문제 중 하나는 바로 그 크기입니다. 1분짜리 압축되지 않은 CD 품질의 오디오(44.1kHz, 16-bit)는 5MB를 조금 넘습니다. 보통 오디오 데이터셋은 몇시간 분량의 녹음을 가지고 있습니다.
+
+이전 섹션에서 우린 MINDS-14 오디오 데이터셋의 아주 작은 부분만을 다뤘습니다. 그러나, 보통의 오디오 데이터셋은 훨씬 큽니다.
+예를 들어, [GigaSpeech from SpeechColab](https://huggingface.co/datasets/speechcolab/gigaspeech)의 `xs`(최소) 설정은 10시간의 훈련 데이터만 포함하지만 다운로드와 준비에 13GB의 저장공간이 필요합니다. 더 큰 분할(split)의 경우는 어떨까요? 이 데이터셋의 `xl`(최대) 설정은 10,000 시간의 훈련 데이터를 가지고 있고 이는 1TB의 저장 공간을 차지합니다. 우리 대부분은 이 정도 크기의 하드 디스크 용량을 가지고 있지 않을겁니다. 추가로 저장장치를 구매해야 할까요? 아니면 이런 저장 공간의 제약이 없이 학습할 수 있는 방법이 있을까요?
+
+ 🤗 Datasets은 스트리밍 모드를 제공하여 이 문제를 해결합니다. 스트리밍은 데이터셋을 차례로 접근할 때 점진적으로 불러올 수 있도록 해줍니다. 모든 데이터셋을 한번에 다운로드하기보단, 데이터셋을 하나씩 불러오는 것입니다.
+ 데이터셋을 순회하며 데이터가 필요할 때마다 즉석에서 준비하고 불러옵니다. 이런 방식으로 우린 현재 필요가 없는 데이터가 아닌 당장 필요로 하는 데이터만을 불러올 수 있습니다!
+한 샘플이 끝나면 데이터셋에서 다음 데이터를 불러오면 됩니다.
+
+스트리밍 모드는 전체 데이터셋을 한번에 다운로드하는 것에 비해 세가지 특장점이 있습니다:
+
+* 디스크 공간: 데이터는 데이터셋을 순회하며 메모리에 하나씩 불러와집니다. 데이터를 로컬에 다운로드하지 않으므로 저장 공간의 제약없이 임의의 크기의 데이터셋을 다룰 수 있습니다.
+* 다운로드시간과 처리 시간: 오디오 데이터셋은 그 크기가 크기때문에 다운로드하고 처리하는데 많은 시간이 소요됩니다. 스트리밍의 경우, 처리와 불러오는것이 즉석에서 이뤄지기 때문에 데이터가 준비되는대로 시작할 수 있습니다.
+* 실험의 간편함: 전체 데이터셋을 다운로드받을 필요 없이 몇개의 데이터에 대해 여러분의 스크립트가 잘 작동하는지 실험하기 쉽습니다.
+
+스트리밍 모드에는 한가지 주의사항이 있습니다. 스트리밍이 아닌 전체 데이터셋을 다운로드하는 경우, 원시 데이터와 가공된 데이터(processed data) 모두 로컬 디스크에 저장됩니다. 따라서 추후에 재사용하고 싶다면 다운로드와 처리 단계를 다시 거칠 필요 없이 바로 가공된 데이터를 불러올 수 있습니다. 즉, 한번 다운로드와 처리과정을 거친다면 후에는 준비된 데이터를 다시 사용할 수 있습니다.
+
+스트리밍 모드에서는 데이터가 디스크에 저장되지 않습니다. 따라서 다운로드 데이터와 가공 데이터는 캐시되지 않습니다. 만약 데이터셋을 재사용하길 원한다면 스트리밍 단계를 반복해야 합니다. 즉, 오디오 파일을 불러오고 처리하는 과정을 다시 거쳐야합니다. 이런 이유때문에, 여러번 사용할 데이터셋은 다운로드하는것이 좋습니다.
+
+스트리밍 모드는 어떻게 활성화 시킬까요? 쉽습니다! 데이터셋을 불러올 때 `streaming=True`로 설정만 하면 됩니다. 나머지는 알아서 처리됩니다:
+
+```py
+gigaspeech = load_dataset("speechcolab/gigaspeech", "xs", streaming=True)
+```
+
+MINDS-14에 전처리 과정을 적용했던것처럼 스트리밍 데이터셋에도 똑같은 방식으로 전처리를 할 수 있습니다.
+
+유일한 차이점은 더 이상 파이썬 인덱싱으로 데이터에 접근하지 못한다는 점입니다(즉, `gigaspeech["train"][sample_idx]`같은 접근은 불가합니다).
+대신, 데이터셋을 순회하여 접근해야 합니다. 다음은 데이터셋을 스트리밍할때 어떻게 데이터에 접근하는지를 보여줍니다:
+
+```py
+next(iter(gigaspeech["train"]))
+```
+
+**Output:**
+```out
+{
+    "segment_id": "YOU0000000315_S0000660",
+    "speaker": "N/A",
+    "text": "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+    "audio": {
+        "path": "xs_chunks_0000/YOU0000000315_S0000660.wav",
+        "array": array(
+            [0.0005188, 0.00085449, 0.00012207, ..., 0.00125122, 0.00076294, 0.00036621]
+        ),
+        "sampling_rate": 16000,
+    },
+    "begin_time": 2941.89,
+    "end_time": 2945.07,
+    "audio_id": "YOU0000000315",
+    "title": "Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43",
+    "url": "https://www.youtube.com/watch?v=zr2n1fLVasU",
+    "source": 2,
+    "category": 24,
+    "original_full_path": "audio/youtube/P0004/YOU0000000315.opus",
+}
+```
+
+만약 큰 데이터셋에서 여러개의 데이터를 보고싶다면 `take()` 함수로 첫 `n`개의 원소를 가져올 수 있습니다. gigaspeech 데이터셋에서 처음 두개의 데이터를 가져와 보겠습니다:
+
+```py
+gigaspeech_head = gigaspeech["train"].take(2)
+list(gigaspeech_head)
+```
+
+**Output:**
+```out
+[
+    {
+        "segment_id": "YOU0000000315_S0000660",
+        "speaker": "N/A",
+        "text": "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+        "audio": {
+            "path": "xs_chunks_0000/YOU0000000315_S0000660.wav",
+            "array": array(
+                [
+                    0.0005188,
+                    0.00085449,
+                    0.00012207,
+                    ...,
+                    0.00125122,
+                    0.00076294,
+                    0.00036621,
+                ]
+            ),
+            "sampling_rate": 16000,
+        },
+        "begin_time": 2941.89,
+        "end_time": 2945.07,
+        "audio_id": "YOU0000000315",
+        "title": "Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43",
+        "url": "https://www.youtube.com/watch?v=zr2n1fLVasU",
+        "source": 2,
+        "category": 24,
+        "original_full_path": "audio/youtube/P0004/YOU0000000315.opus",
+    },
+    {
+        "segment_id": "AUD0000001043_S0000775",
+        "speaker": "N/A",
+        "text": "SIX TOMATOES <PERIOD>",
+        "audio": {
+            "path": "xs_chunks_0000/AUD0000001043_S0000775.wav",
+            "array": array(
+                [
+                    1.43432617e-03,
+                    1.37329102e-03,
+                    1.31225586e-03,
+                    ...,
+                    -6.10351562e-05,
+                    -1.22070312e-04,
+                    -1.83105469e-04,
+                ]
+            ),
+            "sampling_rate": 16000,
+        },
+        "begin_time": 3673.96,
+        "end_time": 3675.26,
+        "audio_id": "AUD0000001043",
+        "title": "Asteroid of Fear",
+        "url": "http//www.archive.org/download/asteroid_of_fear_1012_librivox/asteroid_of_fear_1012_librivox_64kb_mp3.zip",
+        "source": 0,
+        "category": 28,
+        "original_full_path": "audio/audiobook/P0011/AUD0000001043.opus",
+    },
+]
+```
+
+스티리밍 모드는 여러분의 연구를 한 단계 높은 수준으로 이끌어줄 수 있습니다. 가장 큰 데이터셋에 접근가능할 뿐만 아니라 디스크 공간에 대한 걱정 없이 여러 데이터셋을 이용해 시스템을 한번에 쉽게 평가(evaluate)할 수 있기 때문입니다.
+하나의 데이터셋을 평가하는 것과 비교하여 여러 데이터셋에 대한 평가는 음성 인식 시스템의 일반화(generalisation) 능력에 대해 더 나은 지표를 제공합니다(End-to-End Speech Benchmark(ESB)를 참고하세요).

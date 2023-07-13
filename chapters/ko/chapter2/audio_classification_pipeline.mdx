@@ -1,0 +1,66 @@
+# 파이프라인을 이용한 오디오 분류[[audio-classification-with-a-pipeline]]
+
+오디오 분류는 녹음된 오디오 내용에 기반하여 하나 혹은 여러개의 레이블을 할당하는 작업입니다. 이 레이블은 음악, 음성, 노이즈 같은 카테고리에 해당할 수도 있고, 새소리나 차 엔진 소리처럼 더 구체적인 카테고리일 수도 있습니다.
+
+인기 있는 오디오 트랜스포머 모델들이 세부적으로 어떻게 작동하는지, 커스텀 모델을 어떻게 파인튜닝하는지 등을 알아보기 전에 🤗 Transformers를 이용하여 단 몇줄의 코드만으로 사전학습된 모델을 오디오 분류에 쓰는 법을 알아봅시다.
+
+이전 단원에서 사용했던 [MINDS-14](https://huggingface.co/datasets/PolyAI/minds14) 데이터셋을 쓰겠습니다. 기억하시다시피, MINDS-14는 사람들이 인터넷뱅킹 시스템에 대해 전화로 여러 언어와 방언으로 묻는 것이 녹음돼있습니다. 각 녹음에는 `intent_class`가 있으며 이를 이용해 녹음들을 전화의 의도에 따라 분류할 수 있습니다.
+
+파이프라인을 써보기 위해 이전과 마찬가지로 데이터의 `en-AU` 부분을 가져와 모델이 요구하는 16 kHz 샘플링 속도를 가지도록 업샘플링 해봅시다.
+
+```py
+from datasets import load_dataset
+from datasets import Audio
+
+minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
+```
+
+🤗 Transformers의 `audio-classification` 파이프라인을 사용하면 녹음된 오디오를 클래스 집합으로 분류할 수 있습니다.
+우리의 경우, MINDS-14 데이터셋의 의도 분류를 위해 파인튜닝된 모델이 필요합니다. 운좋게도, 바로 그럴때 쓰이는 모델이 허브에 있습니다! `pipeline()` 함수를 써서 이를 불러보겠습니다:
+
+```py
+from transformers import pipeline
+
+classifier = pipeline(
+    "audio-classification",
+    model="anton-l/xtreme_s_xlsr_300m_minds14",
+)
+```
+
+이 파이프라인은 오디오 데이터로 넘파이 배열을 요구합니다. 원시 오디오 데이터의 모든 전처리는 편리하게도 파이프라인이 해결해줍니다. 한 예를 봅시다:
+
+```py
+example = minds[0]
+```
+
+데이터셋의 구조를 기억하신다면, 원시 오디오 데이터가 `["audio"]["array"]` 아래에 넘파이 배열로 저장돼있는걸 기억하실겁니다. 그대로 `classifier`에 넘겨봅시다:
+
+```py
+classifier(example["audio"]["array"])
+```
+
+**Output:**
+```out
+[
+    {"score": 0.9631525278091431, "label": "pay_bill"},
+    {"score": 0.02819698303937912, "label": "freeze"},
+    {"score": 0.0032787492964416742, "label": "card_issues"},
+    {"score": 0.0019414445850998163, "label": "abroad"},
+    {"score": 0.0008378693601116538, "label": "high_value_payment"},
+]
+```
+
+모델은 전화하는 사람이 청구서의 지불 방법에 대해 묻고 있다고 매우 확신하고 있습니다. 실제 레이블은 어떤지 확인해봅시다: 
+
+```py
+id2label = minds.features["intent_class"].int2str
+id2label(example["intent_class"])
+```
+
+**Output:**
+```out
+"pay_bill"
+```
+
+만세! 예측값이 맞았습니다! 운 좋게도 우리는 필요한 레이블을 정확하게 분류할 수 있는 모델을 찾을 수 있었습니다. 그러나 분류 작업을 다루는 많은 경우에는 사전학습된 모델의 클래스가 우리가 바라는 분류 클래스와 일치하지 않습니다. 이와 같은 경우, 여러분은 사전학습된 모델을 "보정(calibrate)"하여 여러분의 클래스 레이블에 맞출 수 있습니다. 이후 단원에서 이를 어떻게 하는지 배우게 됩니다. 이제 음성 처리에서 매우 일반적인 작업인 _자동 음성 인식_에 대해 살펴봅시다.
