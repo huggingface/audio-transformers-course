@@ -140,7 +140,7 @@
   - local: chapter8/introduction
     title: Congratulations!
   - local: chapter8/certification
-    title: Get your certification of completion
+    title: Get your certificate of completion
 
 #- title: Bonus unit. Diffusion models for audio
 #  sections:
