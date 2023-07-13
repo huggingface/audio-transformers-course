@@ -41,18 +41,18 @@
   - local: events/introduction
     title: 라이브 세션과 워크샵
 
-- title: Unit 3. Transformer architectures for audio
+- title: 3단원. 오디오용 트랜스포머 아키텍처
   sections:
   - local: chapter3/introduction
-    title: Refresher on transformer models
+    title: 트랜스퍼모델 돌아보기
   - local: chapter3/ctc
-    title: CTC architectures
+    title: CTC 아키텍처
   - local: chapter3/seq2seq
-    title: Seq2Seq architectures
+    title: Seq2Seq 아키텍처
   - local: chapter3/classification
-    title: Audio classification architectures
+    title: 오디오 분류 아키텍처
   - local: chapter3/quiz
-    title: Quiz
+    title: 퀴즈
     quiz: 3
   - local: chapter3/supplemental_reading
-    title: Supplemental reading and resources
+    title: 보충자료 및 리소스
