@@ -40,3 +40,19 @@
   sections:
   - local: events/introduction
     title: 라이브 세션과 워크샵
+
+- title: Unit 3. Transformer architectures for audio
+  sections:
+  - local: chapter3/introduction
+    title: Refresher on transformer models
+  - local: chapter3/ctc
+    title: CTC architectures
+  - local: chapter3/seq2seq
+    title: Seq2Seq architectures
+  - local: chapter3/classification
+    title: Audio classification architectures
+  - local: chapter3/quiz
+    title: Quiz
+    quiz: 3
+  - local: chapter3/supplemental_reading
+    title: Supplemental reading and resources
