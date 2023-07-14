@@ -1,68 +1,68 @@
-# Seq2Seq architectures
+# Seq2Seq 아키텍처[[seq2Sseq-architectures]]
 
-The CTC models discussed in the previous section used only the encoder part of the transformer architecture. When we also add the decoder to create an encoder-decoder model, this is referred to as a **sequence-to-sequence** model or seq2seq for short. The model maps a sequence of one kind of data to a sequence of another kind of data.
+이전 섹션에서 설명한 CTC 모델은 트랜스포머 아키텍처의 인코더 부분만 사용했습니다. 디코더를 추가하여 인코더-디코더 모델을 생성할 때 이를 **sequence-to-sequence** 모델 또는 줄여서 seq2seq라고 합니다. 이 모델은 한 종류의 데이터 시퀀스를 다른 종류의 데이터 시퀀스에 매핑합니다.
 
-With encoder-only transformer models, the encoder made a prediction for each element in the input sequence. Therefore, both input and output sequences will always have the same length. In the case of CTC models such as Wav2Vec2 the input waveform was first downsampled, but there still was one prediction for every 20 ms of audio.
+인코더 전용 트랜스포머 모델에서는 인코더가 입력 시퀀스의 각 요소에 대해 예측을 수행합니다. 따라서 입력 및 출력 시퀀스의 길이는 항상 동일합니다. Wav2Vec2와 같은 CTC 모델의 경우 입력 파형이 먼저 다운샘플링되었지만 여전히 오디오 20ms당 하나의 예측이 있었습니다.
 
-With a seq2seq model, there is no such one-to-one correspondence and the input and output sequences can have different lengths. That makes seq2seq models suitable for NLP tasks such as text summarization or translation between different languages — but also for audio tasks such as speech recognition.
+seq2seq 모델을 사용하면 이러한 일대일 대응이 없으며 입력 및 출력 시퀀스의 길이가 다를 수 있습니다. 따라서 seq2seq 모델은 텍스트 요약이나 서로 다른 언어 간 번역과 같은 NLP 작업뿐만 아니라 음성 인식과 같은 오디오 작업에도 적합합니다.
 
-The architecture of a decoder is very similar to that of an encoder, and both use similar layers with self-attention as the main feature. However, the decoder performs a different task than the encoder. To see how this works, let's examine how a seq2seq model can do automatic speech recognition.
+디코더 아키텍처는 인코더 아키텍처와 매우 유사하며, 둘 다 셀프 어텐션을 주요 기능으로 하는 유사한 레이어를 사용합니다. 하지만 디코더는 인코더와는 다른 작업을 수행합니다. 이것이 어떻게 작동하는지 알아보기 위해 seq2seq 모델이 어떻게 자동 음성 인식을 수행하는지 살펴봅시다.
 
-## Automatic speech recognition
+## 자동 음성 인식[[automatic-speech-recognition]]
 
-The architecture of **Whisper** is as follows (figure courtesy of [OpenAI Whisper blog](https://openai.com/blog/whisper/)):
+**Whisper**의 아키텍처는 다음과 같습니다([OpenAI Whisper 블로그](https://openai.com/blog/whisper/) 그림 제공):
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/blog/assets/111_fine_tune_whisper/whisper_architecture.svg" alt="Whisper is a transformer encoder-decoder model">
 </div>
 
-This should look quite familiar. On the left is the **transformer encoder**. This takes as input a log-mel spectrogram and encodes that spectrogram to form a sequence of encoder hidden states that extract important features from the spoken speech. This hidden-states tensor represents the input sequence as a whole and effectively encodes the "meaning" of the input speech.
+꽤 익숙하게 보일 것입니다. 왼쪽은 **트랜스포머 인코더**입니다. 이것은 로그 멜 스펙트로그램을 입력으로 받아 해당 스펙트로그램을 인코딩하여 음성에서 중요한 특징을 추출하는 인코더의 은닉 상태 시퀀스를 형성합니다. 이 은닉 상태 텐서는 입력 시퀀스를 전체적으로 나타내며 입력 음성의 '의미'를 효과적으로 인코딩합니다.
 
 <Tip>
-💡 It's common for these seq2seq models to use spectrograms as input. However, a seq2seq model can also be designed to work directly on audio waveforms.
+💡 이러한 seq2seq 모델은 스펙트로그램을 입력으로 사용하는 것이 일반적입니다. 하지만 오디오 파형에서 직접 작동하도록 설계할 수도 있습니다.
 </Tip>
 
-The output of the encoder is then passed into the **transformer decoder**, shown on the right, using a mechanism called **cross-attention**. This is like self-attention but attends over the encoder output. From this point on, the encoder is no longer needed.
+그런 다음 인코더의 출력은 **크로스 어텐션**이라는 메커니즘을 사용하여 오른쪽에 표시된 **트랜스포머 디코더**로 전달됩니다. 이는 셀프 어텐션과 비슷하지만 인코더 출력을 통해 이루어집니다. 이 시점부터 인코더는 더 이상 필요하지 않습니다.
 
-The decoder predicts a sequence of text tokens in an **autoregressive** manner, a single token at a time, starting from an initial sequence that just has a "start" token in it (`SOT` in the case of Whisper). At each following timestep, the previous output sequence is fed back into the decoder as the new input sequence. In this manner, the decoder emits one new token at a time, steadily growing the output sequence, until it predicts an "end" token or a maximum number of timesteps is reached.
+디코더는 '시작' 토큰만 있는 초기 시퀀스(위스퍼의 경우 'SOT')부터 시작하여 한 번에 하나의 토큰씩 **자동 회귀** 방식으로 텍스트 토큰의 시퀀스를 예측합니다. 다음 각 타임스텝에서 이전 출력 시퀀스는 새로운 입력 시퀀스로 디코더에 다시 공급됩니다. 이러한 방식으로 디코더는 "종료" 토큰을 예측하거나 최대 타임스텝 수에 도달할 때까지 한 번에 하나의 새 토큰을 방출하여 출력 시퀀스를 꾸준히 증가시킵니다.
 
-While the architecture of the decoder is mostly identical to that of the encoder, there are two big differences:
+디코더의 아키텍처는 인코더의 아키텍처와 대부분 동일하지만 두 가지 큰 차이점이 있습니다:
 
-1. the decoder has a cross-attention mechanism that allows it to look at the encoder's representation of the input sequence
-2. the decoder's attention is causal — the decoder isn't allowed to look into the future.
+1. 디코더에는 인코더의 입력 시퀀스 표현을 살펴볼 수 있는 크로스 어텐션 메커니즘이 있습니다.
+2. 디코더 어텐션은 인과적이기 때문에 디코더는 미래를 미리 살펴볼 수 없습니다.
 
-In this design, the decoder plays the role of a **language model**, processing the hidden-state representations from the encoder and generating the corresponding text transcriptions. This is a more powerful approach than CTC, even if the CTC model is combined with an external language model, as the seq2seq system can be trained end-to-end with the same training data and loss function, giving greater flexibility and generally superior performance.
+이 설계에서 디코더는 **언어 모델**의 역할을 수행하여 인코더의 은닉 상태 표현을 처리하고 해당 텍스트 트랜스크립션을 생성합니다. 이는 CTC 모델을 외부 언어 모델과 결합하더라도 동일한 훈련 데이터와 손실 함수로 seq2seq 시스템을 엔드 투 엔드 훈련할 수 있어 유연성이 뛰어나고 일반적으로 성능이 우수하기 때문에 CTC보다 강력한 접근 방식입니다.
 
 <Tip>
-💡 Whereas a CTC model outputs a sequence of individual characters, the tokens predicted by Whisper are full words or portions of words. It uses the tokenizer from GPT-2 and has 50k+ unique tokens. A seq2seq model can therefore output a much shorter sequence than a CTC model for the same transcription.
+💡 CTC 모델은 개별 문자의 시퀀스를 출력하는 반면, Whisper가 예측하는 토큰은 전체 단어 또는 단어의 일부입니다. GPT-2의 토크나이저를 사용하며 5만 개 이상의 고유 토큰을 보유하고 있습니다. 따라서 seq2seq 모델은 동일한 트랜스크립션에 대해 CTC 모델보다 훨씬 짧은 시퀀스를 출력할 수 있습니다.
 </Tip>
 
-A typical loss function for a seq2seq ASR model is the cross-entropy loss, as the final layer of the model predicts a probability distribution over the possible tokens. This is usually combined with techniques such as [beam search to generate the final sequence](https://huggingface.co/blog/how-to-generate). The metric for speech recognition is WER or word error rate, which measures how many substitutions, insertions, and deletions are necessary to turn the predicted text into the target text — the fewer, the better the score.
+모델의 최종 계층이 발생 가능한 토큰에 대한 확률 분포를 예측하기 때문에 seq2seq ASR 모델의 일반적인 손실 함수는 크로스 엔트로피 손실입니다. 이는 일반적으로 [최종 시퀀스 생성을 위한 빔 검색](https://huggingface.co/blog/how-to-generate)과 같은 기술과 결합됩니다. 음성 인식의 지표는 문자 오류율(WER, Word Error Rate)로, 예측된 텍스트를 대상 텍스트로 바꾸는 데 필요한 대체, 삽입, 삭제 횟수를 측정하며, 이 수치가 적을수록 좋은 점수를 받습니다.
 
-## Text-to-speech
+## 텍스트 음성 변환[[text-to-speech]]
 
-It may not surprise you: A seq2seq model for TTS works essentially the same as described above but with the inputs and outputs switched around! The transformer encoder takes in a sequence of text tokens and extracts a sequence of hidden-states that represent the input text. The transformer decoder applies cross-attention to the encoder output and predicts a spectrogram.
+놀랍지 않으실 수도 있습니다: TTS용 seq2seq 모델은 위에서 설명한 것과 본질적으로 동일하게 작동하지만 입력과 출력의 위치가 바뀝니다! 트랜스포머 인코더는 일련의 텍스트 토큰을 받아 입력 텍스트를 나타내는 은닉 상태 시퀀스를 추출합니다. 트랜스포머 디코더는 인코더 출력에 크로스 어텐션을 적용하고 스펙트로그램을 예측합니다.
 
 <Tip>
-💡 Recall that a spectrogram is made by taking the frequency spectrum of successive time slices of an audio waveform and stacking them together. In other words, a spectrogram is a sequence where the elements are (log-mel) frequency spectra, one for each timestep.
+💡 스펙트로그램은 오디오 파형의 연속적인 시간 조각의 주파수 스펙트럼을 가져와서 함께 쌓아서 만든다는 것을 기억하세요. 즉, 스펙트로그램은 각 타임스텝마다 하나씩의 로그 멜(log-mel) 주파수 스펙트럼이 요소로 구성된 시퀀스입니다.
 </Tip>
 
-With the ASR model, the decoder was kickstarted using a sequence that just has the special "start" token in it. For the TTS model, we can start the decoding with a spectrogram of length one that is all zeros that acts as the "start token". Given this initial spectrogram and the cross-attentions over the encoder's hidden-state representations, the decoder then predicts the next timeslice for this spectrogram, steadily growing the spectrogram one timestep at a time.
+ASR 모델에서는 특별한 "시작" 토큰이 포함된 시퀀스를 사용하여 디코더를 시작합니다. TTS 모델의 경우, '시작 토큰' 역할을 하는 길이가 1이고 모두 값이 0인 스펙트로그램으로 디코딩을 시작할 수 있습니다. 이 초기 스펙트로그램과 인코더의 은닉 상태 표현에 대한 크로스 어텐션이 주어지면 디코더는 이 스펙트로그램의 다음 타임슬라이스를 예측하여 스펙트로그램을 한 번에 한 타임스텝씩 꾸준히 증가시킵니다.
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/speecht5_decoding.png" alt="The audio waveform gets mapped to a shorter sequence of hidden-states">
 </div>
 
-But how does the decoder know when to stop? In the **SpeechT5** model this is handled by making the decoder predict a second sequence. This contains the probability that the current timestep is the last one. While generating audio at inference time, if this probability is over a certain threshold (say 0.5), the decoder is indicating that the spectrogram is finished and the generation loop should end.
+하지만 디코더는 언제 멈춰야 하는지 어떻게 알 수 있을까요? **SpeechT5** 모델에서는 디코더가 두 번째 시퀀스를 예측하도록 함으로써 이 문제를 처리합니다. 여기에는 현재 시간 간격이 마지막 시간 간격일 확률이 포함됩니다. 추론 시간에 오디오를 생성하는 동안 이 확률이 특정 임계값(예: 0.5)을 초과하면 디코더는 스펙트로그램이 완료되었음을 나타내며 생성 루프를 종료해야 합니다.
 
-After the decoding finishes and we have an output sequence containing the spectrogram, SpeechT5 uses a so-called **post-net** that is made up of several convolution layers to refine the spectrogram.
+디코딩이 완료되고 스펙트로그램이 포함된 출력 시퀀스를 얻은 후 SpeechT5는 여러 컨볼루션 레이어로 구성된 소위 **post-net**을 사용하여 스펙트로그램을 개선합니다.
 
-During training of the TTS model, the targets are also spectrograms and the loss is L1 or MSE. At inference time we want to convert the output spectrogram into an audio waveform, so that we can actually listen to it. For this an external model is used, the **vocoder**. This vocoder is not part of the seq2seq architecture and is trained separately.
+TTS 모델을 훈련하는 동안 목표도 스펙트로그램이며 손실은 L1 또는 MSE(Mean Squared Error)입니다. 추론 시에는 출력 스펙트로그램을 오디오 파형으로 변환하여 실제로 들을 수 있도록 하려고 합니다. 이를 위해 외부 모델인 **보코더(vocoder)**가 사용됩니다. 이 보코더는 seq2seq 아키텍처의 일부가 아니며 별도로 학습됩니다.
 
-What makes TTS difficult is that it's a one-to-many mapping. With speech-to-text there is only one correct output text that corresponds to the input speech, but with text-to-speech the input text can be mapped to many possible speech sounds. Different speakers may choose to emphasize different parts of the sentence, for example. This makes TTS models hard to evaluate. Because of this, the L1 or MSE loss value isn't actually very meaningful — there are multiple ways to represent the same text to a spectrogram. This is why TTS models are typically evaluated by human listeners, using a metric known as MOS or mean opinion score.
+TTS를 어렵게 만드는 것은 일대다 매핑이라는 점입니다. 음성 대 텍스트에서는 입력 음성에 해당하는 올바른 출력 텍스트가 하나만 있지만, 텍스트 음성 변환에서는 입력 텍스트를 여러 가지 가능한 음성 소리에 매핑할 수 있습니다. 예를 들어 화자마다 문장의 다른 부분을 강조하도록 선택할 수 있습니다. 이 때문에 TTS 모델을 평가하기가 어렵습니다. 동일한 텍스트를 스펙트로그램으로 표현하는 방법은 여러 가지가 있기 때문에 L1 또는 MSE 손실 값은 실제로 큰 의미가 없습니다. 그렇기 때문에 일반적으로 TTS 모델은 MOS(Mean Opinion Score)라는 메트릭을 사용하여 사람이 직접 평가합니다.
 
-## Conclusion
+## 결론[[conclusion]]
 
-The seq2seq approach is more powerful than an encoder-only model. By separating the encoding of the input sequence from the decoding of the output sequence, the alignment of audio and text is less of a problem. <!-- The model learns how to perform this alignment through the attention mechanism. -->
+seq2seq 접근 방식은 인코더 전용 모델보다 더 강력합니다. 입력 시퀀스의 인코딩과 출력 시퀀스의 디코딩을 분리함으로써 오디오와 텍스트의 정렬이 보다 수월해집니다. <!-- 모델은 어텐션 메커니즘을 통해 이 정렬을 수행하는 방법을 학습합니다. -->
 
-However, an encoder-decoder model is also slower as the decoding process happens one step at a time, rather than all at once. The longer the sequence, the slower the prediction. Autoregressive models can also get stuck in repetitions or skip words. Techniques such as beam search can help improve the quality of the predictions, but also slow down decoding even more.
+그러나 인코더-디코더 모델은 디코딩 프로세스가 한 번에 한 번에 이루어지는 것이 아니라 한 번에 한 단계씩 이루어지기 때문에 속도가 느립니다. 시퀀스가 길수록 예측 속도가 느려집니다. 또한 자동 회귀 모델은 반복되는 단어에 갇히거나 단어를 건너뛸 수 있습니다. 빔 검색과 같은 기술을 사용하면 예측 품질을 개선하는 데 도움이 될 수 있지만 디코딩 속도가 더 느려질 수도 있습니다.

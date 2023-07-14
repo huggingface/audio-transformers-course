@@ -1,109 +1,109 @@
-# Unit 3. Transformer architectures for audio
+# 3단원. 오디오를 위한 트랜스포머 아키텍처[[Transformer-architectures-for-audio]]
 
-In this course we will primarily consider transformer models and how they can be applied to audio tasks. While you don't need to know the inner details of these models, it's useful to understand the main concepts that make them work, so here's a quick refresher. For a deep dive into transformers, check out our [NLP Course](https://huggingface.co/course/chapter1/1).
+이 강좌에서는 주로 트랜스포머 모델과 이를 오디오 작업에 적용하는 방법을 살펴봅니다. 모델의 내부의 세부 내용을 알 필요는 없지만 모델이 동작하는 주요 개념을 이해하는 것이 중요하기 때문에 간단히 복습하겠습니다. 트랜스포머에 대해 자세히 살펴보고 싶으시다면 [NLP 과정](https://huggingface.co/course/chapter1/1)을 참조하세요.
 
-## How does a transformer work?
+## 트렌스포머의 작동 원리[[how-does-a-transformer-work]]
 
-The original transformer model was designed to translate written text from one language into another. Its architecture looked like this:
+원래 트랜스포머 모델은 텍스트를 한 언어에서 다른 언어로 번역하도록 설계되었습니다. 구조는 다음과 같습니다.:
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/documentation-images/resolve/main/en/chapter1/transformers.svg" alt="Original transformer architecture">
 </div>
 
-On the left is the **encoder** and on the right is the **decoder**.
+왼쪽에는 **인코더(encoder)**가 있고 오른쪽에는 **디코더(decoder)**가 있습니다.
 
-- The encoder receives an input, in this case a sequence of text tokens, and builds a representation of it (its features). This part of the model is trained to acquire understanding from the input.
+- 인코더는 입력(이 경우 텍스트 토큰 시퀀스)을 수신하고 그 표현(특징)을 구축합니다. 모델의 이 부분은 입력을 통해 이해력을 습득하도록 학습됩니다.
 
-- The decoder uses the encoder's representation (the features) along with other inputs (the previously predicted tokens) to generate a target sequence. This part of the model is trained to generate outputs. In the original design, the output sequence consisted of text tokens.
+- 디코더는 인코더의 표현(특징)을 다른 입력(이전에 예측된 토큰)과 함께 사용하여 목표 시퀀스를 생성합니다. 모델의 이 부분은 출력을 생성하도록 훈련됩니다. 원래 설계에서 출력 시퀀스는 텍스트 토큰으로 구성되었습니다.
 
-There are also transformer-based models that only use the encoder part (good for tasks that require understanding of the input, such as classification), or only the decoder part (good for tasks such as text generation). An example of an encoder-only model is BERT; an example of a decoder-only model is GPT2.
+인코더 부분만 사용하는 트랜스포머 기반 모델(분류와 같이 입력에 대한 이해가 필요한 작업에 적합) 또는 디코더 부분만 사용하는 모델(텍스트 생성과 같은 작업에 적합)도 있습니다. 인코더 전용 모델의 예로는 BERT가 있고, 디코더 전용 모델의 예로는 GPT2가 있습니다.
 
-A key feature of transformer models is that they are built with special layers called **attention layers**. These layers tell the model to pay specific attention to certain elements in the input sequence and ignore others when computing the feature representations.
+트랜스포머 모델의 핵심 특징은 **어텐션(attention) 레이어**라는 특수 레이어로 구축된다는 점입니다. 이 레이어는 특징 표현을 계산할 때 입력 시퀀스의 특정 요소에 특별히 주의를 기울이고 다른 요소는 무시하도록 모델에 지시합니다.
 
-## Using transformers for audio
+## 오디오에 트랜스포머 사용하기[[using-transformers-for-audio]]
 
-The audio models we'll cover in this course typically have a standard transformer architecture as shown above, but with a slight modification on the input or output side to allow for audio data instead of text. Since all these models are transformers at heart, they will have most of their architecture in common and the main differences are in how they are trained and used.
+이 강좌에서 다룰 오디오 모델은 일반적으로 위와 같은 표준 트랜스포머 아키텍처를 사용하지만, 텍스트 대신 오디오 데이터를 사용할 수 있도록 입력 또는 출력 측에서 약간의 수정이 이루어집니다. 이러한 모든 모델은 기본적으로 트랜스포머이므로 대부분의 아키텍처가 공통적이며 주요 차이점은 학습 및 사용 방식에 있습니다.
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/transformers_blocks.png" alt="The transformer with audio input and output">
 </div>
 
-For audio tasks, the input and/or output sequences may be audio instead of text:
+오디오 작업의 경우 입력 및/또는 출력 시퀀스가 텍스트가 아닌 오디오일 수 있습니다:
 
-- Automatic speech recognition (ASR): The input is speech, the output is text.
+- 자동 음성 인식(ASR): 입력은 음성, 출력은 텍스트입니다.
 
-- Speech synthesis (TTS): The input is text, the output is speech.
+- 음성 합성(TTS): 입력은 텍스트, 출력은 음성입니다.
 
-- Audio classification: The input is audio, the output is a class probability — one for each element in the sequence or a single class probability for the entire sequence.
+- 오디오 분류(audio classification): 입력은 오디오이고 출력은 클래스 확률(시퀀스의 각 요소에 대해 하나씩 또는 전체 시퀀스에 대해 단일 클래스 확률)입니다.
 
-- Voice conversion or speech enhancement: Both the input and output are audio.
+- 음성 변환(voice conversion) 또는 음성 향상(speech enhancement): 입력과 출력 모두 오디오입니다.
 
-There are a few different ways to handle audio so it can be used with a transformer. The main consideration is whether to use the audio in its raw form — as a waveform — or to process it as a spectrogram instead.
+트랜스포머와 함께 사용할 수 있도록 오디오를 처리하는 방법에는 몇 가지가 있습니다. 주요 고려 사항은 오디오를 원시 형태(파형)로 사용할지, 아니면 스펙트로그램으로 처리할지 여부입니다.
 
-## Model inputs
+## 모델 입력[[model-inputs]]
 
-The input to an audio model can be either text or sound. The goal is to convert this input into an embedding vector that can be processed by the transformer architecture.
+오디오 모델에 대한 입력은 텍스트 또는 사운드일 수 있습니다. 목표는 이 입력을 트랜스포머 아키텍처에서 처리할 수 있는 임베딩 벡터로 변환하는 것입니다.
 
-### Text input
+### 텍스트 입력[[text-inputs]]
 
-A text-to-speech model takes text as input. This works just like the original transformer or any other NLP model: The input text is first tokenized, giving a sequence of text tokens. This sequence is sent through an input embedding layer to convert the tokens into 512-dimensional vectors. Those embedding vectors are then passed into the transformer encoder.
+텍스트 음성 변환 모델은 텍스트를 입력으로 받습니다. 이는 원래의 트랜스포머나 다른 NLP(Natural Language Processing) 모델과 똑같이 작동합니다: 입력 텍스트는 먼저 토큰화되어 일련의 텍스트 토큰을 제공합니다. 이 시퀀스는 입력 임베딩 레이어를 통해 전송되어 토큰을 512차원 벡터로 변환합니다. 그런 다음 이러한 임베딩 벡터는 트랜스포머 인코더로 전달됩니다.
 
-### Waveform input
+### 파형 입력[[waveform-input]]
 
-An automatic speech recognition model takes audio as input. To be able to use a transformer for ASR, we first need to convert the audio into a sequence of embedding vectors somehow.
+자동 음성 인식 모델은 오디오를 입력으로 받습니다. ASR에 트랜스포머를 사용하려면 먼저 오디오를 어떤 식으로든 임베딩 벡터 시퀀스로 변환해야 합니다.
 
-Models such as **Wav2Vec2** and **HuBERT** use the audio waveform directly as the input to the model. As you've seen in [the chapter on audio data](../chapter1/introduction), a waveform is a one-dimensional sequence of floating-point numbers, where each number represents the sampled amplitude at a given time. This raw waveform is first normalized to zero mean and unit variance, which helps to standardize audio samples across different volumes (amplitudes).
+**Wav2Vec2** 및 **HuBERT**와 같은 모델은 오디오 파형을 모델에 대한 입력으로 직접 사용합니다. [오디오 데이터 소개](chapter1/introduction)에서 살펴보았듯이 파형은 부동 소수점 숫자의 1차원 시퀀스이며, 각 숫자는 주어진 시간에 샘플링된 진폭을 나타냅니다. 이 원시 파형은 먼저 평균과 단위 분산이 0으로 정규화되어 다양한 음량(진폭)의 오디오 샘플을 표준화하는 데 도움이 됩니다.
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/wav2vec2-input.png" alt="Wav2Vec2 uses a CNN to create embeddings from the input waveform">
 </div>
 
-After normalizing, the sequence of audio samples is turned into an embedding using a small convolutional neural network, known as the feature encoder. Each of the convolutional layers in this network processes the input sequence, subsampling the audio to reduce the sequence length, until the final convolutional layer outputs a 512-dimensional vector with the embedding for each 25 ms of audio. Once the input sequence has been transformed into a sequence of such embeddings, the transformer will process the data as usual.
+정규화 후 오디오 샘플 시퀀스는 특징 인코더(feature encoder)로 알려진 작은 컨볼루션 신경망을 사용하여 임베딩으로 변환됩니다. 이 네트워크의 각 컨볼루션 레이어는 입력 시퀀스를 처리하고 오디오를 서브샘플링하여 시퀀스 길이를 줄인 다음 최종 컨볼루션 레이어가 오디오 25ms마다 임베딩이 포함된 512차원 벡터를 출력할 때까지 처리합니다. 입력 시퀀스가 이러한 임베딩 시퀀스로 변환되면 트랜스포머는 평소와 같이 데이터를 처리합니다.
 
-### Spectrogram input
+### 스펙트로그램 입력[[spectrogram-input]]
 
-One downside of using the raw waveform as input is that they tend to have long sequence lengths. For example, thirty seconds of audio at a sampling rate of 16 kHz gives an input of length `30 * 16000 = 480000`. Longer sequence lengths require more computations in the transformer model, and so higher memory usage.
+원시 파형을 입력으로 사용할 때의 한 가지 단점은 시퀀스 길이가 길어지는 경향이 있다는 것입니다. 예를 들어 샘플링 속도가 16kHz인 30초 분량의 오디오는 '30 * 16000 = 480000' 길이의 입력이 됩니다. 시퀀스 길이가 길수록 트랜스포머 모델에서 더 많은 계산이 필요하므로 메모리 사용량이 증가합니다.
 
-Because of this, raw audio waveforms are not usually the most efficient form of representing an audio input. By using a spectrogram, we get the same amount of information but in a more compressed form.
+이 때문에 원시 오디오 파형은 일반적으로 오디오 입력을 표현하는 가장 효율적인 형태가 아닙니다. 스펙트로그램을 사용하면 동일한 양의 정보를 더 압축된 형태로 얻을 수 있습니다.
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/whisper-input.png" alt="Whisper uses a CNN to create embeddings from the input spectrogram">
 </div>
 
-Models such as **Whisper** first convert the waveform into a log-mel spectrogram. Whisper always splits the audio into 30-second segments, and the log-mel spectrogram for each segment has shape `(80, 3000)` where 80 is the number of mel bins and 3000 is the sequence length. By converting to a log-mel spectrogram we've reduced the amount of input data, but more importantly, this is a much shorter sequence than the raw waveform. The log-mel spectrogram is then processed by a small CNN into a sequence of embeddings, which goes into the transformer as usual.
+**Whisper**와 같은 모델은 먼저 파형을 로그 멜 스펙트로그램으로 변환합니다. Whisper는 항상 오디오를 30초 세그먼트로 분할하며, 각 세그먼트의 로그 멜 스펙트로그램은 80, 3000의 형태를 갖습니다. 여기서 80은 멜 빈의 수이고 3000은 시퀀스 길이입니다. 로그 멜 스펙트로그램으로 변환함으로써 입력 데이터의 양을 줄였지만, 더 중요한 것은 원시 파형보다 훨씬 짧은 시퀀스라는 점입니다. 그런 다음 로그 멜 스펙트로그램은 작은 CNN에 의해 임베딩 시퀀스로 처리되어 평소와 같이 트랜스포머로 들어갑니다.
 
-In both cases, waveform as well as spectrogram input, there is a small network in front of the transformer that converts the input into embeddings and then the transformer takes over to do its thing.
+파형과 스펙트로그램 입력 두 경우 모두, 트랜스포머 앞에 작은 네트워크가 있어 입력을 임베딩으로 변환한 다음 트랜스포머가 작업을 수행합니다.
 
-## Model outputs
+## 모델 출력[[model-outputs]]
 
-The transformer architecture outputs a sequence of hidden-state vectors, also known as the output embeddings. Our goal is to transform these vectors into a text or audio output.
+트랜스포머 아키텍처는 출력 임베딩이라고도 하는 숨겨진 상태 벡터의 시퀀스를 출력합니다. 우리의 목표는 이러한 벡터를 텍스트 또는 오디오 출력으로 변환하는 것입니다.
 
-### Text output
+### 텍스트 출력[[text-output]]
 
 The goal of an automatic speech recognition model is to predict a sequence of text tokens. This is done by adding a language modeling head — typically a single linear layer — followed by a softmax on top of the transformer's output. This predicts the probabilities over the text tokens in the vocabulary.
 
-### Spectrogram output
+### 스펙트로그램 출력[[spectrogram-output]]
 
-For models that generate audio, such as a text-to-speech (TTS) model, we'll have to add layers that can produce an audio sequence. It's very common to generate a spectrogram and then use an additional neural network, known as a vocoder, to turn this spectrogram into a waveform.
+텍스트 음성 변환(TTS) 모델과 같이 오디오를 생성하는 모델의 경우 오디오 시퀀스를 생성할 수 있는 레이어를 추가해야 합니다. 스펙트로그램을 생성한 다음 보코더(vocoder)라고 하는 추가 신경망을 사용하여 이 스펙트로그램을 파형으로 변환하는 것이 매우 일반적입니다.
 
-In the **SpeechT5** TTS model, for example, the output from the transformer network is a sequence of 768-element vectors. A linear layer projects that sequence into a log-mel spectrogram. A so-called post-net, made up of additional linear and convolutional layers, refines the spectrogram by reducing noise. The vocoder then makes the final audio waveform.
+예를 들어 **SpeechT5** TTS 모델에서 트랜스포머 네트워크의 출력은 768개 요소 벡터의 시퀀스입니다. 선형 레이어는 이 시퀀스를 로그 멜 스펙트로그램으로 투영합니다. 추가 선형 및 컨볼루션 레이어로 구성된 이른바 포스트넷(post-net)은 노이즈를 줄여 스펙트로그램을 개선합니다. 그런 다음 보코더가 최종 오디오 파형을 생성합니다.
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/speecht5.png" alt="SpeechT5 outputs a spectrogram and uses a vocoder to create the waveform">
 </div>
 
 <Tip>
-💡 If you take an existing waveform and apply the Short-Time Fourier Transform or STFT, it is possible to perform the inverse operation, the ISTFT, to get the original waveform again. This works because the spectrogram created by the STFT contains both amplitude and phase information, and both are needed to reconstruct the waveform. However, audio models that generate their output as a spectrogram typically only predict the amplitude information, not the phase. To turn such a spectrogram into a waveform, we have to somehow estimate the phase information. That's what a vocoder does.
+💡 기존 파형을 가지고 단시간 푸리에 변환(STFT)을 적용하면 역연산인 ISFT를 수행하여 원래의 파형을 다시 얻을 수 있습니다. 이는 STFT로 생성된 스펙트로그램에 진폭과 위상 정보가 모두 포함되어 있고 파형을 재구성하는 데 두 가지 정보가 모두 필요하기 때문에 가능합니다. 그러나 스펙트로그램으로 출력을 생성하는 오디오 모델은 일반적으로 위상이 아닌 진폭 정보만 예측합니다. 이러한 스펙트로그램을 파형으로 변환하려면 어떻게든 위상 정보를 추정해야 합니다. 이것이 바로 보코더가 하는 일입니다.
 </Tip>
 
-### Waveform output
+### 파형 출력[[waveform-output]]
 
-It's also possible for models to directly output a waveform instead of a spectrogram as an intermediate step, but we currently don't have any models in 🤗 Transformers that do this.
+모델이 중간 단계로 스펙트로그램 대신 파형을 직접 출력하는 것도 가능하지만, 현재 🤗 트랜스포머에는 이 기능을 지원하는 모델이 없습니다.
 
-## Conclusion
+## 결론[[conclusion]]
 
-In summary: Most audio transformer models are more alike than different — they're all built on the same transformer architecture and attention layers, although some models will only use the encoder portion of the transformer while others use both the encoder and decoder.
+요약: 대부분의 오디오 트랜스포머 모델은 다른 점보다는 비슷한 점이 더 많은데, 일부 모델은 트랜스포머의 인코더 부분만 사용하고 다른 모델은 인코더와 디코더를 모두 사용하지만 모두 동일한 트랜스포머 아키텍처와 어텐션 레이어를 기반으로 구축됩니다.
 
-You've also seen how to get audio data into and out of transformer models. To perform the different audio tasks of ASR, TTS, and so on, we can simply swap out the layers that pre-process the inputs into embeddings, and swap out the layers that post-process the predicted embeddings into outputs, while the transformer backbone stays the same.
+또한 트랜스포머 모델에 오디오 데이터를 가져오고 내보내는 방법도 살펴봤습니다. ASR, TTS 등의 다양한 오디오 작업을 수행하려면 입력을 임베딩으로 전처리하는 레이어를 교체하고, 예측된 임베딩을 출력으로 후처리하는 레이어를 교체하면 되며, 트랜스포머 백본(backbone)은 그대로 유지하면 됩니다.
 
-Next, let's look at a few different ways these models can be trained to do automatic speech recognition.
+다음으로, 이러한 모델을 자동 음성 인식으로 학습시킬 수 있는 몇 가지 방법을 살펴보겠습니다.

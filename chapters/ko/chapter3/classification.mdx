@@ -1,35 +1,35 @@
-# Audio classification architectures
+# 오디오 분류 아키텍처[[audio-classification-architectures]]
 
-The goal of audio classification is to predict a class label for an audio input. The model can predict a single class label that covers the entire input sequence, or it can predict a label for every audio frame — typically every 20 milliseconds of input audio — in which case the model's output is a sequence of class label probabilities. An example of the former is detecting what bird is making a particular sound; an example of the latter is speaker diarization, where the model predicts which speaker is speaking at any given moment.
+오디오 분류의 목표는 오디오 입력에 대한 클래스 레이블을 예측하는 것입니다. 모델은 전체 입력 시퀀스를 포괄하는 단일 클래스 레이블을 예측하거나 모든 오디오 프레임(일반적으로 입력 오디오의 20밀리초마다)에 대한 레이블을 예측할 수 있으며, 이 경우 모델의 출력은 클래스 레이블 확률의 시퀀스입니다. 전자의 예로는 어떤 새가 특정 소리를 내는지 감지하는 것을 들 수 있고, 후자의 예로는 특정 순간에 어떤 화자가 말하는지 예측하는 화자 구분(speaker diarization)을 들 수 있습니다.
 
-## Classification using spectrograms
+## 스펙트로그램을 사용한 분류[[classification-using-spectrograms]]
 
-One of the easiest ways to perform audio classification is to pretend it's an image classification problem!
+오디오 분류를 수행하는 가장 쉬운 방법 중 하나는 이미지 분류 문제인 것처럼 가정하는 것입니다!
 
-Recall that a spectrogram is a two-dimensional tensor of shape `(frequencies, sequence length)`. In the [chapter on audio data](../chapter1/audio_data) we plotted these spectrograms as images. Guess what? We can literally treat the spectrogram as an image and pass it into a regular CNN classifier model such as ResNet and get very good predictions. Even better, we can use a image transformer model such as ViT.
+스펙트로그램은 `(주파수, 시퀀스 길이)` 모양의 2차원 텐서라는 것을 기억하세요. [오디오 데이터 챕터](../chapter1/audio_data)에서 이러한 스펙트로그램을 이미지로 그려보았습니다. 여러분 아시나요? 말 그대로 스펙트로그램을 이미지로 취급하고 ResNet과 같은 일반 CNN 분류기 모델에 전달하면 매우 좋은 예측 결과를 얻을 수 있습니다. 더 좋은 방법은 ViT와 같은 이미지 트랜스포머 모델을 사용하는 것입니다.
 
-This is what **Audio Spectrogram Transformer** does. It uses the ViT or Vision Transformer model, and passes it spectrograms as input instead of regular images. Thanks to the transformer's self-attention layers, the model is better able to capture global context than a CNN is.
+이것이 바로 **오디오 스펙트로그램 트랜스포머**가 하는 일입니다. 이 모델은 ViT 또는 비전 트랜스포머 모델을 사용하며, 일반 이미지 대신 스펙트로그램을 입력으로 전달합니다. 트랜스포머의 셀프 어텐션 레이어 덕분에 이 모델은 CNN보다 글로벌 컨텍스트를 더 잘 포착할 수 있습니다.
 
-Just like ViT, the AST model splits the audio spectrogram into a sequence of partially overlapping image patches of 16×16 pixels. This sequence of patches is then projected into a sequence of embeddings, and these are given to the transformer encoder as input as usual. AST is an encoder-only transformer model and so the output is a sequence of hidden-states, one for each 16×16 input patch. On top of this is a simple classification layer with sigmoid activation to map the hidden-states to classification probabilities.
+ViT와 마찬가지로 AST 모델은 오디오 스펙트로그램을 16×16픽셀의 부분적으로 겹치는 이미지 패치 시퀀스로 분할합니다. 그런 다음 이 패치 시퀀스는 일련의 임베딩으로 투영되고, 이 임베딩은 평소와 같이 트랜스포머 인코더에 입력으로 제공됩니다. AST는 인코더 전용 트랜스포머 모델이므로 출력은 16×16 입력 패치마다 하나씩 숨겨진 상태 시퀀스입니다. 여기에는 은닉 상태를 분류 확률에 매핑하기 위해 시그모이드 활성화가 포함된 간단한 분류 계층이 있습니다.
 
 <div class="flex justify-center">
-    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/ast.png" alt="The audio spectrogram transformer works on a sequence of patches taken from the spectrogram">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/ast.png" alt="오디오 스펙트로그램 트랜스포머는 스펙트로그램에서 가져온 일련의 패치에서 작동합니다.">
 </div>
 
-Image from the paper [AST: Audio Spectrogram Transformer](https://arxiv.org/pdf/2104.01778.pdf)
+논문 [AST: 오디오 스펙트로그램 트랜스포머](https://arxiv.org/pdf/2104.01778.pdf)에서 가져온 이미지
 
 <Tip>
-💡 Even though here we pretend spectrograms are the same as images, there are important differences. For example, shifting the contents of an image up or down generally does not change the meaning of what is in the image. However, shifting a spectrogram up or down will change the frequencies that are in the sound and completely change its character. Images are invariant under translation but spectrograms are not. Treating spectrograms as images can work very well in practice, but keep in mind they are not really the same thing.
+💡 여기서는 스펙트로그램이 이미지와 동일하다고 가정하지만, 중요한 차이점이 있습니다. 예를 들어, 이미지의 내용을 위아래로 이동해도 일반적으로 이미지에 포함된 내용의 의미는 변하지 않습니다. 그러나 스펙트로그램을 위아래로 이동하면 소리에 포함된 주파수가 변경되어 소리의 성격이 완전히 달라집니다. 이미지는 변환 시에도 변하지 않지만 스펙트로그램은 그렇지 않습니다. 스펙트로그램을 이미지로 취급하는 것은 실제로는 매우 잘 작동할 수 있지만 실제로는 같은 것이 아니라는 점을 명심하세요.
 </Tip>
 
-## Any transformer can be a classifier
+## 모든 트랜스포머는 분류기가 될 수 있습니다.[[any-transformer-can-b-a-classifier]]
 
-In a [previous section](ctc) you've seen that CTC is an efficient technique for performing automatic speech recognition using an encoder-only transformer.  Such CTC models already are classifiers, predicting probabilities for class labels from a tokenizer vocabulary. We can take a CTC model and turn it into a general-purpose audio classifier by changing the labels and training it with a regular cross-entropy loss function instead of the special CTC loss.
+[이전 섹션]에서 CTC가 인코더 전용 트랜스포머를 사용하여 자동 음성 인식을 수행하는 데 효율적인 기술이라는 것을 살펴보았습니다.  이러한 CTC 모델은 이미 토큰화 어휘에서 클래스 레이블에 대한 확률을 예측하는 분류기입니다. 라벨을 변경하고 특수한 CTC 손실 대신 일반 교차 엔트로피 손실 함수로 훈련하면 CTC 모델을 범용 오디오 분류기로 전환할 수 있습니다.
 
-For example, HF Transformers has a `Wav2Vec2ForCTC` model but also `Wav2Vec2ForSequenceClassification` and `Wav2Vec2ForAudioFrameClassification`. The only differences between the architectures of these models is the size of the classification layer and the loss function used.
+예를 들어, HF 트랜스포머에는 `Wav2Vec2ForCTC` 모델뿐만 아니라 `Wav2Vec2ForSequenceClassification` 및 `Wav2Vec2ForAudioFrameClassification` 모델도 있습니다. 이러한 모델의 아키텍처 간의 유일한 차이점은 분류 계층의 크기와 사용되는 손실 함수입니다.
 
-In fact, any encoder-only audio transformer model can be turned into an audio classifier by adding a classification layer on top of the sequence of hidden states. (Classifiers usually don't need a transformer decoder.)
+실제로 모든 인코더 전용 오디오 트랜스포머 모델은 은닉 상태 시퀀스 위에 분류 레이어를 추가하여 오디오 분류기로 전환할 수 있습니다. (분류기에는 일반적으로 트랜스포머 디코더가 필요하지 않습니다.)
 
-To predict a single classification score for the entire sequence (`Wav2Vec2ForSequenceClassification`), the model takes the mean over the hidden-states and feeds that into the classification layer. The output is a single probability distribution.
+전체 시퀀스에 대한 단일 분류 점수를 예측하기 위해 모델에서는 숨겨진 상태의 평균을 구하여 분류 레이어에 입력합니다(`Wav2Vec2ForSequenceClassification`). 출력은 단일 확률 분포입니다.
 
-To make a separate classification for each audio frame (`Wav2Vec2ForAudioFrameClassification`), the classifier is run on the sequence of hidden-states, and so the output of the classifier is a sequence too.
+각 오디오 프레임에 대해 별도의 분류를 만들기 위해(`Wav2Vec2ForAudioFrameClassification`), 분류기는 은닉 상태의 시퀀스에서 실행되므로 분류기의 출력도 시퀀스입니다.

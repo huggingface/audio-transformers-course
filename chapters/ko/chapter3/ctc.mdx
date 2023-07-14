@@ -1,54 +1,54 @@
-# CTC architectures
+# CTC 아키텍처 [[ctc-architectures]]
 
-CTC or Connectionist Temporal Classification is a technique that is used with encoder-only transformer models for automatic speech recognition. Examples of such models are **Wav2Vec2**, **HuBERT** and **M-CTC-T**.
+연결주의 시간 분류(CTC, Connectionist Temporal Classification)는 자동 음성 인식을 위한 인코더 전용 트랜스포머 모델에 사용되는 기법입니다. 이러한 모델의 예로는 **Wav2Vec2**, **HuBERT** 및 **M-CTC-T**가 있습니다.
 
-An encoder-only transformer is the simplest kind of transformer because it just uses the encoder portion of the model. The encoder reads the input sequence (the audio waveform) and maps this into a sequence of hidden-states, also known as the output embeddings.
+인코더 전용 트랜스포머는 모델의 인코더 부분만 사용하기 때문에 가장 간단한 종류의 트랜스포머입니다. 인코더는 입력 시퀀스(오디오 파형)를 읽고 이를 출력 임베딩이라고도 하는 은닉 상태 시퀀스로 매핑합니다.
 
-With a CTC model, we apply an additional linear mapping on the sequence of hidden-states to get class label predictions. The class labels are the **characters of the alphabet** (a, b, c, …). This way we're able to predict any word in the target language with a small classification head, as the vocabulary just needs to exist of 26 characters plus a few special tokens.
+CTC 모델을 사용하면 은닉 상태 시퀀스에 추가 선형 매핑을 적용하여 클래스 레이블 예측을 얻습니다. 클래스 레이블은 **알파벳 문자**(a, b, c, ...)입니다. 이렇게 하면 어휘가 26자와 몇 개의 특수 토큰으로만 존재하면 되기 때문에 작은 분류 헤드로 대상 언어의 모든 단어를 예측할 수 있습니다.
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/wav2vec2-ctc.png" alt="Transformer encoder with a CTC head on top">
 </div>
 
-So far, this is very similar to what we do in NLP with a model such as BERT: an encoder-only transformer model  maps our text tokens into a sequence of encoder hidden-states, and then we apply a linear mapping to get one class label prediction for each hidden-state.
+지금까지는 NLP에서 BERT와 같은 모델을 사용하는 것과 매우 유사합니다. 인코더 전용 트랜스포머 모델이 텍스트 토큰을 인코더 숨겨진 상태 시퀀스에 매핑한 다음 선형 매핑을 적용하여 각 숨겨진 상태에 대해 하나의 클래스 레이블 예측을 얻습니다.
 
-Here's the rub: In speech, we don't know the **alignment** of the audio inputs and text outputs. We know that the order the speech is spoken in is the same as the order that the text is transcribed in (the alignment is so-called monotonic), but we don't know how the characters in the transcription line up to the audio. This is where the CTC algorithm comes in.
+음성에서는 오디오 입력과 텍스트 출력의 '정렬'을 알 수 없다는 점이 문제입니다. 음성이 말하는 순서와 텍스트를 필사(transcribe)하는 순서가 같다는 것은 알지만(소위 단조로운 정렬의 경우), 필사하는 텍스트의 문자가 오디오와 어떻게 일치하는지는 알 수 없습니다. 바로 이 부분에서 CTC 알고리즘이 등장합니다.
 
 <Tip>
-💡 In NLP models the vocabulary is usually made up of thousands of tokens that describe not just individual characters but parts of words or even complete words. For CTC, however, a small vocabulary works best and we generally try to keep it to less than 50 characters. We don't care about the casing of the letters, so only using uppercase (or only lowercase) is sufficient. Numbers are spelled out, e.g. `"20"` becomes `"twenty"`. In addition to the letters, we need at least a word separator token (space) and a padding token. Just as with an NLP model, the padding token allows us to combine multiple examples in a batch, but it's also the token the model will predict for silences. In English, it's also useful to keep the `'` character — after all, `"it's"` and `"its"` have very different meanings.
+💡 NLP 모델에서 어휘는 일반적으로 개별 문자뿐만 아니라 단어의 일부 또는 완전한 단어를 설명하는 수천 개의 토큰으로 구성됩니다. 그러나 CTC의 경우 작은 어휘가 가장 효과적이며 일반적으로 50자 미만으로 유지하려고 노력합니다. 트위터에서는 글자의 대소문자를 구분하지 않으므로 대문자(또는 소문자)만 사용해도 충분합니다. 숫자는 철자로 표기합니다(예: `"20"`은 `"twenty"`가 됩니다). 문자 외에도 최소한 단어 구분 토큰(공백)과 패딩 토큰이 필요합니다. 패딩 토큰은 자연어 처리 모델과 마찬가지로 여러 개의 예문을 일괄적으로 결합할 수 있게 해주지만, 모델이 무음을 예측할 때 사용하는 토큰이기도 합니다. 영어에서는 `'` 문자를 유지하는 것도 유용합니다. `it`s`와 `its`는 매우 다른 의미를 갖기 때문입니다.
 </Tip>
 
-## Dude, where's my alignment?
+## 아니, 내 정렬(alignment)은 어디 있지?[[wheres-my-alignment]]
 
-Automatic speech recognition or ASR involves taking audio as input and producing text as output. We have a few choices for how to predict the text:
+자동 음성 인식(ASR)은 오디오를 입력으로 받아 텍스트를 출력으로 생성합니다. 텍스트를 예측하는 방법에는 몇 가지 선택지가 있습니다:
 
-- as individual characters
-- as phonemes
-- as word tokens
+- 개별 문자로 인식
+- 음소(phonemes)로 인식
+- 단어 토큰으로 인식
 
-An ASR model is trained on a dataset consisting of `(audio, text)` pairs where the text is a human-made transcription of the audio file. Generally the dataset does not include any timing information that says which word or syllable occurs where in the audio file. Since we can't rely on timing information during training, we don't have any idea how the input and output sequences should be aligned.
+자동 음성 인식 모델은 `(오디오, 텍스트)` 쌍으로 구성된 데이터 셋에 대해 학습되며, 텍스트는 오디오 파일의 사람이 만든 필사본입니다. 일반적으로 데이터 셋에는 오디오 파일에서 어떤 단어나 음절이 어디에 나오는지 알려주는 타이밍 정보가 포함되지 않습니다. 훈련 중에 타이밍 정보에 의존할 수 없기 때문에 입력과 출력 순서를 어떻게 정렬해야 하는지 알 수 없습니다.
 
-Let's suppose our input is a one-second audio file. In **Wav2Vec2**, the model first downsamples the audio input using the CNN feature encoder to a shorter sequence of hidden-states, where there is one hidden-state vector for every 20 milliseconds of audio. For one second of audio, we then forward a sequence of 50 hidden-states to the transformer encoder.  (The audio segments extracted from the input sequence partially overlap, so even though one hidden-state vector is emitted every 20 ms, each hidden-state actually represent 25 ms of audio.)
+입력이 1초짜리 오디오 파일이라고 가정해 봅시다. **Wav2Vec2** 모델에서는 먼저 CNN 피처 인코더를 사용하여 오디오 입력을 더 짧은 숨겨진 상태 시퀀스로 다운샘플링하는데, 여기에는 오디오 20밀리초당 하나의 숨겨진 상태 벡터가 있습니다. 오디오 1초에 대해 50개의 숨겨진 상태 시퀀스를 트랜스포머 인코더로 전달합니다.  (입력 시퀀스에서 추출된 오디오 세그먼트는 부분적으로 겹치므로 20밀리초마다 하나의 숨겨진 상태 벡터가 출력되지만 각 숨겨진 상태는 실제로 25밀리초의 오디오를 나타냅니다.)
 
-The transformer encoder predicts one feature representation for each of these hidden-states, meaning we receive a sequence of 50 outputs from the transformer. Each of these outputs has a dimensionality of 768. The output sequence of the transformer encoder in this example therefore has shape `(768, 50)`. As each of these predictions covers 25 ms of time, which is shorter than the duration of a phoneme, it makes sense to predict individual phonemes or characters but not entire words. CTC works best with a small vocabulary, so we'll predict characters.
+트랜스포머 인코더는 이러한 숨겨진 상태 각각에 대해 하나의 특징 표현을 예측하므로 트랜스포머로부터 50개의 출력 시퀀스를 수신합니다. 이러한 각 출력의 차원은 768입니다. 따라서 이 예제에서 트랜스포머 인코더의 출력 시퀀스는 `(768, 50)` 모양을 갖습니다. 이러한 각 예측은 음소 지속 시간보다 짧은 25ms의 시간을 포함하므로 전체 단어가 아닌 개별 음소 또는 문자를 예측하는 것이 합리적입니다. CTC는 작은 어휘에서 가장 잘 작동하므로 문자를 예측해 보겠습니다.
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/cnn-feature-encoder.png" alt="The audio waveform gets mapped to a shorter sequence of hidden-states">
 </div>
 
-To make text predictions, we map each of the 768-dimensional encoder outputs to our character labels using a linear layer (the "CTC head"). The model then predicts a `(50, 32)` tensor containing the logits, where 32 is the number of tokens in the vocabulary. Since we make one prediction for each of the features in the sequence, we end up with a total of 50 character predictions for each second of audio.
+텍스트 예측을 위해 768차원 인코더 출력 각각을 선형 레이어("CTC 헤드")를 사용하여 문자 레이블에 매핑합니다. 그런 다음 모델은 로그를 포함하는 `(50, 32)` 텐서(여기서 32는 어휘의 토큰 수)를 예측합니다. 시퀀스의 각 특징에 대해 하나의 예측을 수행하므로 오디오의 각 초에 대해 총 50개의 문자를 예측하게 됩니다.
 
-However, if we simply predict one character every 20 ms, our output sequence might look something like this:
+그러나 단순히 20ms마다 한 문자를 예측한다면 출력 시퀀스는 다음과 같이 보일 수 있습니다:
 
 ```text
 BRIIONSAWWSOMEETHINGCLOSETOPANICONHHISOPPONENT'SSFAACEWHENTHEMANNFINALLLYRREECOGGNNIIZEDHHISSERRRRORR ...
 ```
 
-If you look closely, it somewhat resembles English but a lot of the characters have been duplicated. That's because the model needs to output *something* for every 20 ms of audio in the input sequence, and if a character is spread out over a period longer than 20 ms then it will appear multiple times in the output. There's no way to avoid this, especially since we don't know what the timing of the transcript is during training. CTC is a way to filter out these duplicates.
+자세히 보면 영어와 다소 비슷하지만 많은 문자가 중복되어 있습니다. 이는 모델이 입력 시퀀스의 오디오 20밀리초마다 *어떤 것*을 출력해야 하기 때문이며, 한 문자가 20밀리초보다 긴 기간에 걸쳐 분산되어 있으면 출력에 여러 번 나타나게 됩니다. 특히 훈련 중에는 대본의 타이밍을 알 수 없기 때문에 이를 피할 방법이 없습니다. CTC는 이러한 중복을 필터링하는 방법입니다.
 
-(In reality, the predicted sequence also contains a lot of padding tokens for when the model isn't quite sure what the sound represents, or for the empty space between characters. We removed these padding tokens from the example for clarity. The partial overlap between audio segments is another reason characters get duplicated in the output.)
+(실제로 예측된 시퀀스에는 모델이 소리가 무엇을 나타내는지 잘 모를 때나 문자 사이의 빈 공간을 위한 많은 패딩 토큰도 포함되어 있습니다. 명확성을 위해 예제에서 이러한 패딩 토큰을 제거했습니다. 오디오 세그먼트가 부분적으로 겹치는 것도 출력에서 문자가 중복되는 또 다른 이유입니다.)
 
-## The CTC algorithm
+## CTC 알고리즘[[the-ctc-algorithm]]
 
 The key to the CTC algorithm is using a special token, often called the **blank token**. This is just another token that the model will predict and it's part of the vocabulary. In this example, the blank token is shown as `_`. This special token serves as a hard boundary between groups of characters.
 
@@ -58,54 +58,54 @@ The full output from the CTC model might be something like the following:
 B_R_II_O_N_||_S_AWW_|||||_S_OMEE_TH_ING_||_C_L_O_S_E||TO|_P_A_N_I_C_||_ON||HHI_S||_OP_P_O_N_EN_T_'SS||_F_AA_C_E||_W_H_EN||THE||M_A_NN_||||_F_I_N_AL_LL_Y||||_RREE_C_O_GG_NN_II_Z_ED|||HHISS|||_ER_RRR_ORR||||
 ```
 
-The `|` token is the word separator character. In the example we use `|` instead of a space making it easier to spot where the word breaks are, but it serves the same purpose.
+토큰 `|`는 단어 구분 문자입니다. 이 예에서는 공백 대신 `|`를 사용하여 단어 나누기 위치를 더 쉽게 파악할 수 있도록 했지만 동일한 용도로 사용됩니다.
 
-The CTC blank character makes it possible to filter out the duplicate characters. For example let's look at the last word from the predicted sequence, `_ER_RRR_ORR`. Without the CTC blank token, the word looked like this:
+CTC 공백 문자를 사용하면 중복 문자를 필터링할 수 있습니다. 예를 들어 예측된 시퀀스의 마지막 단어인 `_ER_RRR_ORR`을 살펴봅시다. CTC 공백 토큰이 없으면 이 단어는 다음과 같이 보입니다:
 
 ```text
 ERRRRORR
 ```
 
-If we were to simply remove duplicate characters, this would become `EROR`. That's clearly not the correct spelling. But with the CTC blank token we can remove the duplicates in each group, so that:
+단순히 중복된 문자를 제거하면 `EROR`이 됩니다. 이는 분명 올바른 철자가 아닙니다. 하지만 CTC 빈 토큰을 사용하면 각 그룹에서 중복을 제거할 수 있습니다. 따라서:
 
 ```text
 _ER_RRR_ORR
 ```
 
-becomes:
+는 아래와 같이 변경됩니다.:
 
 ```text
 _ER_R_OR
 ```
 
-and now we remove the `_` blank token to get the final word:
+이제 `_` 빈 토큰을 제거하여 최종 단어를 얻습니다:
 
 ```text
 ERROR
 ```
 
-If we apply this logic to the entire text, including `|`, and replace the surviving `|` characters by spaces, the final CTC-decoded output is:
+이 논리를 `|`를 포함한 전체 텍스트에 적용하고 남은 `|` 문자를 공백으로 바꾸면 최종 CTC 디코딩된 출력은 다음과 같습니다:
 
 ```text
 BRION SAW SOMETHING CLOSE TO PANIC ON HIS OPPONENT'S FACE WHEN THE MAN FINALLY RECOGNIZED HIS ERROR
 ```
 
-To recap, the model predicts one token (character) for every 20 ms of (partially overlapping) audio from the input waveform. This gives a lot of duplicates. Thanks to the CTC blank token, we can easily remove these duplicates without destroying the proper spelling of the words. This is a very simple and convenient way to solve the problem of aligning the output text with the input audio.
+요약하자면, 모델은 입력 파형에서 (부분적으로 겹치는) 오디오의 20ms마다 하나의 토큰(문자)을 예측합니다. 이로 인해 많은 중복이 발생합니다. CTC 빈 토큰 덕분에 단어의 올바른 철자를 파괴하지 않고도 이러한 중복을 쉽게 제거할 수 있습니다. 이는 출력 텍스트를 입력 오디오와 정렬하는 문제를 해결하는 매우 간단하고 편리한 방법입니다.
 
 <Tip>
-💡 In the actual Wav2Vec2 model, the CTC blank token is the same as the padding token `<pad>`. The model will predict many of these `<pad>` tokens, for example when there isn't a clear character to predict for the current 20 ms of audio. Using the same token for padding as for CTC blanking simplifies the decoding algorithm and it helps keep the vocab small.
+💡 실제 Wav2Vec2 모델에서 CTC 빈 토큰은 패딩 토큰 `<pad>`와 동일합니다. 이 모델은 예를 들어 현재 20ms의 오디오에 대해 예측할 명확한 문자가 없는 경우와 같이 이러한 `<pad>` 토큰을 많이 예측합니다. 패딩에 CTC 블랭킹과 동일한 토큰을 사용하면 디코딩 알고리즘이 단순화되고 어휘를 작게 유지하는 데 도움이 됩니다.
 </Tip>
 
-Adding CTC to a transformer encoder model is easy: the output sequence from the encoder goes into a linear layer that projects the acoustic features to the vocabulary. The model is trained with a special CTC loss.
+인코더의 출력 시퀀스가 어휘에 음향 특징을 투영하는 선형 레이어로 이동하기 때문에 트랜스포머 인코더 모델에 CTC를 추가하는 것은 간단합니다.모델은 특수한 CTC 손실로 훈련됩니다.
 
-One downside of CTC is that it may output words that *sound* correct, but are not *spelled* correctly. After all, the CTC head only considers individual characters, not complete words. One way to improve the quality of the audio transcriptions is to use an external language model. This language model essentially acts as a spellchecker on top of the CTC output.
+CTC의 한 가지 단점은 '소리'는 정확하지만 '철자'는 정확하지 않은 단어를 출력할 수 있다는 점입니다.결국 CTC 헤드는 완전한 단어가 아닌 개별 문자만 고려하기 때문입니다. 오디오 트랜스크립션의 품질을 개선하는 한 가지 방법은 외부 언어 모델을 사용하는 것입니다. 이 언어 모델은 기본적으로 CTC 출력 위에 맞춤법 검사기 역할을 합니다.
 
-## What's the difference between Wav2Vec2, HuBERT, M-CTC-T, ...?
+## Wav2Vec2, HuBERT, M-CTC-T, ...의 차이점은 무엇인가요?[[wav2vec2-hubert-m-ctc-t]]
 
-All transformer-based CTC models have a very similar architecture: they use the transformer encoder (but not the decoder) with a CTC head on top. Architecture-wise they are more alike than different.
+모든 트랜스포머 기반 CTC 모델은 매우 유사한 아키텍처를 가지고 있습니다. 트랜스포머 인코더(디코더는 아님)를 사용하며 그 위에 CTC 헤드가 있습니다. 아키텍처 측면에서 보면 다른 점보다는 비슷한 점이 더 많습니다.
 
-One difference between Wav2Vec2 and M-CTC-T is that the former works on raw audio waveforms while the latter uses mel spectrograms as input. The models also have been trained for different purposes. M-CTC-T, for example, is trained for multilingual speech recognition, and therefore has a relatively large CTC head that includes Chinese characters in addition to other alphabets.
+Wav2Vec2와 M-CTC-T의 한 가지 차이점은 전자는 원시 오디오 파형에서 작동하는 반면 후자는 멜 스펙트로그램을 입력으로 사용한다는 점입니다. 또한 두 모델은 서로 다른 목적으로 훈련되었습니다. 예를 들어, M-CTC-T는 다국어 음성 인식을 위해 훈련되었기 때문에 다른 알파벳 외에 한자를 포함하는 비교적 큰 CTC 헤드를 가지고 있습니다.
 
-Wav2Vec2 & HuBERT use the exact same architecture but are trained in very different ways. Wav2Vec2 is pre-trained like BERT's masked language modeling, by predicting speech units for masked parts of the audio. HuBERT takes the BERT inspiration a step further and learns to predict "discrete speech units", which are analogous to tokens in a text sentence, so that speech can be treated using established NLP techniques.
+Wav2Vec2와 HuBERT는 완전히 동일한 아키텍처를 사용하지만 매우 다른 방식으로 학습됩니다. Wav2Vec2는 오디오의 마스크된 부분에 대한 음성 단위를 예측하여 BERT의 마스크된 언어 모델링과 같이 사전 학습됩니다. HuBERT는 BERT에서 한 걸음 더 나아가 텍스트 문장의 토큰과 유사한 '개별 음성 단위'를 예측하는 방법을 학습하여 기존 NLP 기술을 사용하여 음성을 처리할 수 있도록 합니다.
 
-To clarify, the models highlighted here aren't the only transformer-based CTC models. There are many others, but now you know they all work in a similar way.
+여기서 강조 표시된 모델만 트랜스포머 기반 CTC 모델이 아니라는 점을 분명히 말씀드립니다. 다른 모델도 많이 있지만 모두 비슷한 방식으로 작동한다는 것을 배웠습니다.
