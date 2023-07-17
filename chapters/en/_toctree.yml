@@ -77,8 +77,6 @@
     title: Evaluation and metrics for speech recognition
   - local: chapter5/fine-tuning
     title: How to fine-tune an ASR system with the Trainer API
-#  - local: chapter5/speaker_diarization
-#    title: Automatic speech recognition with speaker diarization
   - local: chapter5/demo
     title: Building a demo
   - local: chapter5/hands_on
@@ -113,35 +111,17 @@
     title: Creating a voice assistant
   - local: chapter7/transcribe-meeting
     title: Transcribe a meeting
-#  - local: chapter7/quiz
-#    title: Quiz
-#    quiz: 7
   - local: chapter7/hands-on
     title: Hands-on exercise
   - local: chapter7/supplemental_reading
     title: Supplemental reading and resources
-#
-#- title: Unit 8. Finish line
-#  sections:
-#  - local: chapter8/introduction
-#    title: Congratulations!
-#  - local: chapter8/certification
-#    title: Get your certification of completion
-#  - local: chapter8/stay_in_touch
-#    title: Stay in touch
-#
-#- title: Bonus unit. Diffusion models for audio
-#  sections:
-#  - local: chapter9/introduction
-#    title: Introduction
-#  - local: chapter9/music_generation
-#    title: Music generation
-#  - local: chapter9/riffusion
-#    title: Riffusion
-#  - local: chapter9/audioldm
-#    title: AudioLDM
-#  - local: chapter9/dance_diffusion
-#    title: Dance Diffusion
+
+- title: Unit 8. Finish line
+  sections:
+  - local: chapter8/introduction
+    title: Congratulations!
+  - local: chapter8/certification
+    title: Get your certificate of completion
 
 - title: Course Events
   sections:
