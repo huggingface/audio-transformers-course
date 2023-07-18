@@ -95,7 +95,7 @@ dataset. However, we can create one, filter based on the values in that column, 
 
 ```py
 # use librosa to get example's duration from the audio file
-new_column = [librosa.get_duration(filename=x) for x in minds["path"]]
+new_column = [librosa.get_duration(path=x) for x in minds["path"]]
 minds = minds.add_column("duration", new_column)
 
 # use 🤗 Datasets' `filter` method to apply the filtering function
@@ -218,4 +218,4 @@ processor = AutoProcessor.from_pretrained("openai/whisper-small")
 
 Here we have illustrated the fundamental data preparation steps. Of course, custom data may require more complex preprocessing.
 In this case, you can extend the function `prepare_dataset` to perform any sort of custom data transformations. With 🤗 Datasets,
-if you can write it as a Python function, you can apply it to your dataset!
+if you can write it as a Python function, you can [apply it](https://huggingface.co/docs/datasets/audio_process) to your dataset!
