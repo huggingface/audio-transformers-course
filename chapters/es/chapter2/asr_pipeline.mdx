@@ -1,0 +1,96 @@
+# Reconocimiento automático de la voz con pipeline
+
+El reconocimiento automático de la voz(ASR) es una tarea que consiste en transcribir una grabación de audio en texto.
+Esta tarea tiene numerosas aplicaciones prácticas, desde crear subtitulos para videos hasta permitir comandos de voz en
+asistentes virtuales como Siri o Alexa. 
+
+En esta sección, usaremos la pipeline  `automatic-speech-recognition` para transcribir la grabación del audio de una 
+persona haciendo una pregunta sobre el pago de una cuenta usando el mismo conjunto de datos MINDS-14 que utilizamos antes.
+
+Para empezar, carguemos el conjunto de datos y hagamos un proceso de resampling a 16kHz como se describe en
+ [Audio classification with a pipeline](introduction.mdx), si no lo has hecho antes.
+
+Para transcribir una grabación de audio, podemos usar la pipeline `automatic-speech-recognition` de 🤗 Transformers.
+Instaciemos primero la pipeline:
+
+```py
+from transformers import pipeline
+
+asr = pipeline("automatic-speech-recognition")
+```
+A continuación, tomamos un ejemplo del conjunto de datos y pasamos los datos en bruto de audio por la pipeline.
+
+```py
+example = minds[0]
+asr(example["audio"]["array"])
+```
+
+**Output:**
+```out
+{"text": "I WOULD LIKE TO PAY MY ELECTRICITY BILL USING MY COD CAN YOU PLEASE ASSIST"}
+```
+Comparemos la salida generada por la pipeline con la transcripción que tiene este ejemplo:
+
+```py
+example["english_transcription"]
+```
+
+**Output:**
+```out
+"I would like to pay my electricity bill using my card can you please assist"
+```
+
+Parece que el modelo ha hecho un muy buen trabajo ¡transcribiendo el audio! Solo una palabra tiene una transcripción mala("card") 
+al compararse con la transcripción original, lo que esta muy bien considerando que el hablante tiene un acento australiano, donde la letra "r"
+es mucha veces muda. Habiendo aclarado esto, no recomendaria intentar pagar tu próxima cuenta de electricidad con una pescado(Traducción de cad) 
+
+Por defecto, esta pipeline usa un modelo entrenado para reconocimientode voz en el idioma ingles, lo que se adapta a este ejemplo. 
+Si quisieras intentar transcribir otro subconjunto de MINDS-14 de un lenguaje diferente, puedes encontrar un modelo de ASR 
+pre-entrenado en el [🤗 Hub](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&language=fr&sort=downloads).
+Puedes filtrar los modelos por tipo de tarea y luego por lenguaje. Una vez que hayas encontrado el modelo, puedes pasar el nombre
+como el argumento `model` a la pipeline
+
+Intentemoslo para la partición de Aleman de MINDS-14. Carga el subconjunto "de-DE":
+
+```py
+from datasets import load_dataset
+from datasets import Audio
+
+minds = load_dataset("PolyAI/minds14", name="de-DE", split="train")
+minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
+```
+Mira un ejemplo para verificar que la transcripción es lo que esperamos:
+
+```py
+example = minds[0]
+example["transcription"]
+```
+
+**Output:**
+```out
+"ich möchte gerne Geld auf mein Konto einzahlen"
+```
+Encuentra un modelo pre-entrenado de ASR para el idioma aleman en el 🤗 Hub, instancia la pipeline, y transcribe el ejemplo:
+
+```py
+from transformers import pipeline
+
+asr = pipeline("automatic-speech-recognition", model="maxidl/wav2vec2-large-xlsr-german")
+asr(example["audio"]["array"])
+```
+
+**Output:**
+```out
+{"text": "ich möchte gerne geld auf mein konto einzallen"}
+```
+
+Also, stimmt's!
+Cuando trabajes en resolver tu propria tarea, empezar con una pipeline simple como las que acabamos de mostrar en esta unidad 
+es una herramienta valiosa que ofrece los siguientes beneficios:
+- un modelo pre entrenado puede existir que ya resuelva tu tarea de una forma satisfactoria, lo que te ahorrará tiempo.
+- pipeline() se encarga de todos los pasos de pre y post procesamiento, así no tienes que preocuparte en convertir los 
+datos en el formato adecuado que necesita el modelo. 
+- Si el resultado no es el ideal, te da un modelo de base en el que posteriormente puedes re-entrenar.
+- Una vez que re-entrenes tu modelo con tus datos personalizados y lo compartas en el Hub, la comunidad podrá usarlo de forma 
+rápida y fácil usando `pipeline()`, lo que hace el campo de la IA mucho más accesible.
+

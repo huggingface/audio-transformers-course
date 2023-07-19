@@ -1,10 +1,10 @@
 # Build a demo with Gradio
 
-Now that we've fine-tuned a Whisper model for Dhivehi speech recognition, let's go ahead and build a [Gradio]((https://gradio.app))
+Now that we've fine-tuned a Whisper model for Dhivehi speech recognition, let's go ahead and build a [Gradio](https://gradio.app)
 demo to showcase it to the community!
 
 The first thing to do is load up the fine-tuned checkpoint using the `pipeline()` class - this is very familiar now from 
-the section on [pre-trained models](asr_models.mdx). You can change the `model_id` to the namespace of your fine-tuned 
+the section on [pre-trained models](asr_models). You can change the `model_id` to the namespace of your fine-tuned 
 model on the Hugging Face Hub, or one of the pre-trained [Whisper models](https://huggingface.co/models?sort=downloads&search=openai%2Fwhisper-) 
 to perform zero-shot speech recognition:
 
@@ -19,7 +19,7 @@ Secondly, we'll define a function that takes the filepath for an audio input and
 the pipeline automatically takes care of loading the audio file, resampling it to the correct sampling rate, and running
 inference with the model. We can then simply return the transcribed text as the output of the function. To ensure our 
 model can handle audio inputs of arbitrary length, we'll enable *chunking* as described in the section 
-on [pre-trained models](asr_models.mdx):
+on [pre-trained models](asr_models):
 
 ```python
 def transcribe_speech(filepath):

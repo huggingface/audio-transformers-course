@@ -52,7 +52,7 @@ A text-to-speech model takes text as input. This works just like the original tr
 
 An automatic speech recognition model takes audio as input. To be able to use a transformer for ASR, we first need to convert the audio into a sequence of embedding vectors somehow.
 
-Models such as **Wav2Vec2** and **HuBERT** use the audio waveform directly as the input to the model. As you've seen in [the chapter on audio data](chapter1/introduction), a waveform is a one-dimensional sequence of floating-point numbers, where each number represents the sampled amplitude at a given time. This raw waveform is first normalized to zero mean and unit variance, which helps to standardize audio samples across different volumes (amplitudes).
+Models such as **Wav2Vec2** and **HuBERT** use the audio waveform directly as the input to the model. As you've seen in [the chapter on audio data](../chapter1/introduction), a waveform is a one-dimensional sequence of floating-point numbers, where each number represents the sampled amplitude at a given time. This raw waveform is first normalized to zero mean and unit variance, which helps to standardize audio samples across different volumes (amplitudes).
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/wav2vec2-input.png" alt="Wav2Vec2 uses a CNN to create embeddings from the input waveform">

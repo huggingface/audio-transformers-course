@@ -41,7 +41,7 @@ Your token has been saved to /root/.huggingface/token
 
 ## Load Dataset
 
-[Common Voice 13]((https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0)) contains approximately ten
+[Common Voice 13](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0) contains approximately ten
 hours of labelled Dhivehi data, three of which is held-out test data. This is extremely little data for fine-tuning, so
 we'll be relying on leveraging the extensive multilingual ASR knowledge acquired by Whisper during pre-training for the
 low-resource Dhivehi language.
@@ -333,7 +333,7 @@ Onwards!
 ### Evaluation Metrics
 
 Next, we define the evaluation metric we'll use on our evaluation set. We'll use the Word Error Rate (WER) metric introduced
-in the section on [Evaluation](evaluation.mdx), the 'de-facto' metric for assessing ASR systems.
+in the section on [Evaluation](evaluation), the 'de-facto' metric for assessing ASR systems.
 
 We'll load the WER metric from 🤗 Evaluate:
 
@@ -499,7 +499,7 @@ and fine-tuned it to recognise Dhivehi speech with adequate accuracy in under on
 The big question is how this compares to other ASR systems. For that, we can view the autoevaluate [leaderboard](https://huggingface.co/spaces/autoevaluate/leaderboards?dataset=mozilla-foundation%2Fcommon_voice_13_0&only_verified=0&task=automatic-speech-recognition&config=dv&split=test&metric=wer),
 a leaderboard that categorises models by language and dataset, and subsequently ranks them according to their WER.
 
-Looking at the leaderboard, we see that our model trained for 500 steps convincingly beats the pre-trained [Whisper Small](hf.co/openai/whisper-small)
+Looking at the leaderboard, we see that our model trained for 500 steps convincingly beats the pre-trained [Whisper Small](https://huggingface.co/openai/whisper-small)
 checkpoint that we evaluated in the previous section. Nice job 👏
 
 We see that there are a few checkpoints that do better than the one we trained. The beauty of the Hugging Face Hub is that
@@ -566,5 +566,5 @@ model to the Hugging Face Hub, and showcased how to share and use it with the `p
 
 If you followed through to this point, you should now have a fine-tuned checkpoint for speech recognition, well done! 🥳
 Even more importantly, you're equipped with all the tools you need to fine-tune the Whisper model on any speech recognition
-dataset or domain. So what are you waiting for! Pick one of the datasets covered in the section [Choosing a Dataset](choosing_dataset.mdx)
+dataset or domain. So what are you waiting for! Pick one of the datasets covered in the section [Choosing a Dataset](choosing_dataset)
 or select a dataset of your own, and see whether you can get state-of-the-art performance! The leaderboard is waiting for you...

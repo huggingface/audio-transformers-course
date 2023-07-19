@@ -6,7 +6,7 @@ The goal of audio classification is to predict a class label for an audio input.
 
 One of the easiest ways to perform audio classification is to pretend it's an image classification problem!
 
-Recall that a spectrogram is a two-dimensional tensor of shape `(frequencies, sequence length)`. In the [chapter on audio data](chapter1/audio_data) we plotted these spectrograms as images. Guess what? We can literally treat the spectrogram as an image and pass it into a regular CNN classifier model such as ResNet and get very good predictions. Even better, we can use a image transformer model such as ViT.
+Recall that a spectrogram is a two-dimensional tensor of shape `(frequencies, sequence length)`. In the [chapter on audio data](../chapter1/audio_data) we plotted these spectrograms as images. Guess what? We can literally treat the spectrogram as an image and pass it into a regular CNN classifier model such as ResNet and get very good predictions. Even better, we can use a image transformer model such as ViT.
 
 This is what **Audio Spectrogram Transformer** does. It uses the ViT or Vision Transformer model, and passes it spectrograms as input instead of regular images. Thanks to the transformer's self-attention layers, the model is better able to capture global context than a CNN is.
 
