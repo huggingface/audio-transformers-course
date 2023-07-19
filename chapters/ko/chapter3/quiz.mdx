@@ -1,138 +1,138 @@
 <!-- DISABLE-FRONTMATTER-SECTIONS -->
 
-# Check your understanding of the course material
+# 코스 자료에 대한 이해도를 확인해보세요[[check-your-understanding-of-the-course-material]]
 
-### 1. What is a vocoder?
+### 1. 보코더(vocoder)는 무엇일까요?
 
 <Question
 	choices={[
 		{
-			text: "An additional neural network that turns the spectrogram output of a transformer into a waveform.",
-			explain: "Correct! ",
+			text: "트랜스포머의 스펙트로그램 출력을 파형으로 변환하는 추가 신경망입니다.",
+			explain: "정답입니다.",
 			correct: true
 		},
 		{
-			text: "A type of transformer layer that is responsible for creating audio embeddings.",
+			text: "오디오 임베딩을 생성하는 트랜스포머 레이어의 한 유형입니다.",
 			explain: ""
 		},
 		{
-			text: "An additional neural network that preprocesses speech audio to remove background noise",
+			text: "배경 소음을 제거하기 위해 음성 오디오를 전처리하는 추가 신경망",
 			explain: "",
 		}
 	]}
 />
 
-### 2. Wav2Vec2 is an example of
+### 2. Wav2Vec2는 어떤 항목에 예제일까요?
 
 <Question
 	choices={[
 		{
-			text: "Seq2Seq architecture",
+			text: "Seq2Seq 아키텍처",
 			explain: ""
 		},
 		{
-			text: "CNN architecture",
+			text: "CNN 아키텍처",
 			explain: ""
 		},
 		{
-			text: "CTC architecture",
-			explain: "Correct!",
+			text: "CTC 아키텍처",
+			explain: "정답입니다.",
 			correct: true
 		}
 	]}
 />
 
-### 3. What does a blank token in CTC algorithm do?
+### 3. CTC 알고리즘에서 빈 토큰은 어떤 역할을 하나요?
 
 <Question
 	choices={[
 		{
-			text: "Blank token indicates breaks between the individual words in the sentence.",
+			text: "빈 토큰은 문장의 개별 단어 사이에 공백이 있음을 나타냅니다.",
 			explain: ""
 		},
 		{
-			text: "Blank token is a predicted token that serves as a hard boundary between groups of characters. It makes it possible to filter out the duplicate characters",
-			explain: "Correct!",
+			text: "빈 토큰은 문자 그룹 간의 엄격한 경계 역할을 하는 예측 토큰입니다. 중복되는 문자를 필터링할 수 있습니다.",
+			explain: "정답입니다.",
 			correct: true
 		},
 		{
-			text: "Blank token is used for sounds that do not match any tokens in the vocabulary, similar to <UNK> token for 'unknown'.",
+			text: "빈 토큰은 어휘에서 어떤 토큰과도 일치하지 않는 소리에 사용되며, '알 수 없음'을 나타내는 <UNK> 토큰과 유사합니다.",
 			explain: ""
 		}
 	]}
 />
 
-### 4. Which of the following statements about CTC models is FALSE? 
+### 4. 다음 중 CTC 모델에 대한 설명 중 거짓은 무엇입니까?
 
 <Question
 	choices={[
 		{
-			text: "CTC models use only the encoder part of the transformer architecture.",
+			text: "CTC 모델은 트랜스포머 아키텍처의 인코더 부분만 사용합니다.",
 			explain: ""
 		},
 		{
-			text: "Wav2Vec2 & HuBERT use the exact same architecture but are trained differently.",
+			text: "Wav2Vec2와 HuBERT는 완전히 동일한 아키텍처를 사용하지만 학습 방식은 다릅니다.",
 			explain: ""
 		},
 		{
-			text: "CTC models tend to perform best for speech recognition compared to other architectures.",
-			explain: "Correct!",
+			text: "CTC 모델은 다른 아키텍처에 비해 음성 인식 성능이 가장 우수한 경향이 있습니다.",
+			explain: "정답입니다.",
 			correct: true
 		}
 	]}
 />
 
-### 5. Whisper is an example of  
+### 5. Whisper모델은 어떤 항목의 예제일까요?
 
 <Question
 	choices={[
 		{
-			text: "Seq2Seq architecture",
-			explain: "Correct!",
+			text: "Seq2Seq 아키텍처",
+			explain: "정답입니다.",
 			correct: true
 		},
 		{
-			text: "CNN architecture",
+			text: "CNN 아키텍처",
 			explain: ""
 		},
 		{
-			text: "CTC architecture",
+			text: "CTC 아키텍처",
 			explain: ""
 		}
 	]}
 />
 
-### 6. What is the easiest way to perform audio classification?
+### 6. 오디오 분류를 수행하는 가장 쉬운 방법은 무엇인가요?
 
 <Question
 	choices={[
 		{
-			text: "Use encoder-decoder transformers on the audio waveform.",
+			text: "오디오 파형에 인코더-디코더 트랜스포머를 사용합니다.",
 			explain: ""
 		},
 		{
-			text: "Use spectrograms and treat the task as an image classification problem.",
-			explain: "Correct!",
+			text: "스펙트로그램을 사용하여 작업을 이미지 분류 문제로 처리합니다.",
+			explain: "정답입니다.",
 			correct: true
 		},
 		{
-			text: "Turn a CTC model into a general-purpose audio classifier by changing the labels and training it with a regular cross-entropy loss function.",
+			text: "레이블을 변경하고 일반 크로스 엔트로피 손실 함수로 훈련하여 CTC 모델을 범용 오디오 분류기로 전환합니다.",
 			explain: ""
 		}
 	]}
 />
 
-### 7. True or false? When treating spectrograms as images for classification, you will always benefit from image data augmentation techniques, such as shifting an image, cropping it, or resizing. 
+### 7. 참인가요, 거짓인가요? 분류를 위해 스펙트로그램을 이미지로 처리할 때는 항상 이미지 이동, 자르기 또는 크기 조정과 같은 이미지 데이터 증강 기술을 활용할 수 있습니다.
 
 <Question
 	choices={[
 		{
-			text: "True",
+			text: "참",
 			explain: ""
 		},
 		{
-			text: "False",
-			explain: "Correct!",
+			text: "거짓",
+			explain: "정답입니다.",
 			correct: true
 		}
 	]}

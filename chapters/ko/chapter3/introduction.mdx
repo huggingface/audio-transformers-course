@@ -1,4 +1,4 @@
-# 3단원. 오디오를 위한 트랜스포머 아키텍처[[Transformer-architectures-for-audio]]
+# 3단원. 오디오를 위한 트랜스포머 아키텍처[[unit-3-transformer-architectures-for-audio]]
 
 이 강좌에서는 주로 트랜스포머 모델과 이를 오디오 작업에 적용하는 방법을 살펴봅니다. 모델의 내부의 세부 내용을 알 필요는 없지만 모델이 동작하는 주요 개념을 이해하는 것이 중요하기 때문에 간단히 복습하겠습니다. 트랜스포머에 대해 자세히 살펴보고 싶으시다면 [NLP 과정](https://huggingface.co/course/chapter1/1)을 참조하세요.
 
@@ -28,7 +28,7 @@
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/transformers_blocks.png" alt="The transformer with audio input and output">
 </div>
 
-오디오 작업의 경우 입력 및/또는 출력 시퀀스가 텍스트가 아닌 오디오일 수 있습니다:
+오디오 작업의 경우 입력과/또는 출력 시퀀스가 텍스트가 아닌 오디오일 수 있습니다:
 
 - 자동 음성 인식(ASR): 입력은 음성, 출력은 텍스트입니다.
 
@@ -76,11 +76,11 @@
 
 ## 모델 출력[[model-outputs]]
 
-트랜스포머 아키텍처는 출력 임베딩이라고도 하는 숨겨진 상태 벡터의 시퀀스를 출력합니다. 우리의 목표는 이러한 벡터를 텍스트 또는 오디오 출력으로 변환하는 것입니다.
+트랜스포머 아키텍처는 출력 임베딩이라고도 하는 은닉 상태 벡터의 시퀀스를 출력합니다. 우리의 목표는 이러한 벡터를 텍스트 또는 오디오 출력으로 변환하는 것입니다.
 
 ### 텍스트 출력[[text-output]]
 
-The goal of an automatic speech recognition model is to predict a sequence of text tokens. This is done by adding a language modeling head — typically a single linear layer — followed by a softmax on top of the transformer's output. This predicts the probabilities over the text tokens in the vocabulary.
+자동 음성 인식 모델의 목표는 텍스트 토큰의 시퀀스를 예측하는 것입니다. 이는 언어 모델링 헤드(일반적으로 단일 선형 레이어)를 추가한 다음 트랜스포머의 출력 위에 소프트맥스를 추가하여 수행됩니다. 이렇게 하면 어휘의 텍스트 토큰에 대한 확률을 예측할 수 있습니다
 
 ### 스펙트로그램 출력[[spectrogram-output]]
 
