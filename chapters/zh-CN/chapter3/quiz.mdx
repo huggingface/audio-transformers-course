@@ -1,0 +1,139 @@
+<!-- DISABLE-FRONTMATTER-SECTIONS -->
+
+# 测测你对课程内容的理解
+
+### 1. 什么是声码器（vocoder）？
+
+<Question
+	choices={[
+		{
+			text: "将Transformer输出的时频谱转化为声音波形的外挂神经网络。",
+			explain: "正确！",
+			correct: true
+		},
+		{
+			text: "生成音频嵌入序列的一种Transformer层。",
+			explain: ""
+		},
+		{
+			text: "对声音进行降噪预处理的外挂神经网络。",
+			explain: "",
+		}
+	]}
+/>
+
+### 2. Wav2Vec2模型采用了什么结构？
+
+<Question
+	choices={[
+		{
+			text: "Seq2Seq结构",
+			explain: ""
+		},
+		{
+			text: "CNN结构",
+			explain: ""
+		},
+		{
+			text: "CTC结构",
+			explain: "正确！",
+			correct: true
+		}
+	]}
+/>
+
+### 3. CTC算法中的空白标记（blank token）有什么作用？
+
+<Question
+	choices={[
+		{
+			text: "空白标记可以表示句子中不同单词之间的分隔。",
+			explain: ""
+		},
+		{
+			text: "空白标记表示的是字母组之间的硬边界的预测标记。它可以帮助我们对重复字母进行过滤。",
+			explain: "正确！",
+			correct: true
+		},
+		{
+			text: "空白标记表示不对应字母表中任一词素的声音，类似于“未知”标记<UNK>。",
+			explain: ""
+		}
+	]}
+/>
+
+### 4. 下列关于CTC模型的选项中哪一项是**错误**的？ 
+
+<Question
+	choices={[
+		{
+			text: "CTC模型仅使用的Transformer结构中的编码器（encoder）。",
+			explain: ""
+		},
+		{
+			text: "Wav2Vec2和HuBERT使用了完全相同的结构，但训练方法不同。",
+			explain: ""
+		},
+		{
+			text: "CTC模型在语音识别任务上的准确率高于其他任何模型。",
+			explain: "正确！",
+			correct: true
+		}
+	]}
+/>
+
+### 5. Whisper模型使用了什么结构？
+
+<Question
+	choices={[
+		{
+			text: "Seq2Seq结构",
+			explain: "正确！",
+			correct: true
+		},
+		{
+			text: "CNN结构",
+			explain: ""
+		},
+		{
+			text: "CTC结构",
+			explain: ""
+		}
+	]}
+/>
+
+### 6. 解决音频分类任务的最简单方法是？
+
+<Question
+	choices={[
+		{
+			text: "在音频波形上使用编码器-解码器结构。",
+			explain: ""
+		},
+		{
+			text: "使用时频谱并将其视为图像分类任务。",
+			explain: "正确！",
+			correct: true
+		},
+		{
+			text: "将CTC模型改造为一个音频分类器，改变其分类标签并使用常规的交叉熵损失函数（regular cross-entropy loss function）进行训练。",
+			explain: ""
+		}
+	]}
+/>
+
+### 7. 以下陈述是否正确：当我们在时频谱上应用图像分类技巧时，我们可以使用常见的图像数据增强（Image data augmentation）方法，例如图像平移、裁切或改变大小，来提高模型的性能。
+
+<Question
+	choices={[
+		{
+			text: "正确",
+			explain: ""
+		},
+		{
+			text: "错误",
+			explain: "正确！",
+			correct: true
+		}
+	]}
+/>
