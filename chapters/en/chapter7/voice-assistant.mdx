@@ -51,7 +51,7 @@ Again, we've done this several times now, so the process will be very familiar!
 ## Wake word detection
 
 The first stage in the voice assistant pipeline is detecting whether the wake word was spoken, and we need to find ourselves
-an appropriate pre-trained model for this task! You'll remember from the section on [pre-trained models for audio classification](../chapter4/classification_models.mdx) 
+an appropriate pre-trained model for this task! You'll remember from the section on [pre-trained models for audio classification](../chapter4/classification_models) 
 that [Speech Commands](https://huggingface.co/datasets/speech_commands) is a dataset of spoken words designed to 
 evaluate audio classification models on 15+ simple command words like `"up"`, `"down"`, `"yes"` and `"no"`, as well as a 
 `"silence"` label to classify no speech. Take a minute to listen through the samples on the datasets viewer on 
@@ -349,7 +349,7 @@ embeddings_dataset = load_dataset("Matthijs/cmu-arctic-xvectors", split="validat
 speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze(0)
 ```
 
-We'll re-use the `synthesise` function that we defined in the previous chapter on [Speech-to-speech translation](speech-to-speech.mdx):
+We'll re-use the `synthesise` function that we defined in the previous chapter on [Speech-to-speech translation](speech-to-speech):
 
 ```python
 def synthesise(text):
