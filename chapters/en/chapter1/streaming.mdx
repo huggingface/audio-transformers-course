@@ -10,7 +10,7 @@ happens when we want to train on a larger split? The full `xl` configuration of 
 training data, requiring over 1TB of storage space. For most of us, this well exceeds the specifications of a typical
 hard drive disk. Do we need to fork out and buy additional storage? Or is there a way we can train on these datasets with no disk space constraints?
 
- 🤗 Datasets comes to the rescue by offering the streaming mode. Streaming allows us to load the data progressively as
+ 🤗 Datasets comes to the rescue by offering the [streaming mode](https://huggingface.co/docs/datasets/stream). Streaming allows us to load the data progressively as
  we iterate over the dataset. Rather than downloading the whole dataset at once, we load the dataset one example at a time.
  We iterate over the dataset, loading and preparing examples on the fly when they are needed. This way, we only ever
  load the examples that we're using, and not the ones that we're not!
