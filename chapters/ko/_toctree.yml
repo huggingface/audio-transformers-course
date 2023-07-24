@@ -36,11 +36,6 @@
   - local: chapter2/hands_on
     title: 실습 과제
 
-- title: 코스 이벤트
-  sections:
-  - local: events/introduction
-    title: 라이브 세션과 워크샵
-
 - title: 3단원. 오디오용 트랜스포머 아키텍처
   sections:
   - local: chapter3/introduction
@@ -56,3 +51,8 @@
     quiz: 3
   - local: chapter3/supplemental_reading
     title: 보충자료 및 리소스
+
+- title: 코스 이벤트
+  sections:
+  - local: events/introduction
+    title: 라이브 세션과 워크샵
