@@ -325,15 +325,24 @@ gtzan_encoded
 ```out
 DatasetDict({
     train: Dataset({
-        features: ['genre', 'input_values'],
+        features: ['genre', 'input_values','attention_mask'],
         num_rows: 899
     })
     test: Dataset({
-        features: ['genre', 'input_values'],
+        features: ['genre', 'input_values','attention_mask'],
         num_rows: 100
     })
 })
 ```
+
+<Tip warning={true}>
+
+If you face error in running above code please modify following 
+
+batch_size: defaults to 1000, reduce it to 100, and if that doesn't work then reduce it by a factor of 2 again to 50
+writer_batch_size: defaults to 1000, reduce it to 500, and if that doesn't work then reduce it by a factor of 2 to 250
+</Tip>
+
 
 To simplify the training, we've removed the `audio` and `file` columns from the dataset. The `input_values` column contains
 the encoded audio files, the `attention_mask` a binary mask of 0/1 values that indicate where we have padded the audio input,
