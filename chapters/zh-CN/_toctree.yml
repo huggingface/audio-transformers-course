@@ -52,19 +52,19 @@
   - local: chapter3/supplemental_reading
     title: 补充阅读
 
-- title: 第4单元：构建音乐风格分类器
-  sections:
-  - local: chapter4/introduction
-    title: 单元简介
-  - local: chapter4/classification_models
-    title: 音频分类的预训练模型
-  - local: chapter4/fine-tuning
-    title: 针对音乐分类进行微调
-  - local: chapter4/demo
-    title: 使用Gradio构建demo
-  - local: chapter4/hands_on
-    title: 实战练习
-
+#- title: 第4单元：构建音乐风格分类器
+#  sections:
+#  - local: chapter4/introduction
+#    title: 单元简介
+#  - local: chapter4/classification_models
+#    title: 音频分类的预训练模型
+#  - local: chapter4/fine-tuning
+#    title: 针对音乐分类进行微调
+#  - local: chapter4/demo
+#    title: 使用Gradio构建demo
+#  - local: chapter4/hands_on
+#    title: 实战练习
+#
 #- title: 第5单元：自动语音识别(ASR)
 #  sections:
 #  - local: chapter5/introduction
@@ -157,7 +157,7 @@
 #  - local: chapter9/dance_diffusion
 #    title: Dance Diffusion模型
 
-- title: 课程活动
-  sections:
-  - local: events/introduction
-    title: 直播录像
+#- title: 课程活动
+#  sections:
+#  - local: events/introduction
+#    title: 直播录像
