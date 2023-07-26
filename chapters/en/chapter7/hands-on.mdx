@@ -14,7 +14,7 @@ tier works just fine 🤗 However, you should ensure that the visibility of your
 such that your demo is accessible to us and can thus be checked for correctness.
 
 Tips for updating the speech translation function to perform multilingual speech translation are provided in the 
-section on [speech-to-speech translation](speech-to-speech.mdx). By following these instructions, you should be able
+section on [speech-to-speech translation](speech-to-speech). By following these instructions, you should be able
 to update the demo to translate from speech in language X to text in language Y, which is half of the task!
 
 To synthesise from text in language Y to speech in language Y, where Y is a multilingual language, you will need 
@@ -22,7 +22,7 @@ to use a multilingual TTS checkpoint. For this, you can either use the SpeechT5 
 in the previous hands-on exercise, or a pre-trained multilingual TTS checkpoint. There are two options for pre-trained 
 checkpoints, either the checkpoint [sanchit-gandhi/speecht5_tts_vox_nl](https://huggingface.co/sanchit-gandhi/speecht5_tts_vox_nl),
 which is a SpeechT5 checkpoint fine-tuned on the Dutch split of the [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli)
-dataset, or an MMS TTS checkpoint (see section on [pretrained models for TTS](../chapter6/pre-trained_models.mdx)).
+dataset, or an MMS TTS checkpoint (see section on [pretrained models for TTS](../chapter6/pre-trained_models)).
 
 <Tip>
     In our experience experimenting with the Dutch language, using an MMS TTS checkpoint results in better performance than a
