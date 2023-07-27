@@ -1,0 +1,163 @@
+- title: 第0单元：欢迎来到Hugging Face音频课程！
+  sections:
+  - local: chapter0/introduction
+    title: 课堂目标
+  - local: chapter0/get_ready
+    title: 准备工作
+  - local: chapter0/community
+    title: 加入社区
+
+- title: 第1单元：音频数据处理
+  sections:
+  - local: chapter1/introduction
+    title: 单元简介
+  - local: chapter1/audio_data
+    title: 音频数据处理入门
+  - local: chapter1/load_and_explore
+    title: 加载音频数据集
+  - local: chapter1/preprocessing
+    title: 音频数据集的预处理
+  - local: chapter1/streaming
+    title: 音频数据的流式加载
+  - local: chapter1/quiz
+    title: 习题
+    quiz: 1
+  - local: chapter1/supplemental_reading
+    title: 补充阅读
+
+- title: 第2单元：音频应用的入门介绍
+  sections:
+  - local: chapter2/introduction
+    title: 音频应用概览
+  - local: chapter2/audio_classification_pipeline
+    title: 利用pipeline进行音频分类
+  - local: chapter2/asr_pipeline
+    title: 利用pipeline进行自动语音识别
+  - local: chapter2/hands_on
+    title: 实战练习
+
+- title: 第3单元：音频Transformer结构
+  sections:
+  - local: chapter3/introduction
+    title: Transformer模型回顾
+  - local: chapter3/ctc
+    title: CTC结构
+  - local: chapter3/seq2seq
+    title: Seq2Seq结构
+  - local: chapter3/classification
+    title: 音频分类结构
+  - local: chapter3/quiz
+    title: 习题
+    quiz: 3
+  - local: chapter3/supplemental_reading
+    title: 补充阅读
+
+#- title: 第4单元：构建音乐风格分类器
+#  sections:
+#  - local: chapter4/introduction
+#    title: 单元简介
+#  - local: chapter4/classification_models
+#    title: 音频分类的预训练模型
+#  - local: chapter4/fine-tuning
+#    title: 针对音乐分类进行微调
+#  - local: chapter4/demo
+#    title: 使用Gradio构建demo
+#  - local: chapter4/hands_on
+#    title: 实战练习
+#
+#- title: 第5单元：自动语音识别(ASR)
+#  sections:
+#  - local: chapter5/introduction
+#    title: 单元简介
+#  - local: chapter5/choosing_dataset
+#    title: 选择数据集
+#  - local: chapter5/asr_models
+#    title: 自动语音识别的与训练模型
+#  - local: chapter5/preprocessing_data
+#    title: 数据加载和预处理
+#  - local: chapter5/evaluation
+#    title: 自动语音识别的评价指标
+#  - local: chapter5/fine-tuning
+#    title: 自动语音识别模型的微调
+#  - local: chapter5/speaker_diarization
+#    title: 说话人识别
+#  - local: chapter5/quiz
+#    title: 习题
+#    quiz: 5
+#  - local: chapter5/hands_on
+#    title: 实战练习
+#  - local: chapter5/supplemental_reading
+#    title: 补充阅读
+#
+#- title: 第6单元：由文字合成语音(TTS)
+#  sections:
+#  - local: chapter6/introduction
+#    title: 单元简介
+#  - local: chapter6/overview
+#    title: 如何从文字合成语音
+#  - local: chapter6/choosing_dataset
+#    title: 数据集选择
+#  - local: chapter6/preprocessing
+#    title: 数据加载和预处理
+#  - local: chapter6/pre-trained_models
+#    title: 文字转语音（TTS）预训练模型
+#  - local: chapter6/evaluation
+#    title: 文字转语音（TTS）的评价指标
+#  - local: chapter6/fine-tuning
+#    title: SpeechT5模型的微调
+#  - local: chapter6/quiz
+#    title: 习题
+#    quiz: 6
+#  - local: chapter6/hands_on
+#    title: 实战练习
+#  - local: chapter6/supplemental_reading
+#    title: 补充材料
+#
+#- title: 第7单元：音频到音频合成(ATA)
+#  sections:
+#  - local: chapter7/introduction
+#    title: 单元简介
+#  - local: chapter7/tasks
+#    title: 音频到音频合成（ATA）任务实例
+#  - local: chapter7/choosing_dataset
+#    title: 数据集选择
+#  - local: chapter7/preprocessing
+#    title: 数据加载和预处理
+#  - local: chapter7/evaluation
+#    title: 音频到音频合成（ATA）的评价指标
+#  - local: chapter7/fine-tuning
+#    title: 模型微调
+#  - local: chapter7/quiz
+#    title: 习题
+#    quiz: 7
+#  - local: chapter7/hands_on
+#    title: 实战练习
+#  - local: chapter7/supplemental_reading
+#    title: 补充阅读
+#
+#- title: 第8单元：终点线
+#  sections:
+#  - local: chapter8/introduction
+#    title: Congratulations!
+#  - local: chapter8/certification
+#    title: Get your certification of completion
+#  - local: chapter8/stay_in_touch
+#    title: Stay in touch
+#
+#- title: 附加单元：音频扩散模型
+#  sections:
+#  - local: chapter9/introduction
+#    title: 单元简介
+#  - local: chapter9/music_generation
+#    title: 音乐生成
+#  - local: chapter9/riffusion
+#    title: Riffusion模型
+#  - local: chapter9/audioldm
+#    title: AudioLDM模型
+#  - local: chapter9/dance_diffusion
+#    title: Dance Diffusion模型
+
+#- title: 课程活动
+#  sections:
+#  - local: events/introduction
+#    title: 直播录像
