@@ -40,7 +40,7 @@ GTZAN doesn't provide a predefined validation set, so we'll have to create one o
 genres, so we can use the `train_test_split()` method to quickly create a 90/10 split as follows:
 
 ```python
-gtzan = gtzan["train"].train_test_split(seed=42, shuffle=True, test_size=0.1)
+gtzan = gtzan.train_test_split(seed=42, shuffle=True, test_size=0.1)
 gtzan
 ```
 
@@ -109,6 +109,9 @@ This label looks correct, since it matches the filename of the audio file. Let's
 using Gradio to create a simple interface with the `Blocks` API:
 
 ```python
+import gradio as gr
+
+
 def generate_audio():
     example = gtzan["train"].shuffle()[0]
     audio = example["audio"]
