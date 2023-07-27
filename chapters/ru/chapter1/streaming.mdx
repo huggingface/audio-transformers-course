@@ -1,0 +1,154 @@
+# Streaming audio data
+
+One of the biggest challenges faced with audio datasets is their sheer size. A single minute of uncompressed CD-quality audio (44.1kHz, 16-bit)
+takes up  a bit more than 5 MB of storage. Typically, an audio dataset would contains hours of recordings.
+
+In the previous sections we used a very small subset of MINDS-14 audio dataset, however, typical audio datasets are much larger.
+For example, the `xs` (smallest) configuration of [GigaSpeech from SpeechColab](https://huggingface.co/datasets/speechcolab/gigaspeech)
+contains only 10 hours of training data, but takes over 13GB of storage space for download and preparation. So what
+happens when we want to train on a larger split? The full `xl` configuration of the same dataset contains 10,000 hours of
+training data, requiring over 1TB of storage space. For most of us, this well exceeds the specifications of a typical
+hard drive disk. Do we need to fork out and buy additional storage? Or is there a way we can train on these datasets with no disk space constraints?
+
+ 🤗 Datasets comes to the rescue by offering the [streaming mode](https://huggingface.co/docs/datasets/stream). Streaming allows us to load the data progressively as
+ we iterate over the dataset. Rather than downloading the whole dataset at once, we load the dataset one example at a time.
+ We iterate over the dataset, loading and preparing examples on the fly when they are needed. This way, we only ever
+ load the examples that we're using, and not the ones that we're not!
+Once we're done with an example sample, we continue iterating over the dataset and load the next one.
+
+Streaming mode has three primary advantages over downloading the entire dataset at once:
+
+* Disk space: examples are loaded to memory one-by-one as we iterate over the dataset. Since the data is not downloaded
+locally, there are no disk space requirements, so you can use datasets of arbitrary size.
+* Download and processing time: audio datasets are large and need a significant amount of time to download and process.
+With streaming, loading and processing is done on the fly, meaning you can start using the dataset as soon as the first
+example is ready.
+* Easy experimentation: you can experiment on a handful of examples to check that your script works without having to
+download the entire dataset.
+
+There is one caveat to streaming mode. When downloading a full dataset without streaming, both the raw data and processed
+data are saved locally to disk. If we want to re-use this dataset, we can directly load the processed data from disk,
+skipping the download and processing steps.  Consequently, we only have to perform the downloading and processing
+operations once, after which we can re-use the prepared data.
+
+With streaming mode, the data is not downloaded to disk. Thus, neither the downloaded nor pre-processed data are cached.
+If we want to re-use the dataset, the streaming steps must be repeated, with the audio files loaded and processed on
+the fly again. For this reason, it is advised to download datasets that you are likely to use multiple times.
+
+How can you enable streaming mode? Easy! Just set `streaming=True` when you load your dataset. The rest will be taken
+care for you:
+
+```py
+gigaspeech = load_dataset("speechcolab/gigaspeech", "xs", streaming=True)
+```
+
+Just like we applied preprocessing steps to a downloaded subset of MINDS-14, you can do the same preprocessing with a
+streaming dataset in the exactly the same manner.
+
+The only difference is that you can no longer access individual samples using Python indexing (i.e. `gigaspeech["train"][sample_idx]`).
+Instead, you have to iterate over the dataset. Here's how you can access an example when streaming a dataset:
+
+```py
+next(iter(gigaspeech["train"]))
+```
+
+**Output:**
+```out
+{
+    "segment_id": "YOU0000000315_S0000660",
+    "speaker": "N/A",
+    "text": "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+    "audio": {
+        "path": "xs_chunks_0000/YOU0000000315_S0000660.wav",
+        "array": array(
+            [0.0005188, 0.00085449, 0.00012207, ..., 0.00125122, 0.00076294, 0.00036621]
+        ),
+        "sampling_rate": 16000,
+    },
+    "begin_time": 2941.89,
+    "end_time": 2945.07,
+    "audio_id": "YOU0000000315",
+    "title": "Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43",
+    "url": "https://www.youtube.com/watch?v=zr2n1fLVasU",
+    "source": 2,
+    "category": 24,
+    "original_full_path": "audio/youtube/P0004/YOU0000000315.opus",
+}
+```
+
+If you'd like to preview several examples from a large dataset, use the `take()` to get the first n elements. Let's grab
+the first two examples in the gigaspeech dataset:
+
+```py
+gigaspeech_head = gigaspeech["train"].take(2)
+list(gigaspeech_head)
+```
+
+**Output:**
+```out
+[
+    {
+        "segment_id": "YOU0000000315_S0000660",
+        "speaker": "N/A",
+        "text": "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+        "audio": {
+            "path": "xs_chunks_0000/YOU0000000315_S0000660.wav",
+            "array": array(
+                [
+                    0.0005188,
+                    0.00085449,
+                    0.00012207,
+                    ...,
+                    0.00125122,
+                    0.00076294,
+                    0.00036621,
+                ]
+            ),
+            "sampling_rate": 16000,
+        },
+        "begin_time": 2941.89,
+        "end_time": 2945.07,
+        "audio_id": "YOU0000000315",
+        "title": "Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43",
+        "url": "https://www.youtube.com/watch?v=zr2n1fLVasU",
+        "source": 2,
+        "category": 24,
+        "original_full_path": "audio/youtube/P0004/YOU0000000315.opus",
+    },
+    {
+        "segment_id": "AUD0000001043_S0000775",
+        "speaker": "N/A",
+        "text": "SIX TOMATOES <PERIOD>",
+        "audio": {
+            "path": "xs_chunks_0000/AUD0000001043_S0000775.wav",
+            "array": array(
+                [
+                    1.43432617e-03,
+                    1.37329102e-03,
+                    1.31225586e-03,
+                    ...,
+                    -6.10351562e-05,
+                    -1.22070312e-04,
+                    -1.83105469e-04,
+                ]
+            ),
+            "sampling_rate": 16000,
+        },
+        "begin_time": 3673.96,
+        "end_time": 3675.26,
+        "audio_id": "AUD0000001043",
+        "title": "Asteroid of Fear",
+        "url": "http//www.archive.org/download/asteroid_of_fear_1012_librivox/asteroid_of_fear_1012_librivox_64kb_mp3.zip",
+        "source": 0,
+        "category": 28,
+        "original_full_path": "audio/audiobook/P0011/AUD0000001043.opus",
+    },
+]
+```
+
+Streaming mode can take your research to the next level: not only are the biggest datasets accessible to you, but you
+can easily evaluate systems over multiple datasets in one go without worrying about your disk space. Compared to
+evaluating on a single dataset, multi-dataset evaluation gives a better metric for the generalisation abilities of a
+speech recognition system (c.f. End-to-end Speech Benchmark (ESB)).
+
+
