@@ -1,69 +1,69 @@
-# Introduction to audio data
+# Введение в аудиоданные
 
-By nature, a sound wave is a continuous signal, meaning it contains an infinite number of signal values in a given time.
-This poses problems for digital devices which expect finite arrays. To be processed, stored, and transmitted by digital
-devices, the continuous sound wave needs to be converted into a series of discrete values, known as a digital representation.
+По своей природе звуковая волна является непрерывным сигналом, то есть содержит бесконечное число значений сигнала за определенное время.
+Это создает проблемы для цифровых устройств, которые ожидают конечные массивы. Для обработки, хранения и передачи сигнала цифровыми устройствами,
+непрерывная звуковая волна должна быть преобразована в ряд дискретных значений, называемых цифровым представлением.
 
-If you look at any audio dataset, you'll find digital files with sound excerpts, such as text narration or music.
-You may encounter different file formats such as `.wav` (Waveform Audio File), `.flac` (Free Lossless Audio Codec)
-and `.mp3` (MPEG-1 Audio Layer 3). These formats mainly differ in how they compress the digital representation of the audio signal.
+Если обратиться к любому набору аудиоданных, то можно найти цифровые файлы со звуковыми фрагментами, например, с текстовым повествованием или музыкой.
+Вы можете встретить различные форматы файлов, такие как `.wav` (Waveform Audio File), `.flac` (Free Lossless Audio Codec),
+`.mp3` (MPEG-1 Audio Layer 3). Эти форматы различаются главным образом способом сжатия цифрового представления аудиосигнала.
 
-Let's take a look at how we arrive from a continuous signal to this representation. The analog signal is first captured by
-a microphone, which converts the sound waves into an electrical signal. The electrical signal is then digitized by an
-Analog-to-Digital Converter to get the digital representation through sampling.
+Рассмотрим, как мы приходим от непрерывного сигнала к такому представлению. Сначала аналоговый сигнал улавливается
+микрофоном, который преобразует звуковые волны в электрический сигнал. Затем электрический сигнал оцифровывается с помощью
+Аналого-цифрового преобразователя для получения цифрового представления путем дискретизации.
 
-## Sampling and sampling rate
+## Выборка и частота дискретизации
 
-Sampling is the process of measuring the value of a continuous signal at fixed time steps. The sampled waveform is _discrete_,
-since it contains a finite number of signal values at uniform intervals.
+Выборка (сэмлирование, дискретизация) - это процесс измерения значения непрерывного сигнала с фиксированным шагом по времени. Выборочная форма сигнала является _дискретной_,
+поскольку содержит конечное число значений сигнала через равномерные интервалы времени.
 
 <div class="flex justify-center">
-    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/Signal_Sampling.png" alt="Signal sampling illustration">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/Signal_Sampling.png" alt="Иллюстрация дискретизации сигнала">
 </div>
 
-*Illustration from Wikipedia article: [Sampling (signal processing)](https://en.wikipedia.org/wiki/Sampling_(signal_processing))*
+*Иллюстрация из статьи Википедии: [Сэмплирование (обработка сигналов)](https://en.wikipedia.org/wiki/Sampling_(signal_processing))*
 
-The **sampling rate** (also called sampling frequency) is the number of samples taken in one second and is measured in
-hertz (Hz). To give you a point of reference, CD-quality audio has a sampling rate of 44,100 Hz, meaning samples are taken
-44,100 times per second. For comparison, high-resolution audio has a sampling rate of 192,000 Hz or 192 kHz. A common
-sampling rate used in training speech models is 16,000 Hz or 16 kHz.
+**Частота выборки** (также называемая частотой дискретизации) - это количество выборок, сделанных за одну секунду, и измеряется в
+герцах (Гц). Для сравнения, частота дискретизации аудиофайлов CD-качества составляет 44 100 Гц, то есть выборки делаются
+44 100 раз в секунду. Для сравнения, частота дискретизации звука высокого разрешения составляет 192 000 Гц или 192 кГц. Обычно
+частота дискретизации, используемая при обучении речевых моделей, составляет 16 000 Гц или 16 кГц.
 
-The choice of sampling rate primarily determines the highest frequency that can be captured from the signal. This is also
-known as the Nyquist limit and is exactly half the sampling rate. The audible frequencies in human speech are below 8 kHz
-and therefore sampling speech at 16 kHz is sufficient. Using a higher sampling rate will not capture more information and
-merely leads to an increase in the computational cost of processing such files. On the other hand, sampling audio at too
-low a sampling rate will result in information loss. Speech sampled at 8 kHz will sound muffled, as the higher frequencies
-cannot be captured at this rate.
+Выбор частоты дискретизации в первую очередь определяет наивысшую частоту, которая может быть извлечена из сигнала. Это значение также,
+известное как предел Найквиста, и составляет ровно половину частоты дискретизации. Слышимые частоты в человеческой речи лежат ниже 8 кГц,
+поэтому для дискретизации речи достаточно 16 кГц. Использование более высокой частоты дискретизации не позволяет получить больше информации и
+только приведет к увеличению вычислительных затрат на обработку таких файлов. С другой стороны, дискретизация звука при слишком
+низкой частоте дискретизации приводит к потере информации. Речь, дискретизированная с частотой 8 кГц, будет звучать приглушенно, так как более высокие частоты
+не могут быть захвачены при такой частоте.
 
-It's important to ensure that all audio examples in your dataset have the same sampling rate when working on any audio task.
-If you plan to use custom audio data to fine-tune a pre-trained model, the sampling rate of your data should match the
-sampling rate of the data the model was pre-trained on. The sampling rate determines the time interval between successive
-audio samples, which impacts the temporal resolution of the audio data. Consider an example: a 5-second sound at a sampling
-rate of 16,000 Hz will be represented as a series of 80,000 values, while the same 5-second sound at a sampling rate of
-8,000 Hz will be represented as a series of 40,000 values. Transformer models that solve audio tasks treat examples as
-sequences and rely on attention mechanisms to learn audio or multimodal representation. Since sequences are different for
-audio examples at different sampling rates, it will be challenging for models to generalize between sampling rates.
-**Resampling** is the process of making the sampling rates match, and is part of [preprocessing](preprocessing#resampling-the-audio-data) the audio data.
+При работе над любой аудио задачей важно убедиться, что все примеры звука в вашем наборе данных имеют одинаковую частоту дискретизации.
+Если вы планируете использовать пользовательские аудиоданные для дообучения предварительно обученной модели, то частота дискретизации ваших данных должна соответствовать частоте дискретизации
+данных, на которых была предварительно обучена модель. Частота дискретизации определяет временной интервал между последовательными
+выборками звука, что влияет на временное разрешение аудиоданных. Рассмотрим пример: 5-секундный звук при частоте дискретизации
+16 000 Гц будет представлен в виде серии из 80 000 значений, а тот же 5-секундный звук при частоте дискретизации
+8 000 Гц будет представлен в виде серии из 40 000 значений. Модели трансформеров, решающие аудиозадачи, рассматривают примеры как последовательности
+и полагаются на механизмы внимания для обучения аудио или мультимодальному представлению. Поскольку последовательности данных различны для
+аудиопримеров с разной частотой дискретизации, то моделям будет сложно обобщать данные для разных частот дискретизации.
+**Передискретизация** - это процесс согласования частот дискретизации, являющийся частью [препроцессинга](preprocessing#resampling-the-audio-data) аудиоданных.
 
-## Amplitude and bit depth
+## Амплитуда и битовая глубина
 
-While the sampling rate tells you how often the samples are taken, what exactly are the values in each sample?
+В то время как частота дискретизации говорит о том, как часто берутся образцы, какие именно значения содержатся в каждом образце?
 
-Sound is made by changes in air pressure at frequencies that are audible to humans. The **amplitude** of a sound describes
-the sound pressure level at any given instant and is measured in decibels (dB). We perceive the amplitude as loudness.
-To give you an example, a normal speaking voice is under 60 dB, and a rock concert can be at around 125 dB, pushing the
-limits of human hearing.
+Звук возникает в результате изменения давления воздуха на частотах, слышимых человеком. Амплитуда** звука характеризует
+уровень звукового давления в любой момент времени и измеряется в децибелах (дБ). Мы воспринимаем амплитуду как громкость.
+Для примера, обычный разговор не превышает 60 дБ, а рок-концерт может достигать 125 дБ, что является пределом 
+для человеческого слуха.
 
-In digital audio, each audio sample records the amplitude of the audio wave at a point in time. The **bit depth** of the
-sample determines with how much precision this amplitude value can be described. The higher the bit depth, the more
-faithfully the digital representation approximates the original continuous sound wave.
+В цифровом аудио каждый образец звука фиксирует амплитуду звуковой волны в определенный момент времени. **Битовая глубина** образца звука
+определяет, с какой точностью может быть описано это значение амплитуды. Чем выше битовая глубина, тем точнее
+цифровое представление приближается к исходной непрерывной звуковой волне.
 
-The most common audio bit depths are 16-bit and 24-bit. Each is a binary term, representing the number of possible steps
-to which the amplitude value can be quantized when it's converted from continuous to discrete: 65,536 steps for 16-bit audio,
-a whopping 16,777,216 steps for 24-bit audio. Because quantizing involves rounding off the continuous value to a discrete
-value, the sampling process introduces noise. The higher the bit depth, the smaller this quantization noise. In practice,
-the quantization noise of 16-bit audio is already small enough to be inaudible, and using higher bit depths is generally
-not necessary.
+Наиболее распространенные битовые глубины звука - 16 и 24 бита. Каждая из них представляет собой двоичный термин, обозначающий количество возможных шагов,
+на которое можно квантовать амплитудное значение при его преобразовании из непрерывного в дискретное: 65 536 шагов для 16-битного звука,
+для 24-битного звука - 16 777 216 шагов. Поскольку при квантовании происходит округление непрерывного значения до дискретного,
+процесс дискретизации вносит шум. Чем выше битовая глубина, тем меньше этот шум квантования. На практике
+шум квантования 16-битного звука уже достаточно мал, чтобы быть неслышимым, и использование большей битовой глубины обычно
+не требуется.
 
 You may also come across 32-bit audio. This stores the samples as floating-point values, whereas 16-bit and 24-bit audio
 use integer samples. The precision of a 32-bit floating-point value is 24 bits, giving it the same bit depth as 24-bit audio.

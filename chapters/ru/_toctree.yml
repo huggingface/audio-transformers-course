@@ -1,8 +1,26 @@
-- title: Модуль 0. Добро пожаловать на курс!
+- title: Раздел 0. Добро пожаловать на курс!
   sections:
-  - local: Глава0/Введение
+  - local: chapter0/introduction
     title: Что ожидать от курса
-  - local: Глава0/Подготовка
+  - local: chapter0/get_ready
     title: Подготовка
-  - local: Глава0/Сообщество
+  - local: chapter0/community
     title: Присоединиться к сообществу
+
+- title: Раздел 1. Работа с аудиоданными
+  sections:
+  - local: chapter1/introduction
+    title: Чему вы научитесь
+  - local: chapter1/audio_data
+    title: Введение в аудиоданные
+  - local: chapter1/load_and_explore
+    title: Загрузка и исследование набора аудиоданных
+  - local: chapter1/preprocessing
+    title: Препроцессинг аудиоданных
+  - local: chapter1/streaming
+    title: Потоковая передача аудиоданных
+  - local: chapter1/quiz
+    title: Контрольный опрос
+    quiz: 1
+  - local: chapter1/supplemental_reading
+    title: Дополнительные материалы и ресурсы
