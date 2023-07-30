@@ -16,7 +16,7 @@
   - local: chapter1/load_and_explore
     title: Загрузка и исследование набора аудиоданных
   - local: chapter1/preprocessing
-    title: Препроцессинг аудиоданных
+    title: Предварительная обработка
   - local: chapter1/streaming
     title: Потоковая передача аудиоданных
   - local: chapter1/quiz

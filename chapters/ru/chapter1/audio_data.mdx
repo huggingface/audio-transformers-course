@@ -65,35 +65,35 @@
 шум квантования 16-битного звука уже достаточно мал, чтобы быть неслышимым, и использование большей битовой глубины обычно
 не требуется.
 
-You may also come across 32-bit audio. This stores the samples as floating-point values, whereas 16-bit and 24-bit audio
-use integer samples. The precision of a 32-bit floating-point value is 24 bits, giving it the same bit depth as 24-bit audio.
-Floating-point audio samples are expected to lie within the [-1.0, 1.0] range. Since machine learning models naturally
-work on floating-point data, the audio must first be converted into floating-point format before it can be used to train
-the model. We'll see how to do this in the next section on [Preprocessing](preprocessing).
+Вы также можете встретить 32-битные аудио. В нем выборки хранятся в виде значений с плавающей точкой, тогда как в 16- и 24-битном аудио
+используются целочисленные выборки. Точность 32-битного значения с плавающей точкой составляет 24 бита, что дает такую же битовую глубину, как и у 24-битного звука.
+Предполагается, что аудио выборки с плавающей точкой лежат в диапазоне [-1,0, 1,0]. Поскольку модели машинного обучения естественным образом
+работают с данными в формате с плавающей точкой, перед тем как использовать их для обучения модели, аудиоданные необходимо преобразовать в формат с плавающей точкой.
+Как это сделать, мы рассмотрим в следующем разделе [Предварительная обработка](preprocessing).
 
-Just as with continuous audio signals, the amplitude of digital audio is typically expressed in decibels (dB). Since
-human hearing is logarithmic in nature — our ears are more sensitive to small fluctuations in quiet sounds than in loud
-sounds — the loudness of a sound is easier to interpret if the amplitudes are in decibels, which are also logarithmic.
-The decibel scale for real-world audio starts at 0 dB, which represents the quietest possible sound humans can hear, and
-louder sounds have larger values. However, for digital audio signals, 0 dB is the loudest possible amplitude, while all
-other amplitudes are negative. As a quick rule of thumb: every -6 dB is a halving of the amplitude, and anything below -60 dB
-is generally inaudible unless you really crank up the volume.
+Как и в случае с непрерывными звуковыми сигналами, амплитуда цифрового звука обычно выражается в децибелах (дБ). Поскольку
+слух человека имеет логарифмическую природу - наши уши более чувствительны к небольшим колебаниям тихих звуков, чем громких,
+то громкость звука легче интерпретировать, если амплитуды выражены в децибелах, которые также являются логарифмическими.
+Децибельная шкала для реального звука начинается с 0 дБ, что соответствует самому тихому звуку, который может услышать человек, а
+более громкие звуки имеют большие значения. Однако для цифровых аудиосигналов 0 дБ - это самая громкая возможная амплитуда, а все
+остальные амплитуды отрицательны. Краткое эмпирическое правило: каждые -6 дБ - это уменьшение амплитуды вдвое, и все, что ниже -60 дБ
+обычно неслышно, если только вы не увеличите громкость.
 
-## Audio as a waveform
+## Аудио как форма волны
 
-You may have seen sounds visualized as a **waveform**, which plots the sample values over time and illustrates the changes
-in the sound's amplitude. This is also known as the *time domain* representation of sound.
+Возможно, вам приходилось видеть визуализацию звуков в виде **формы волны**, которая отображает значения отсчетов во времени и иллюстрирует изменения
+амплитуды звука. Такое представление звука называется *временной областью*.
 
-This type of visualization is useful for identifying specific features of the audio signal such as the timing of individual
-sound events, the overall loudness of the signal, and any irregularities or noise present in the audio.
+Этот тип визуализации полезен для выявления специфических особенностей аудиосигнала, таких как время появления отдельных звуковых событий,
+общая громкость сигнала, неравномерности или шумы, присутствующие в аудиосигнале.
 
-To plot the waveform for an audio signal, we can use a Python library called `librosa`:
+Для построения графика формы волны аудиосигнала можно использовать библиотеку Python `librosa`:
 
 ```bash
 pip install librosa
 ```
 
-Let's take an example sound called "trumpet" that comes with the library:
+Возьмем для примера звук "Трубы", который поставляется вместе с библиотекой::
 
 ```py
 import librosa
@@ -101,8 +101,8 @@ import librosa
 array, sampling_rate = librosa.load(librosa.ex("trumpet"))
 ```
 
-The example is loaded as a tuple of audio time series (here we call it `array`), and sampling rate (`sampling_rate`).
-Let's take a look at this sound's waveform by using librosa's `waveshow()` function:
+Пример загружается в виде кортежа состоящего из временного ряда звука (здесь мы называем его `array`), и частоты дискретизации (`sampling_rate`).
+Посмотрим на форму волны этого звука с помощью функции librosa `waveshow()`:
 
 ```py
 import matplotlib.pyplot as plt
@@ -116,41 +116,41 @@ librosa.display.waveshow(array, sr=sampling_rate)
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/waveform_plot.png" alt="Waveform plot">
 </div>
 
-This plots the amplitude of the signal on the y-axis and time along the x-axis. In other words, each point corresponds
-to a single sample value that was taken when this sound was sampled. Also note that librosa returns the audio as
-floating-point values already, and that the amplitude values are indeed within the [-1.0, 1.0] range.
+При этом по оси y откладывается амплитуда сигнала, а по оси x - время. Другими словами, каждая точка соответствует
+одному значению выборки, которое было взято при сэмплировании этого звука. Также отметим, что librosa возвращает звук уже в виде значений
+с плавающей точкой, при этом значения амплитуды действительно находятся в диапазоне [-1.0, 1.0].
 
-Visualizing the audio along with listening to it can be a useful tool for understanding the data you are working with.
-You can see the shape of the signal, observe patterns, learn to spot noise or distortion. If you preprocess data in some
-ways, such as normalization, resampling, or filtering, you can visually confirm that preprocessing steps have been applied as expected.
-After training a model, you can also visualize samples where errors occur (e.g. in audio classification task) to debug
-the issue.
+Визуализация звука наряду с его прослушиванием может быть полезным инструментом для понимания данных, с которыми вы работаете.
+Вы можете увидеть форму сигнала, заметить закономерности, научиться выявлять шумы или искажения. При предварительной обработке данных, 
+например, нормализации, повторной выборке или фильтрации, можно визуально убедиться в том, что этапы предварительной обработки были выполнены как ожидалось.
+После обучения модели можно также визуализировать примеры, в которых возникают ошибки (например, в задаче классификации звука), для отладки
+возникающих проблем.
 
-## The frequency spectrum
+## Частотный спектр
 
-Another way to visualize audio data is to plot the **frequency spectrum** of an audio signal, also known as the *frequency domain*
-representation. The spectrum is computed using the discrete Fourier transform or DFT. It describes the individual frequencies
-that make up the signal and how strong they are.
+Другим способом визуализации аудиоданных является построение **частотного спектра** аудиосигнала, также известное как **частотный интервал** [NL1].
+Спектр вычисляется с помощью дискретного преобразования Фурье или ДПФ. Он описывает отдельные частоты,
+из которых состоит сигнал, и их силу.
 
-Let's plot the frequency spectrum for the same trumpet sound by taking the DFT using numpy's `rfft()` function. While it
-is possible to plot the spectrum of the entire sound, it's more useful to look at a small region instead. Here we'll take
-the DFT over the first 4096 samples, which is roughly the length of the first note being played:
+Построим частотный спектр для того же звука трубы, взяв ДПФ с помощью функции numpy `rfft()`. Хотя
+можно построить спектр всего звука, удобнее рассматривать небольшую область. Здесь мы возьмем
+ДПФ первых 4096 выборок, что приблизительно равно длительности первой сыгранной ноты:
 
 ```py
 import numpy as np
 
 dft_input = array[:4096]
 
-# calculate the DFT
+# Рассчитаем ДПФ
 window = np.hanning(len(dft_input))
 windowed_input = dft_input * window
 dft = np.fft.rfft(windowed_input)
 
-# get the amplitude spectrum in decibels
+# получить амплитудный спектр в децибелах
 amplitude = np.abs(dft)
 amplitude_db = librosa.amplitude_to_db(amplitude, ref=np.max)
 
-# get the frequency bins
+# получим частотные столбцы
 frequency = librosa.fft_frequencies(sr=sampling_rate, n_fft=len(dft_input))
 
 plt.figure().set_figwidth(12)
@@ -164,44 +164,44 @@ plt.xscale("log")
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/spectrum_plot.png" alt="Spectrum plot">
 </div>
 
-This plots the strength of the various frequency components that are present in this audio segment. The frequency values are on
-the x-axis, usually plotted on a logarithmic scale, while their amplitudes are on the y-axis.
+Здесь отображается сила различных частотных составляющих, присутствующих в данном аудио сегменте. На оси x
+откладываются значения частот, обычно в логарифмическом масштабе, а по оси y - их амплитуды.
 
-The frequency spectrum that we plotted shows several peaks. These peaks correspond to the harmonics of the note that's
-being played, with the higher harmonics being quieter. Since the first peak is at around 620 Hz, this is the frequency spectrum of an E♭ note.
+Построенный нами частотный спектр имеет несколько пиков. Эти пики соответствуют гармоникам исполняемой ноты,
+причем более высокие гармоники более тихие. Поскольку первый пик находится на частоте около 620 Гц, это частотный спектр ноты E♭.
 
-The output of the DFT is an array of complex numbers, made up of real and imaginary components. Taking
-the magnitude with `np.abs(dft)` extracts the amplitude information from the spectrogram. The angle between the real and
-imaginary components provides the so-called phase spectrum, but this is often discarded in machine learning applications.
+На выходе ДПФ получается массив комплексных чисел, состоящий из действительной и мнимой компонент. Взяв
+величину с помощью `np.abs(dft)`, можно извлечь из спектрограммы амплитудную информацию. Угол между действительной и
+мнимой составляющими дает так называемый фазовый спектр, но в приложениях машинного обучения он часто отбрасывается.
 
-You used `librosa.amplitude_to_db()` to convert the amplitude values to the decibel scale, making it easier to see
-the finer details in the spectrum. Sometimes people use the **power spectrum**, which measures energy rather than amplitude;
-this is simply a spectrum with the amplitude values squared.
+Вы использовали `librosa.amplitude_to_db()` для преобразования значений амплитуды в децибельную шкалу, что облегчает просмотр
+более тонких деталей в спектре. Иногда используют **энергетический спектр**, который измеряет энергию, а не амплитуду;
+это просто спектр с квадратом амплитудных значений.
 
 <Tip>
-💡 In practice, people use the term FFT interchangeably with DFT, as the FFT or Fast Fourier Transform is the only efficient
-way to calculate the DFT on a computer.
+💡 На практике термин БПФ используется как взаимозаменяемый с термином ДПФ, поскольку БПФ или быстрое преобразование Фурье является единственным эффективным
+способ вычисления ДПФ на компьютере.
 </Tip>
 
-The frequency spectrum of an audio signal contains the exact same information as its waveform — they are simply two different
-ways of looking at the same data (here, the first 4096 samples from the trumpet sound). Where the waveform plots the amplitude
-of the audio signal over time, the spectrum visualizes the amplitudes of the individual frequencies at a fixed point in time.
+Частотный спектр аудиосигнала содержит точно такую же информацию, как и его волновая форма, - это просто два разных способа 
+взглянуть на одни и те же данные (здесь - первые 4096 выборок из звука трубы). Если волновая форма отображает амплитуду
+звукового сигнала во времени, то спектр представляет амплитуды отдельных частот в фиксированный момент времени.
 
-## Spectrogram
+## Спектрограмма
 
-What if we want to see how the frequencies in an audio signal change? The trumpet plays several notes and they all have
-different frequencies. The problem is that the spectrum only shows a frozen snapshot of the frequencies at a given instant.
-The solution is to take multiple DFTs, each covering only a small slice of time, and stack the resulting spectra together
-into a **spectrogram**.
+Что если мы хотим увидеть, как изменяются частоты в аудиосигнале? Труба играет несколько нот, и все они имеют
+разные частоты. Проблема в том, что спектр показывает только застывший снимок частот в данный момент времени.
+Решение состоит в том, чтобы взять несколько ДПФ, каждый из которых охватывает лишь небольшой отрезок времени, и сложить полученные спектры вместе
+в **спектрограмму**.
 
-A spectrogram plots the frequency content of an audio signal as it changes over time. It allows you to see time, frequency,
-and amplitude all on one graph. The algorithm that performs this computation is the STFT or Short Time Fourier Transform.
+Спектрограмма представляет собой график изменения частотного содержания звукового сигнала во времени. Она позволяет увидеть время, частоту,
+и амплитуду на одном графике. Алгоритм, выполняющий эти вычисления, называется ОПФ или (Оконное преобразование Фурье).
 
-The spectrogram is one of the most informative audio tools available to you. For example, when working with a music recording,
-you can see the various instruments and vocal tracks and how they contribute to the overall sound. In speech, you can
-identify different vowel sounds as each vowel is characterized by particular frequencies.
+Спектрограмма является одним из наиболее информативных аудио инструментов. Например, при работе с музыкальной записью
+можно увидеть различные инструменты и вокальные дорожки и их вклад в общее звучание. В речи можно
+идентифицировать различные гласные звуки, поскольку каждый гласный звук характеризуется определенными частотами.
 
-Let's plot a spectrogram for the same trumpet sound, using librosa's `stft()` and `specshow()` functions:
+Построим спектрограмму для того же звука трубы, используя функции библиотеки librosa `stft()` и `specshow()`:
 
 ```py
 import numpy as np
@@ -218,40 +218,39 @@ plt.colorbar()
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/spectrogram_plot.png" alt="Spectrogram plot">
 </div>
 
-In this plot, the x-axis represents time as in the waveform visualization but now the y-axis represents frequency in Hz.
-The intensity of the color gives the amplitude or power of the frequency component at each point in time, measured in decibels (dB).
+На этом графике ось x представляет собой время, как и при визуализации формы волны, но теперь ось y представляет собой частоту в Гц.
+Интенсивность цвета показывает амплитуду или мощность частотной составляющей в каждый момент времени, измеряемую в децибелах (дБ).
 
-The spectrogram is created by taking short segments of the audio signal, typically lasting a few milliseconds, and calculating
-the discrete Fourier transform of each segment to obtain its frequency spectrum. The resulting spectra are then stacked
-together on the time axis to create the spectrogram. Each vertical slice in this image corresponds to a single frequency
-spectrum, seen from the top. By default, `librosa.stft()` splits the audio signal into segments of 2048 samples, which
-gives a good trade-off between frequency resolution and time resolution.
+Спектрограмма создается путем выделения коротких сегментов аудиосигнала, как правило, длительностью несколько миллисекунд, и вычисления 
+дискретного преобразования Фурье каждого сегмента для получения его частотного спектра. Полученные спектры складываются
+вместе по оси времени для получения спектрограммы. Каждый вертикальный срез на этом изображении соответствует одному частотному
+спектру, если смотреть сверху. По умолчанию `librosa.stft()` разбивает аудиосигнал на сегменты по 2048 выборок, что
+дает хороший компромисс между частотным и временным разрешением.
 
-Since the spectrogram and the waveform are different views of the same data, it's possible to turn the spectrogram back
-into the original waveform using the inverse STFT. However, this requires the phase information in addition to the amplitude
-information. If the spectrogram was generated by a machine learning model, it typically only outputs the amplitudes. In
-that case, we can use a phase reconstruction algorithm such as the classic Griffin-Lim algorithm, or using a neural network
-called a vocoder, to reconstruct a waveform from the spectrogram.
+Поскольку спектрограмма и волновая форма - это разные представления одних и тех же данных, то с помощью обратного STFT можно превратить спектрограмму обратно
+в исходную волновую форму.  Однако для этого помимо информации об амплитуде
+требуется информация о фазе. Если спектрограмма была сгенерирована моделью машинного обучения, то она, как правило, выдает только амплитуды.
+В этом случае для восстановления формы волны из спектрограммы можно использовать алгоритм восстановления фазы, например, классический алгоритм Гриффина-Лима,
+или нейронную сеть, называемую вокодером.
 
-Spectrograms aren't just used for visualization. Many machine learning models will take spectrograms as input — as opposed
-to waveforms — and produce spectrograms as output.
+Спектрограммы используются не только для визуализации. Многие модели машинного обучения принимают на вход спектрограммы - в отличие от
+формы волны - и выдают на выходе спектрограммы.
 
-Now that we know what a spectrogram is and how it's made, let's take a look at a variant of it widely used for speech processing: the mel spectrogram.
+Теперь, когда мы знаем, что такое спектрограмма и как она строится, рассмотрим ее разновидность, широко используемую при обработке речи, - Мел спектрограмму.
 
-## Mel spectrogram
+## Мэл спектрограмма
 
-A mel spectrogram is a variation of the spectrogram that is commonly used in speech processing and machine learning tasks.
-It is similar to a spectrogram in that it shows the frequency content of an audio signal over time, but on a different frequency axis.
+Мел-спектрограмма - это разновидность спектрограммы, которая широко используется в задачах обработки речи и машинного обучения.
+Она похожа на спектрограмму тем, что показывает частотное содержание аудиосигнала во времени, но на другой частотной оси.
 
-In a standard spectrogram, the frequency axis is linear and is measured in hertz (Hz). However, the human auditory system
-is more sensitive to changes in lower frequencies than higher frequencies, and this sensitivity decreases logarithmically
-as frequency increases. The mel scale is a perceptual scale that approximates the non-linear frequency response of the human ear.
+В стандартной спектрограмме частотная ось линейна и измеряется в герцах (Гц). Однако слуховая система человека
+более чувствительна к изменениям на низких частотах, чем на высоких, и эта чувствительность уменьшается логарифмически
+с увеличением частоты. Шкала Мэл - это перцептивная шкала, которая аппроксимирует нелинейную частотную характеристику человеческого уха.
 
-To create a mel spectrogram, the STFT is used just like before, splitting the audio into short segments to obtain a sequence
-of frequency spectra. Additionally, each spectrum is sent through a set of filters, the so-called mel filterbank, to
-transform the frequencies to the mel scale.
+Для создания мэл спектрограммы, как и ранее, используется ОПФ, при этом аудиосигнал разбивается на короткие сегменты для получения последовательности
+частотных спектров. Кроме того, каждый спектр пропускается через набор фильтров, так называемый банк фильтров мэла, для [NL1] преобразования частот в Мэл шкалу.
 
-Let's see how we can plot a mel spectrogram using librosa's `melspectrogram()` function, which performs all of those steps for us:
+Рассмотрим, как можно построить мэл спектрограмму с помощью функции librosa `melspectrogram()`, которая выполняет все эти действия за нас:
 
 ```py
 S = librosa.feature.melspectrogram(y=array, sr=sampling_rate, n_mels=128, fmax=8000)
@@ -267,28 +266,28 @@ plt.colorbar()
 </div>
 
 
-In the example above, `n_mels` stands for the number of mel bands to generate. The mel bands define a set of frequency
-ranges that divide the spectrum into perceptually meaningful components, using a set of filters whose shape and spacing
-are chosen to mimic the way the human ear responds to different frequencies. Common values for `n_mels` are 40 or 80. `fmax`
-indicates the highest frequency (in Hz) we care about.
+В приведенном примере `n_mels` означает количество генерируемых мэл диапазонов. Мел диапазоны определяют набор частотных
+диапазонов, которые разделяют спектр на перцептивно значимые компоненты, используя набор фильтров, форма и расстояние между которыми
+выбираются таким образом, чтобы имитировать реакцию человеческого уха на различные частоты. Обычные значения для `n_mels` это 40 или 80. `fmax`
+указывает максимальную частоту (в Гц), которая нас интересует.
 
-Just as with a regular spectrogram, it's common practice to express the strength of the mel frequency components in
-decibels. This is commonly referred to as a **log-mel spectrogram**, because the conversion to decibels involves a
-logarithmic operation. The above example used `librosa.power_to_db()` as `librosa.feature.melspectrogram()` creates a power spectrogram.
+Как и в случае с обычной спектрограммой, принято выражать силу мел-частотных компонентов в
+децибелах. Такую спектрограмму принято называть **лог-мэл-спектрограммой**, поскольку при переводе в децибелы выполняется
+логарифмическая операция. В приведенном выше примере использовалась функция `librosa.power_to_db()`, так как `librosa.feature.melspectrogram()` создает спектрограмму мощности.
 
 <Tip>
-💡 Not all mel spectrograms are the same! There are two different mel scales in common use ("htk" and "slaney"),
-and instead of the power spectrogram the amplitude spectrogram may be used. The conversion to a log-mel spectrogram doesn't
-always compute true decibels but may simply take the `log`. Therefore, if a machine learning model expects a mel spectrogram
-as input, double check to make sure you're computing it the same way.
+💡 Не все мэл спектрограммы одинаковы! Существуют две различные шкалы мэл, которые широко используются ("htk" и "slaney"), 
+а вместо спектрограммы мощности может использоваться амплитудная спектрограмма. При преобразовании спектрограммы в лог-мел не всегда
+вычисляются истинные децибелы, а может просто браться `log`. Поэтому, если модель машинного обучения ожидает в качестве входных данных спектрограмму мел,
+дважды проверьте, что она вычисляется тем же способом.
 </Tip>
 
-Creating a mel spectrogram is a lossy operation as it involves filtering the signal. Converting a mel spectrogram back
-into a waveform is more difficult than doing this for a regular spectrogram, as it requires estimating the frequencies
-that were thrown away. This is why machine learning models such as HiFiGAN vocoder are needed to produce a waveform from a mel
-spectrogram.
+Создание mel-спектрограммы - это операция с потерями, так как она связана с фильтрацией сигнала. Конвертировать mel-спектрограмму обратно
+в волновую форму сложнее, чем обычную спектрограмму, так как для этого необходимо оценить частоты,
+которые были отброшены. Поэтому для получения формы волны из мэл спектрограммы необходимы модели машинного обучения,
+такие как вокодер HiFiGAN.
 
-Compared to a standard spectrogram, a mel spectrogram can capture more meaningful features of the audio signal for
-human perception, making it a popular choice in tasks such as speech recognition, speaker identification, and music genre classification.
+По сравнению со стандартной спектрограммой, мэл спектрограмма может отражать более значимые для восприятия человеком особенности аудиосигнала,
+что делает ее популярной в таких задачах, как распознавание речи, идентификация диктора и классификация музыкальных жанров.
 
-Now that you know how to visualize audio data examples, go ahead and try to see what your favorite sounds look like. :)
+Теперь, когда вы знаете, как визуализировать примеры аудиоданных, попробуйте посмотреть, как выглядят ваши любимые звуки. :)
