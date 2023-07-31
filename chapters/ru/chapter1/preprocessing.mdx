@@ -1,25 +1,25 @@
-# Preprocessing an audio dataset
+# Препроцессинг набора аудиоданных
 
-Loading a dataset with 🤗 Datasets is just half of the fun. If you plan to use it either for training a model, or for running
-inference, you will need to pre-process the data first. In general, this will involve the following steps:
+Загрузка набора данных с помощью 🤗 Datasets - это только половина удовольствия. Если вы планируете использовать ее либо для обучения модели, либо для выполнения
+инференса, необходимо предварительно обработать данные. В общем случае это включает в себя следующие шаги:
 
-* Resampling the audio data
-* Filtering the dataset
-* Converting audio data to model's expected input
+* Передискретизация аудиоданных
+* Фильтрация набора данных
+* Преобразование аудиоданных в ожидаемый моделью  формат входных данных
 
-## Resampling the audio data
+## Передискретизация аудиоданных
 
-The `load_dataset` function downloads audio examples with the sampling rate that they were published with. This is not
-always the sampling rate expected by a model you plan to train, or use for inference. If there's a discrepancy between
-the sampling rates, you can resample the audio to the model's expected sampling rate.
+Функция `load_dataset` загружает аудиопримеры с той частотой дискретизации, с которой они были опубликованы. Это не
+всегда та частота дискретизации, которая ожидается моделью, которую вы планируете обучать или использовать для инференса. Если есть расхождение между
+частотой дискретизации, можно передискретизировать звук до ожидаемой моделью частоты дискретизации.
 
-Most of the available pretrained models have been pretrained on audio datasets at a sampling rate of 16 kHz.
-When we explored MINDS-14 dataset, you may have noticed that it is sampled at 8 kHz, which means we will likely need
-to upsample it.
+Большинство имеющихся предварительно обученных моделей были обучены на аудиоданных с частотой дискретизации 16 кГц.
+Когда мы исследовали набор данных MINDS-14, вы могли заметить, что он сэмплирован с частотой 8 кГц, что означает, что нам, скорее всего, потребуется
+увеличить частоту дискретизации.
 
-To do so, use 🤗 Datasets' `cast_column` method. This operation does not change the audio in-place, but rather signals
-to datasets to resample the audio examples on the fly when they are loaded. The following code will set the sampling
-rate to 16kHz:
+Чтобы сделать это, используйте метод 🤗 Datasets `cast_column`. Эта операция не изменяет звук непосредственно в наборе данных (in-place), а дает сигнал
+datasets для передискретизации аудиопримеров "на лету" при их загрузке. Следующий код установит частоту дискретизации
+равной 16 кГц:
 
 ```py
 from datasets import Audio
@@ -27,7 +27,7 @@ from datasets import Audio
 minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
 ```
 
-Re-load the first audio example in the MINDS-14 dataset, and check that it has been resampled to the desired `sampling rate`:
+Перезагрузим первый аудиопример из набора данных MINDS-14 и проверим, что он был передискретизирован до нужной `sampling rate`:
 
 ```py
 minds[0]
@@ -58,8 +58,8 @@ minds[0]
 }
 ```
 
-You may notice that the array values are now also different. This is because we've now got twice the number of amplitude values for
-every one that we had before.
+Вы можете заметить, что значения массива теперь также отличаются. Это связано с тем, что теперь для
+каждого значения амплитуды мы имеем в два раза больше значений чем раньше.
 
 <Tip>
 💡 Some background on resampling: If an audio signal has been sampled at 8 kHz, so that it has 8000 sample readings per
