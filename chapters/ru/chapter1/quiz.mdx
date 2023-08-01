@@ -1,68 +1,68 @@
 <!-- DISABLE-FRONTMATTER-SECTIONS -->
 
-# Check your understanding of the course material
+# Проверьте свое понимание материала курса
 
-### 1. What units is the sampling rate measured in?
+### 1. В каких единицах измеряется частота дискретизации?
 
 <Question
 	choices={[
 		{
-			text: "dB",
-			explain: "No, the amplitude is measured in decibels (dB)."
+			text: "дБ",
+			explain: "Нет, амплитуда измеряется в децибелах (дБ)."
 		},
 		{
-			text: "Hz",
-			explain: "The sampling rate is the number of samples taken in one second and is measured in hertz (Hz).",
+			text: "Гц",
+			explain: "Частота дискретизации - это количество выборок, сделанных за одну секунду, она измеряется в герцах (Гц).",
 			correct: true
 		},
 		{
-			text: "bit",
-			explain: "Bits are used to describe bit depth, which refers to the number of bits of information used to represent each sample of an audio signal.",
+			text: "бит",
+			explain: "Биты используются для описания битовой глубины, под которой понимается количество битов информации, используемых для представления каждого образца аудиосигнала.",
 		}
 	]}
 />
 
-### 2. When streaming a large audio dataset, how soon can you start using it?
+### 2. При потоковой передаче большого набора аудиоданных как скоро можно начать его использовать?
 
 <Question
 	choices={[
 		{
-			text: "As soon as the full dataset is downloaded.",
-			explain: "The goal of streaming data is to be able to work with it without having to fully download a dataset."
+			text: "Как только набор данных будет загружен полностью.",
+			explain: "Цель потоковой передачи данных состоит в том, чтобы иметь возможность работать с ними без необходимости полной загрузки набора данных."
 		},
 		{
-			text: "As soon as the first 16 examples are downloaded.",
-			explain: "Try again!"
+			text: "Как только первые 16 образцов будут загружены.",
+			explain: "Попробуйте еще раз!"
 		},
 		{
-			text: "As soon as the first example is downloaded.",
+			text: "Как только первый образец будет загружен.",
 			explain: "",
 			correct: true
 		}
 	]}
 />
 
-### 3. What is a spectrogram?
+### 3. Что такое спектрограмма?
 
 <Question
 	choices={[
 		{
-			text: "A device used to digitize the audio that is first captured by a microphone, which converts the sound waves into an electrical signal.",
-			explain: "A device used to digitize such electrical signal is called Analog-to-Digital Converter. Try again!"
+			text: "Устройство, используемое для оцифровки звука, который сначала улавливается микрофоном, преобразующим звуковые волны в электрический сигнал.",
+			explain: "Устройство, используемое для оцифровки такого электрического сигнала, называется аналого-цифровым преобразователем. Попробуйте еще раз!"
 		},
 		{
-			text: "A plot that shows how the amplitude of an audio signal change over time. It is also known as the *time domain* representation of sound.",
-			explain: "The description above refers to waveform, not spectrogram."
+			text: "График, показывающий изменение амплитуды звукового сигнала с течением времени. Он также известен как *временная область* представления звука.",
+			explain: "В приведенном описании речь идет о форме волны, а не о спектрограмме."
 		},
 		{
-			text: "A visual representation of the frequency spectrum of a signal as it varies with time.",
+			text: "Визуальное представление частотного спектра сигнала при его изменении во времени.",
 			explain: "",
 			correct: true
 		}
 	]}
 />
 
-### 4. What is the easiest way to convert raw audio data into log-mel spectrogram expected by Whisper?
+### 4. Как проще всего преобразовать сырые аудиоданные в лог-мел спектрограмму, ожидаемую Whisper?
 
 A.
 ```python
@@ -84,7 +84,7 @@ dataset.feature(audio["array"], model="whisper")
 	choices={[
 		{
 			text: "A",
-			explain: "`librosa.feature.melspectrogram()` creates a power spectrogram."
+			explain: "`librosa.feature.melspectrogram()` создает спектрограмму мощности."
 		},
 		{
 			text: "B",
@@ -93,12 +93,12 @@ dataset.feature(audio["array"], model="whisper")
 		},
 		{
 			text: "C",
-			explain: "Dataset does not prepare features for Transformer models, this is done by the model's preprocessor."
+			explain: "Dataset не подготавливает признаки для моделей Transformer, это делает препроцессор модели."
 		}
 	]}
 />
 
-### 5. How do you load a dataset from 🤗 Hub?
+### 5. Как загрузить набор данных из 🤗 Hub?
 
 A.
 ```python
@@ -125,56 +125,56 @@ dataset = load_dataset(DATASET_NAME_ON_HUB)
 	choices={[
 		{
 			text: "A",
-			explain: "The best way is to use the 🤗 Datasets library.",
+			explain: "Лучше всего использовать библиотеку 🤗 Datasets.",
 			correct: true
 		},
 		{
 			text: "B",
-			explain: "Librosa.load is useful to load an individual audio file from a path into a tuple with audio time series and a sampling rate, but not an entire dataset with many examples and multiple features. "
+			explain: "Librosa.load удобен для загрузки отдельного аудиофайла расположенного по пути в кортеж с временным рядом и частотой дискретизации, но не целого набора данных с большим количеством образцов и множеством признаков. "
 		},
 		{
 			text: "C",
-			explain: "load_dataset method comes in the 🤗 Datasets library, not in 🤗 Transformers."
+			explain: "Метод load_dataset находится в библиотеке 🤗 Datasets, а не в 🤗 Transformers."
 		}
 	]}
 />
 
-### 6. Your custom dataset contains high-quality audio with 32 kHz sampling rate. You want to train a speech recognition model that expects the audio examples to have a 16 kHz sampling rate. What should you do?
+### 6. Ваш пользовательский набор данных содержит высококачественные аудиозаписи с частотой дискретизации 32 кГц. Вы хотите обучить модель распознавания речи, которая ожидает, что аудиопримеры будут иметь частоту дискретизации 16 кГц. Что нужно сделать?
 
 <Question
 	choices={[
 		{
-			text: "Use the examples as is, the model will easily generalize to higher quality audio examples.",
-			explain: "Due to reliance on attention mechanisms, it is challenging for models to generalize between sampling rates."
+			text: "Используйте примеры как есть, модель легко обобщится на более качественные аудиопримеры.",
+			explain: "Из-за зависимости от механизма внимания моделям сложно обобщать данные с разной частотой дискретизации."
 		},
 		{
-			text: "Use Audio module from the 🤗 Datasets library to downsample the examples in the custom dataset",
+			text: "Используйте модуль Audio из библиотеки 🤗 Datasets для понижения частоты дискретизации примеров в пользовательском наборе данных",
 			explain: "",
 			correct: true
 		},
 		{
-			text: "Downsample by a factor 2x by throwing away every other sample.",
-			explain: "This will create distortions in the signal called aliases. Doing resampling correctly is tricky and best left to well-tested libraries such as librosa or 🤗 Datasets."
+			text: "Уменьшите выборку в 2 раза, отбросив все остальные образцы.",
+			explain: "При этом в сигнале возникают искажения, называемые наложениями (aliases). Корректная передискретизация - сложная задача, и ее лучше доверить проверенным библиотекам, таким как librosa или 🤗 Datasets."
 		}
 	]}
 />
 
-### 7. How can you convert a spectrogram generated by a machine learning model into a waveform?
+### 7. Как преобразовать спектрограмму, сгенерированную моделью машинного обучения, в форму волны?
 
 <Question
 	choices={[
 		{
-			text: "We can use a neural network called a vocoder to reconstruct a waveform from the spectrogram.",
-			explain: "Since the phase information is missing in this case, we need to use a vocoder, or the classic Griffin-Lim algorithm to reconstruct the waveform.",
+			text: "Для восстановления формы волны из спектрограммы мы можем использовать нейронную сеть, называемую вокодером.",
+			explain: "Поскольку фазовая информация в этом случае отсутствует, для восстановления формы сигнала необходимо использовать вокодер или классический алгоритм Гриффина-Лима.",
 			correct: true
 		},
 		{
-			text: "We can use the inverse STFT to convert the generated spectrogram into a waveform",
-			explain: "A generated spectrogram is missing phase information that is required to use the inverse STFT."
+			text: "Мы можем использовать обратное ОПФ для преобразования сгенерированной спектрограммы в форму волны",
+			explain: "В сгенерированной спектрограмме отсутствует фазовая информация, необходимая для использования инверсного ОПФ."
 		},
 		{
-			text: "You can't convert a spectrogram generated by a machine learning model into a waveform.",
-			explain: "Try again!"
+			text: "Вы не можете преобразовать спектрограмму, сгенерированную моделью машинного обучения, в форму волны.",
+			explain: "Попробуйте еще раз!"
 		}
 	]}
 />
