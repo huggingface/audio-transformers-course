@@ -214,11 +214,14 @@ processor = BarkProcessor.from_pretrained("suno/bark-small")
 
 <Tip>
 
-Bark is very versatile and can generate audio conditioned by [a speaker embeddings library] (https://suno-ai.notion.site/8b8e8749ed514b0cbf3f699013548683?v=bc67cff786b04b50b3ceb756fd05f68c), which you can listen to here, and which can be loaded via the processor.
+Bark is very versatile and can generate audio conditioned by [a speaker embeddings library](https://suno-ai.notion.site/8b8e8749ed514b0cbf3f699013548683?v=bc67cff786b04b50b3ceb756fd05f68c), which you can listen to here, and which can be loaded via the processor.
+
 
 It can also generate ready-to-use multilingual speeches, such as French and Chinese. You can find a list of supported languages [here](https://huggingface.co/suno/bark). Unlike MMS, discussed below, it is not necessary to specify the language used, but simply adapt the input text to the corresponding language.
 
+
 The model can also generate **non-verbal communications** such as laughing, sighing and crying. You just have to modify the input text with corresponding cues such as `[clears throat]`, `[laughter]`, or `...`.
+
 
 Bark can even generate music. You can help by adding ♪ musical notes ♪ around your words.
 
