@@ -233,7 +233,10 @@ speech_output = model.generate(**inputs).cpu().numpy()
 The model can also generate **non-verbal communications** such as laughing, sighing and crying. You just have to modify the input text with corresponding cues such as `[clears throat]`, `[laughter]`, or `...`.
 
 ```python
-inputs = processor("[clears throat] This is a test ... and I just took a long pause.", voice_preset="v2/fr_speaker_1")
+inputs = processor(
+    "[clears throat] This is a test ... and I just took a long pause.",
+    voice_preset="v2/fr_speaker_1",
+)
 
 speech_output = model.generate(**inputs).cpu().numpy()
 ```
@@ -241,7 +244,10 @@ speech_output = model.generate(**inputs).cpu().numpy()
 Bark can even generate music. You can help by adding ♪ musical notes ♪ around your words.
 
 ```python
-inputs = processor("♪ In the mighty jungle, I'm trying to generate barks.", voice_preset="v2/fr_speaker_1")
+inputs = processor(
+    "♪ In the mighty jungle, I'm trying to generate barks.",
+    voice_preset="v2/fr_speaker_1",
+)
 
 speech_output = model.generate(**inputs).cpu().numpy()
 ```
