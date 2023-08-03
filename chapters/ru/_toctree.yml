@@ -25,3 +25,14 @@
   - local: chapter1/supplemental_reading
     title: Дополнительные материалы и ресурсы
     
+    - title: Раздел 2. Краткое введение в аудиоприложения
+  sections:
+  - local: chapter2/introduction
+    title: Обзор аудиоприложений
+  - local: chapter2/audio_classification_pipeline
+    title: Классификация звука с помощью конвейера
+  - local: chapter2/asr_pipeline
+    title: Автоматическое распознавание речи с помощью конвейера
+  - local: chapter2/hands_on
+    title: Практическое занятие
+    
