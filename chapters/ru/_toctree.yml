@@ -25,7 +25,7 @@
   - local: chapter1/supplemental_reading
     title: Дополнительные материалы и ресурсы
     
-    - title: Раздел 2. Краткое введение в аудиоприложения
+- title: Раздел 2. Краткое введение в аудиоприложения
   sections:
   - local: chapter2/introduction
     title: Обзор аудиоприложений
