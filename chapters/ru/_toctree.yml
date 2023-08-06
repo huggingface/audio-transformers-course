@@ -24,4 +24,30 @@
     quiz: 1
   - local: chapter1/supplemental_reading
     title: Дополнительные материалы и ресурсы
-    
+
+- title: Раздел 2. Краткое введение в аудиоприложения
+  sections:
+  - local: chapter2/introduction
+    title: Обзор аудио приложений
+  - local: chapter2/audio_classification_pipeline
+    title: Классификация звука с помощью конвейера
+  - local: chapter2/asr_pipeline
+    title: Автоматическое распознавание речи с помощью конвейера
+  - local: chapter2/hands_on
+    title: Практическое занятие
+
+- title: Раздел 3. Архитектуры трансформеров для аудио
+  sections:
+  - local: chapter3/introduction
+    title: Освежим в памяти модели трансформеров
+  - local: chapter3/ctc
+    title: Архитектуры CTC
+  - local: chapter3/seq2seq
+    title: Архитектуры Seq2Seq
+  - local: chapter3/classification
+    title: Архитектуры классификации аудио
+  - local: chapter3/quiz
+    title:  Контрольный опрос
+    quiz: 3
+  - local: chapter3/supplemental_reading
+    title: Дополнительные материалы и ресурсы
