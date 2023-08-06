@@ -35,4 +35,17 @@
     title: Автоматическое распознавание речи с помощью конвейера
   - local: chapter2/hands_on
     title: Практическое занятие
+
+- title: Unit 4. Разработка классификатора музыкальных жанров
+  sections:
+  - local: chapter4/introduction
+    title: Чему вы научитесь и что вы сможете создать
+  - local: chapter4/classification_models
+    title: Предварительно обученные модели и наборы данных для классификации звука
+  - local: chapter4/fine-tuning
+    title: Тонкая настройка модели для классификации музыки
+  - local: chapter4/demo
+    title: Создание демонтрационного образца с Gradio
+  - local: chapter4/hands_on
+    title: Практическое занятие
     
