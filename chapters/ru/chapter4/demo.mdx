@@ -1,0 +1,42 @@
+# Создание демонтрационного образца с Gradio
+
+В этом заключительном разделе, посвященном классификации звука, мы построим демонстрационный пример [Gradio](https://gradio.app) чтобы
+продемонстрировать модель классификации музыки, которую мы только что обучили на наборе данных [GTZAN](https://huggingface.co/datasets/marsyas/gtzan).
+Первое, что необходимо сделать, это загрузить контрольную точку дообученной модели с помощью класса `pipeline()` - это уже хорошо знакомо по разделу
+[Предварительно обученные модели и наборы данных для классификации звука](classification_models). Вы можете изменить `model_id` на пространство имен
+вашей дообученной модели на Hugging Face Hub:
+
+```python
+from transformers import pipeline
+
+model_id = "sanchit-gandhi/distilhubert-finetuned-gtzan"
+pipe = pipeline("audio-classification", model=model_id)
+```
+
+Во-вторых, мы определим функцию, которая принимает путь к файлу для входного аудиосигнала и пропускает его через конвейер. Здесь конвейер автоматически
+позаботится о том, чтобы загрузить аудиофайл, передискретизировать его до нужной частоты дискретизации и выполнить вывод с помощью модели. Мы берем
+предсказания модели `preds` и оформляем их в виде словаря для отображения на выходе:
+
+```python
+def classify_audio(filepath):
+    preds = pipe(filepath)
+    outputs = {}
+    for p in preds:
+        outputs[p["label"]] = p["score"]
+    return outputs
+```
+
+Наконец, мы запускаем демонстрационную программу Gradio с помощью функции, которую мы только что определили:
+
+```python
+import gradio as gr
+
+demo = gr.Interface(
+    fn=classify_audio, inputs=gr.Audio(type="filepath"), outputs=gr.outputs.Label()
+)
+demo.launch(debug=True)
+```
+
+В результате будет запущена демонстрация Gradio, аналогичная той, что работает на Hugging Face Space:
+
+<iframe src="https://course-demos-song-classifier.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
