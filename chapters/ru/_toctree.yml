@@ -24,11 +24,19 @@
     quiz: 1
   - local: chapter1/supplemental_reading
     title: Дополнительные материалы и ресурсы
+<<<<<<< HEAD
 
 - title: Раздел 2. Краткое введение в аудиоприложения
   sections:
   - local: chapter2/introduction
     title: Обзор аудио приложений
+=======
+    
+- title: Раздел 2. Краткое введение в аудиоприложения
+  sections:
+  - local: chapter2/introduction
+    title: Обзор аудиоприложений
+>>>>>>> 1bb912d8592f02618f24622343370a3e44ab9e44
   - local: chapter2/audio_classification_pipeline
     title: Классификация звука с помощью конвейера
   - local: chapter2/asr_pipeline
@@ -36,6 +44,7 @@
   - local: chapter2/hands_on
     title: Практическое занятие
 
+<<<<<<< HEAD
 - title: Раздел 3. Архитектуры трансформеров для аудио
   sections:
   - local: chapter3/introduction
@@ -127,3 +136,18 @@
   sections:
   - local: events/introduction
     title: Живые занятия и семинары
+=======
+- title: Раздел 4. Разработка классификатора музыкальных жанров
+  sections:
+  - local: chapter4/introduction
+    title: Чему вы научитесь и что вы сможете создать
+  - local: chapter4/classification_models
+    title: Предварительно обученные модели и наборы данных для классификации звука
+  - local: chapter4/fine-tuning
+    title: Тонкая настройка модели для классификации музыки
+  - local: chapter4/demo
+    title: Создание демонтрационного образца с Gradio
+  - local: chapter4/hands_on
+    title: Практическое занятие
+    
+>>>>>>> 1bb912d8592f02618f24622343370a3e44ab9e44
