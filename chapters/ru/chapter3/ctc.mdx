@@ -1,10 +1,12 @@
-# CTC architectures
+# Архитектуры CTC 
 
-CTC or Connectionist Temporal Classification is a technique that is used with encoder-only transformer models for automatic speech recognition. Examples of such models are **Wav2Vec2**, **HuBERT** and **M-CTC-T**.
+CTC (Connectionist Temporal Classification) или Коннекционистская Временная Классификация  это техника, которая используется в моделях трансвормеров состоящих только из енкодера испольуемых в задачах автоматического распознавания речи (ASR). Примерами таких моделей являются **Wav2Vec2**, **HuBERT** и **M-CTC-T**.
 
-An encoder-only transformer is the simplest kind of transformer because it just uses the encoder portion of the model. The encoder reads the input sequence (the audio waveform) and maps this into a sequence of hidden-states, also known as the output embeddings.
+Трансформеры состоящие только из энкодера, являются самыми простыми, поскольку в них используется только часть модели, состоящая из энкодера. Энкодер считывает входную
+последовательность (форму волны звука) и преобразует ее в последовательность скрытых состояний, которые также известны как выходные эмбеддинги.
 
-With a CTC model, we apply an additional linear mapping on the sequence of hidden-states to get class label predictions. The class labels are the **characters of the alphabet** (a, b, c, …). This way we're able to predict any word in the target language with a small classification head, as the vocabulary just needs to exist of 26 characters plus a few special tokens.
+В модели CTC мы применяем дополнительное линейное отображение на последовательность скрытых состояний для получения предсказаний метки класса. Метками классов 
+являются **символы алфавита** (a, b, c, ...). Таким образом, мы можем предсказать любое слово на целевом языке с небольшой классификационной головой, поскольку словарный запас должен состоять всего из 26 символов плюс несколько специальных токенов.
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/wav2vec2-ctc.png" alt="Transformer encoder with a CTC head on top">
