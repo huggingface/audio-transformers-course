@@ -1,137 +1,137 @@
 <!-- DISABLE-FRONTMATTER-SECTIONS -->
 
-# Check your understanding of the course material
+# Проверьте свое понимание материала курса
 
-### 1. What is a vocoder?
+### 1. Что такое вокодер?
 
 <Question
 	choices={[
 		{
-			text: "An additional neural network that turns the spectrogram output of a transformer into a waveform.",
+			text: "Дополнительная нейронная сеть, превращающая выходную спектрограмму трансформера в осциллограмму.",
 			explain: "Correct! ",
 			correct: true
 		},
 		{
-			text: "A type of transformer layer that is responsible for creating audio embeddings.",
+			text: "Тип слоя-трансформера, отвечающий за создание эмбеддингов звука.",
 			explain: ""
 		},
 		{
-			text: "An additional neural network that preprocesses speech audio to remove background noise",
+			text: "Дополнительная нейронная сеть, осуществляющая предварительную обработку речевого аудиосигнала для удаления фонового шума",
 			explain: "",
 		}
 	]}
 />
 
-### 2. Wav2Vec2 is an example of
+### 2. Wav2Vec2 является примером
 
 <Question
 	choices={[
 		{
-			text: "Seq2Seq architecture",
+			text: "Архитектуры Seq2Seq",
 			explain: ""
 		},
 		{
-			text: "CNN architecture",
+			text: "Архитектуры CNN",
 			explain: ""
 		},
 		{
-			text: "CTC architecture",
+			text: "Архитектуры CTC",
 			explain: "Correct!",
 			correct: true
 		}
 	]}
 />
 
-### 3. What does a blank token in CTC algorithm do?
+### 3. Что делает пустой токен в алгоритме CTC?
 
 <Question
 	choices={[
 		{
-			text: "Blank token indicates breaks between the individual words in the sentence.",
+			text: "Пустой токен обозначает паузы между отдельными словами в предложении.",
 			explain: ""
 		},
 		{
-			text: "Blank token is a predicted token that serves as a hard boundary between groups of characters. It makes it possible to filter out the duplicate characters",
+			text: "Пустой токен - это спрогнозированный токен, который служит жесткой границей между группами символов. Он позволяет отфильтровать дублирующиеся символы",
 			explain: "Correct!",
 			correct: true
 		},
 		{
-			text: "Blank token is used for sounds that do not match any tokens in the vocabulary, similar to <UNK> token for 'unknown'.",
+			text: "Пустой токен используется для звуков, не соответствующих ни одному токену в словаре, аналогично токену <UNK> для 'unknown'.",
 			explain: ""
 		}
 	]}
 />
 
-### 4. Which of the following statements about CTC models is FALSE? 
+### 4. Какое из следующих утверждений о моделях CTC является ЛОЖНЫМ? 
 
 <Question
 	choices={[
 		{
-			text: "CTC models use only the encoder part of the transformer architecture.",
+			text: "В моделях CTC используется только энкодерная часть архитектуры трансформера.",
 			explain: ""
 		},
 		{
-			text: "Wav2Vec2 & HuBERT use the exact same architecture but are trained differently.",
+			text: "Wav2Vec2 и HuBERT используют абсолютно одинаковую архитектуру, но обучаются по-разному.",
 			explain: ""
 		},
 		{
-			text: "CTC models tend to perform best for speech recognition compared to other architectures.",
+			text: "Модели CTC, как правило, показывают лучшие результаты при распознавании речи по сравнению с другими архитектурами.",
 			explain: "Correct!",
 			correct: true
 		}
 	]}
 />
 
-### 5. Whisper is an example of  
+### 5. Whisper является примером  
 
 <Question
 	choices={[
 		{
-			text: "Seq2Seq architecture",
+			text: "Seq2Seq архитектуры",
 			explain: "Correct!",
 			correct: true
 		},
 		{
-			text: "CNN architecture",
+			text: "CNN архитектуры",
 			explain: ""
 		},
 		{
-			text: "CTC architecture",
+			text: "CTC архитектуры",
 			explain: ""
 		}
 	]}
 />
 
-### 6. What is the easiest way to perform audio classification?
+### 6. Как проще всего выполнить классификацию звука?
 
 <Question
 	choices={[
 		{
-			text: "Use encoder-decoder transformers on the audio waveform.",
+			text: "Использовать трансформеры энкодер-декодер на форме волны звука.",
 			explain: ""
 		},
 		{
-			text: "Use spectrograms and treat the task as an image classification problem.",
+			text: "Использовать спектрограммы и рассматривать задачу как задачу классификации изображений.",
 			explain: "Correct!",
 			correct: true
 		},
 		{
-			text: "Turn a CTC model into a general-purpose audio classifier by changing the labels and training it with a regular cross-entropy loss function.",
+			text: "Превратить модель CTC в классификатор звука общего назначения, изменив метки и обучив ее с помощью обычной функции потерь кросс-энтропии.",
 			explain: ""
 		}
 	]}
 />
 
-### 7. True or false? When treating spectrograms as images for classification, you will always benefit from image data augmentation techniques, such as shifting an image, cropping it, or resizing. 
+### 7. Верно или нет? Если рассматривать спектрограммы как изображения для классификации, то всегда полезно использовать методы дополнения данных изображения, такие как сдвиг изображения, его обрезка или изменение размера. 
 
 <Question
 	choices={[
 		{
-			text: "True",
+			text: "Правда",
 			explain: ""
 		},
 		{
-			text: "False",
+			text: "Ложь",
 			explain: "Correct!",
 			correct: true
 		}
