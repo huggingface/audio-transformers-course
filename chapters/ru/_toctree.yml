@@ -24,11 +24,11 @@
     quiz: 1
   - local: chapter1/supplemental_reading
     title: Дополнительные материалы и ресурсы
-    
+
 - title: Раздел 2. Краткое введение в аудиоприложения
   sections:
   - local: chapter2/introduction
-    title: Обзор аудиоприложений
+    title: Обзор аудио приложений
   - local: chapter2/audio_classification_pipeline
     title: Классификация звука с помощью конвейера
   - local: chapter2/asr_pipeline
@@ -36,16 +36,94 @@
   - local: chapter2/hands_on
     title: Практическое занятие
 
-- title: Раздел 4. Разработка классификатора музыкальных жанров
+- title: Раздел 3. Архитектуры трансформеров для аудио
+  sections:
+  - local: chapter3/introduction
+    title: Освежим в памяти модели трансформеров
+  - local: chapter3/ctc
+    title: Архитектуры CTC
+  - local: chapter3/seq2seq
+    title: Архитектуры Seq2Seq
+  - local: chapter3/classification
+    title: Архитектуры классификации аудио
+  - local: chapter3/quiz
+    title:  Контрольный опрос
+    quiz: 3
+  - local: chapter3/supplemental_reading
+    title: Дополнительные материалы и ресурсы
+
+- title: Раздел 4. Создание классификатора музыкальных жанров
   sections:
   - local: chapter4/introduction
-    title: Чему вы научитесь и что вы сможете создать
+    title: Чему вы научитесь и что создадите
   - local: chapter4/classification_models
-    title: Предварительно обученные модели и наборы данных для классификации звука
+    title: Предварительно обученные модели классификации аудио
   - local: chapter4/fine-tuning
-    title: Тонкая настройка модели для классификации музыки
+    title: Дообучение модели классификации музыки
   - local: chapter4/demo
-    title: Создание демонтрационного образца с Gradio
+    title: Создание демо с помощью Gradio
   - local: chapter4/hands_on
     title: Практическое занятие
-    
+
+# - title: Раздел 5. Automatic Speech Recognition
+#   sections:
+#   - local: chapter5/introduction
+#     title: Чему вы научитесь и что создадите
+#   - local: chapter5/asr_models
+#     title: Предварительно обученные модели для распознавания речи
+#   - local: chapter5/choosing_dataset
+#     title: Выбор набора данных
+#   - local: chapter5/evaluation
+#     title: Оценка и метрики для распознавания речи
+#   - local: chapter5/fine-tuning
+#     title: Как дообучить ASR-систему с помощью Trainer API
+#   - local: chapter5/demo
+#     title: Создание демо
+#   - local: chapter5/hands_on
+#     title: Практическое занятие
+#   - local: chapter5/supplemental_reading
+#     title: Дополнительные материалы и ресурсы
+
+# - title: Раздел 6. От текста к речи
+#   sections:
+#   - local: chapter6/introduction
+#     title: Чему вы научитесь и что создадите
+#   - local: chapter6/tts_datasets
+#     title: Наборы данных Text-to-speech
+#   - local: chapter6/pre-trained_models
+#     title: Предварительно обученные модели text-to-speech
+#   - local: chapter6/fine-tuning
+#     title: Дообучение SpeechT5
+#   - local: chapter6/evaluation
+#     title: Оценка моделей text-to-speech
+#   - local: chapter6/hands_on
+#     title: Практическое занятие
+#   - local: chapter6/supplemental_reading
+#     title: Дополнительные материалы и ресурсы
+
+# - title: Раздел 7. Собираем все воедино
+#   sections:
+#   - local: chapter7/introduction
+#     title: Чему вы научитесь и что создадите
+#   - local: chapter7/speech-to-speech
+#     title: Перевод Speech-to-speech
+#   - local: chapter7/voice-assistant
+#     title: Создание голосового ассистента
+#   - local: chapter7/transcribe-meeting
+#     title: Транскрибирование встречи
+#   - local: chapter7/hands-on
+#     title: Практическое занятие
+#   - local: chapter7/supplemental_reading
+#     title: Дополнительные материалы и ресурсы
+
+- title: Раздел 8. Финишная прямая
+  sections:
+  - local: chapter8/introduction
+    title: Поздравляем!
+  - local: chapter8/certification
+    title: Получение сертификата о прохождении курса
+
+- title: Мероприятия в рамках курса
+  sections:
+  - local: events/introduction
+    title: Живые занятия и семинары
