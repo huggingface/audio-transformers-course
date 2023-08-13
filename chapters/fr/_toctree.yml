@@ -46,9 +46,6 @@
     title: Architectures Seq2Seq
   - local: chapter3/classification
     title: Architectures de classification audio
-  - local: chapter3/quiz
-    title: Quiz
-    quiz: 3
   - local: chapter3/supplemental_reading
     title: Lectures et ressources complémentaires
 
