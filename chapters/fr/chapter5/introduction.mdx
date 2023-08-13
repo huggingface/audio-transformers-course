@@ -1,0 +1,30 @@
+# Ce que vous allez apprendre et construire
+
+Dans cette section, nous verrons comment les *transformers* peuvent être utilisés pour convertir la parole en texte, une tâche connue sous le nom de _reconnaissance de la parole_.
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/asr_diagram.png" alt="Diagram of speech to text">
+</div>
+
+
+La reconnaissance de la parole, également connue sous le nom de reconnaissance automatique de la parole (ASR pour *automatic speech recognition* ou STT pour *speech-to-text*), est l'une des tâches de traitement d'audio les plus populaires et les plus excitantes. Elle est utilisée dans un large éventail d'applications, y compris la dictée, les assistants vocaux, le sous-titrage vidéo et les transcriptions de réunions.
+
+Vous avez probablement utilisé un système de reconnaissance de la parole  plusieurs fois auparavant sans vous en rendre compte. Considérez l'assistant numérique de votre smartphone (Siri, Google Assistant, Alexa). Lorsque vous utilisez ces assistants, la première chose qu'ils font est de transcrire votre discours parlé en texte écrit, prêt à être utilisé pour toutes les tâches en aval (comme trouver la météo 🌤️).
+
+Jouez avec la démo de reconnaissance de la parole ci-dessous. Vous pouvez soit vous enregistrer à l'aide de votre microphone, soit glisser-déposer un échantillon audio pour en obtenir la transcription : 
+
+<iframe src="https://course-demos-whisper-small.hf.space" frameborder="0" width="850" height="450"> </iframe>
+
+
+La reconnaissance de la parole est une tâche difficile car elle nécessite une connaissance conjointe de l'audio et du texte. L'audio d'entrée peut contenir beaucoup de bruit de fond et être prononcé par des haut-parleurs avec des accents différents, ce qui rend l'identification de la parole difficile. Le texte écrit peut contenir des caractères qui n'ont pas de son acoustique, tels que la ponctuation, qui sont difficiles à déduire de l'audio seul. Ce sont tous des obstacles que nous devons surmonter lors de la construction de systèmes de efficaces!
+
+Maintenant que nous avons défini notre tâche, nous pouvons commencer à l'examiner plus en détail. À la fin de cette unité, vous aurez une bonne compréhension fondamentale des différents modèles pré-entraînés disponibles et de la façon de les utiliser avec la 🤗 bibliothèque *Transformers*. Vous connaîtrez également la procédure pour *finetuner* un modèle sur un domaine ou une langue de votre choix, ce qui vous permettra de construire un système puissant pour toutes les tâches que vous rencontrez. Vous pourrez montrer votre modèle à vos amis et à votre famille en créant une démo prenant n'importe quel discours et le convertissant en texte !
+
+Plus précisément, nous couvrirons les points suivants :
+
+* [Modèles pré-entraînés pour la reconnaissance de la parole](asr_models)
+* [Choix d'un jeu de données](choosing_dataset)
+* [Évaluation et métriques pour la reconnaissance de la parole](evaluation)
+* [Comment *finetuner* un système d'ASR avec l'API *Trainer*](fine-tuning)
+* [Création d'une démo](demo)
+* [Exercice pratique](hands_on)
