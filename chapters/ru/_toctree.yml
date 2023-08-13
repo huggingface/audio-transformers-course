@@ -84,22 +84,22 @@
 #   - local: chapter5/supplemental_reading
 #     title: Дополнительные материалы и ресурсы
 
-# - title: Раздел 6. От текста к речи
-#   sections:
-#   - local: chapter6/introduction
-#     title: Чему вы научитесь и что создадите
-#   - local: chapter6/tts_datasets
-#     title: Наборы данных Text-to-speech
-#   - local: chapter6/pre-trained_models
-#     title: Предварительно обученные модели text-to-speech
-#   - local: chapter6/fine-tuning
-#     title: Дообучение SpeechT5
-#   - local: chapter6/evaluation
-#     title: Оценка моделей text-to-speech
-#   - local: chapter6/hands_on
-#     title: Практическое занятие
-#   - local: chapter6/supplemental_reading
-#     title: Дополнительные материалы и ресурсы
+- title: Раздел 6. От текста к речи
+  sections:
+  - local: chapter6/introduction
+    title: Чему вы научитесь и что создадите
+  - local: chapter6/tts_datasets
+    title: Наборы данных Text-to-speech
+  - local: chapter6/pre-trained_models
+    title: Предварительно обученные модели text-to-speech
+  - local: chapter6/fine-tuning
+    title: Дообучение SpeechT5
+  - local: chapter6/evaluation
+    title: Оценка моделей text-to-speech
+  - local: chapter6/hands_on
+    title: Практическое занятие
+  - local: chapter6/supplemental_reading
+    title: Дополнительные материалы и ресурсы
 
 # - title: Раздел 7. Собираем все воедино
 #   sections:
