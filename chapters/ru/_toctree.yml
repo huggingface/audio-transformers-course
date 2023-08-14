@@ -65,7 +65,7 @@
   - local: chapter4/hands_on
     title: Практическое занятие
 
-- title: Раздел 5. Automatic Speech Recognition
+- title: Раздел 5. Автоматическое распознавание речи
   sections:
    - local: chapter5/introduction
      title: Чему вы научитесь и что создадите
