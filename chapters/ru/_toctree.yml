@@ -65,24 +65,24 @@
   - local: chapter4/hands_on
     title: Практическое занятие
 
-# - title: Раздел 5. Automatic Speech Recognition
-#   sections:
-#   - local: chapter5/introduction
-#     title: Чему вы научитесь и что создадите
-#   - local: chapter5/asr_models
-#     title: Предварительно обученные модели для распознавания речи
-#   - local: chapter5/choosing_dataset
-#     title: Выбор набора данных
-#   - local: chapter5/evaluation
-#     title: Оценка и метрики для распознавания речи
-#   - local: chapter5/fine-tuning
-#     title: Как дообучить ASR-систему с помощью Trainer API
-#   - local: chapter5/demo
-#     title: Создание демо
-#   - local: chapter5/hands_on
-#     title: Практическое занятие
-#   - local: chapter5/supplemental_reading
-#     title: Дополнительные материалы и ресурсы
+ - title: Раздел 5. Automatic Speech Recognition
+   sections:
+   - local: chapter5/introduction
+     title: Чему вы научитесь и что создадите
+   - local: chapter5/asr_models
+     title: Предварительно обученные модели для распознавания речи
+   - local: chapter5/choosing_dataset
+     title: Выбор набора данных
+   - local: chapter5/evaluation
+     title: Оценка и метрики для распознавания речи
+   - local: chapter5/fine-tuning
+     title: Как дообучить ASR-систему с помощью Trainer API
+   - local: chapter5/demo
+     title: Создание демо
+   - local: chapter5/hands_on
+     title: Практическое занятие
+   - local: chapter5/supplemental_reading
+     title: Дополнительные материалы и ресурсы
 
 # - title: Раздел 6. От текста к речи
 #   sections:
