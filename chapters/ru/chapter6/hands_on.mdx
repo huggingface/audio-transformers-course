@@ -1,21 +1,21 @@
-# Hands-on exercise
+# Практическое занятие
 
-In this unit, we have explored text-to-speech audio task, talked about existing datasets, pretrained 
-models and nuances of fine-tuning SpeechT5 for a new language. 
+В этом разделе мы рассмотрели аудиозадачу преобразования текста в речь, рассказали о существующих наборах данных, предварительно обученных
+моделях и нюансах дообучения SpeechT5 для нового языка. 
 
-As you've seen, fine-tuning models for text-to-speech task can be challenging in low-resource scenarios. At the same time, 
-evaluating text-to-speech models isn't easy either. 
+Как вы убедились, дообучение моделей для задач преобразования текста в речь может быть сложной задачей в условиях ограниченных ресурсов. В то же время
+оценивать модели преобразования текста в речь также нелегко. 
 
-For these reasons, this hands-on exercise will focus on practicing the skills rather than achieving a certain metric value. 
+По этим причинам данное практическое занятие будет направлено на отработку навыков, а не на достижение определенного значения метрики. 
 
-Your objective for this task is to fine-tune SpeechT5 on a dataset of your choosing. You have the freedom to select 
-another language from the same `voxpopuli` dataset, or you can pick any other dataset listed in this unit.
+Ваша задача - провести дообучение SpeechT5 на выбранном вами наборе данных. Вы можете выбрать
+другой язык из того же набора данных `voxpopuli`, либо выбрать любой другой набор данных, приведенный в этом разделе.
 
-Be mindful of the training data size! For training on a free tier GPU from Google Colab, we recommend limiting the training 
-data to about 10-15 hours. 
+Помните о размере обучающих данных! Для обучения на GPU бесплатного уровня в Google Colab мы рекомендуем ограничить объем обучающих
+данных примерно до 10-15 часов. 
 
-Once you have completed the fine-tuning process, share your model by uploading it to the Hub. Make sure to tag your model 
-as a `text-to-speech` model either with appropriate kwargs, or in the Hub UI.
+После завершения процесса дообучения поделитесь своей моделью, загрузив ее в Hub. Обязательно пометьте модель
+как модель `text-to-speech` либо соответствующими параметрами kwargs, либо через графический интерфейс Hub.
 
-Remember, the primary aim of this exercise is to provide you with ample practice, allowing you to refine your skills and 
-gain a deeper understanding of text-to-speech audio tasks. 
+Помните, что основная цель этого упражнения - предоставить вам обширную практику, которая позволит вам отточить свои навыки и
+получить более глубокое представление об аудиозадачах преобразования текста в речь.
