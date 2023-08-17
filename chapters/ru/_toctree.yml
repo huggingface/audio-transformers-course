@@ -57,7 +57,7 @@
   - local: chapter4/introduction
     title: Чему вы научитесь и что создадите
   - local: chapter4/classification_models
-    title: Предварительно обученные модели классификации аудио
+    title: Предварительно обученные модели классификации звука
   - local: chapter4/fine-tuning
     title: Дообучение модели классификации музыки
   - local: chapter4/demo

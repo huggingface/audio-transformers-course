@@ -1,34 +1,32 @@
-# Transcribe a meeting
+# Транскрибирование встречи
 
-In this final section, we'll use the Whisper model to generate a transcription for a conversation or meeting between 
-two or more speakers. We'll then pair it with a *speaker diarization* model to predict "who spoke when". By matching
-the timestamps from the Whisper transcriptions with the timestamps from the speaker diarization model, we can predict an 
-end-to-end meeting transcription with fully formatted start / end times for each speaker. This is a basic version of 
-the meeting transcription services you might have seen online from the likes of [Otter.ai](https://otter.ai) and co:
+В этом заключительном разделе мы используем модель Whisper для создания транскрипции разговора или встречи между двумя или более говорящими. Затем мы объединим
+ее с моделью *диаризации диктора* для прогнозирования "кто когда говорил". Сопоставив временные метки из транскрипции Whisper с временными метками от модели диаризации,
+мы можем спрогнозировать сквозную транскрипцию встречи с полностью отформатированным временем начала и окончания для каждого говорящего. Это базовая версия услуг по
+транскрибированию совещаний, которую вы могли видеть в интернете от таких компаний, как [Otter.ai](https://otter.ai) и др:
 
 <div class="flex justify-center">
      <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/diarization_transcription.png">
  </div>
 
-## Speaker Diarization
+## Диаризация диктора
 
-Speaker diarization (or diarisation) is the task of taking an unlabelled audio input and predicting "who spoke when".
-In doing so, we can predict start / end timestamps for each speaker turn, corresponding to when each speaker starts 
-speaking and when they finish.
+Диаризация диктора (или диаризация) - это задача получения немаркированных аудиоданных и прогнозирования того, "кто когда говорил". При этом мы можем
+прогнозировать временные метки начала/окончания каждой очереди дикторов, соответствующие моменту начала речи и моменту ее окончания.
 
-🤗 Transformers currently does not have a model for speaker diarization included in the library, but there are checkpoints 
-on the Hub that can be used with relative ease. In this example, we'll use the pre-trained speaker diarization model from 
-[pyannote.audio](https://github.com/pyannote/pyannote-audio). Let's get started and pip install the package:
+🤗 В настоящее время в библиотеке Transformers нет модели для диаризации диктора, но на Hub есть контрольные точки, которые можно использовать
+с относительной легкостью. В этом примере мы будем использовать предварительно обученную модель диаризации диктора из [pyannote.audio](https://github.com/pyannote/pyannote-audio).
+Давайте приступим к работе и установим пакет с помощью pip:
 
 ```bash
 pip install --upgrade pyannote.audio
 ```
 
-Great! The weights for this model are hosted on the Hugging Face Hub. To access them, we first have to agree to the speaker diarization model's 
-terms of use: [pyannote/speaker-diarization](https://huggingface.co/pyannote/speaker-diarization). And subsequently the 
-segmentation model's terms of use: [pyannote/segmentation](https://huggingface.co/pyannote/segmentation).
+Отлично! Веса для этой модели размещены на Hugging Face Hub. Чтобы получить к ним доступ, сначала нужно согласиться с условиями использования модели диаризации
+диктора: [pyannote/speaker-diarization](https://huggingface.co/pyannote/speaker-diarization). А затем - с условиями использования модели
+сегментации: [pyannote/segmentation](https://huggingface.co/pyannote/segmentation).
 
-Once complete, we can load the pre-trained speaker diarization pipeline locally on our device:
+После завершения работы мы можем загрузить предварительно обученный конвейер диаризации дикторов локально на наше устройство:
 
 ```python
 from pyannote.audio import Pipeline
@@ -38,8 +36,8 @@ diarization_pipeline = Pipeline.from_pretrained(
 )
 ```
 
-Let's try it out on a sample audio file! For this, we'll load a sample of the [LibriSpeech ASR](https://huggingface.co/datasets/librispeech_asr)
-dataset that consists of two different speakers that have been concatenated together to give a single audio file:
+Давайте опробуем его на примере аудиофайла! Для этого мы загрузим образец из датасета [LibriSpeech ASR](https://huggingface.co/datasets/librispeech_asr), содержащий речь
+двух разных дикторов, который мы объединили в один аудиофайл:
 
 ```python
 from datasets import load_dataset
@@ -50,7 +48,7 @@ concatenated_librispeech = load_dataset(
 sample = next(iter(concatenated_librispeech))
 ```
 
-We can listen to the audio to see what it sounds like:
+Мы можем прослушать аудиозапись, чтобы понять, как она звучит:
 
 ```python
 from IPython.display import Audio
@@ -58,9 +56,9 @@ from IPython.display import Audio
 Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
 ```
 
-Cool! We can clearly hear two different speakers, with a transition roughly 15s of the way through. Let's pass this audio 
-file to the diarization model to get the speaker start / end times. Note that pyannote.audio expects the audio input to be a 
-PyTorch tensor of shape `(channels, seq_len)`, so we need to perform this conversion prior to running the model:
+Класс! Мы отчетливо слышим двух разных дикторов с переходом примерно на 15 секунде звучания. Давайте передадим этот аудиофайл в модель диаризации, чтобы получить
+время начала и окончания разговора. Заметим, что pyannote.audio ожидает, что входной аудиофайл будет представлять собой тензор PyTorch формы `(channels, seq_len)`,
+поэтому перед запуском модели нам необходимо выполнить это преобразование:
 
 ```python
 import torch
@@ -82,16 +80,14 @@ outputs.for_json()["content"]
   'label': 'SPEAKER_00'}]
 ```
 
-This looks pretty good! We can see that the first speaker is predicted as speaking up until the 14.5 second mark, and the 
-second speaker from 15.4s onwards. Now we need to get our transcription!
+Выглядит это довольно неплохо! Видно, что первый диктор говорит до отметки 14,5 секунды, а второй - с 15,4 секунды.
+Теперь нам нужно получить транскрипцию!
 
-## Speech transcription
+## Транскрибирование речи
 
-For the third time in this Unit, we'll use the Whisper model for our speech transcription system. Specifically, we'll load the 
-[Whisper Base](https://huggingface.co/openai/whisper-base) checkpoint, since it's small enough to give good 
-inference speed with reasonable transcription accuracy. As before, feel free to use any speech recognition checkpoint 
-on [the Hub](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&library=transformers&sort=trending),
-including Wav2Vec2, MMS ASR or other Whisper checkpoints:
+В третий раз в этом блоке мы будем использовать модель Whisper для нашей системы транскрипции речи. В частности, мы загрузим контрольную точку [Whisper Base](https://huggingface.co/openai/whisper-base),
+поскольку она достаточно мала, чтобы обеспечить хорошую скорость инференса при приемлемой точности транскрипции. Как и прежде, вы можете использовать любую контрольную точку распознавания речи с 
+[Hub](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&library=transformers&sort=trending), включая Wav2Vec2, MMS ASR или другие контрольные точки Whisper:
 
 ```python
 from transformers import pipeline
@@ -102,9 +98,8 @@ asr_pipeline = pipeline(
 )
 ```
 
-Let's get the transcription for our sample audio, returning the segment level timestamps as well so that we know the 
-start / end times for each segment. You'll remember from Unit 5 that we need to pass the argument
-`return_timestamps=True` to activate the timestamp prediction task for Whisper:
+Давайте получим транскрипцию для нашего образца аудиозаписи, возвращая также временные метки на уровне сегментов, чтобы знать время начала и окончания каждого сегмента.
+Из раздела 5 вы помните, что для активации задачи прогнозирования временных меток в Whisper нам необходимо передать аргумент `return_timestamps=True`:
 
 ```python
 asr_pipeline(
@@ -137,28 +132,25 @@ asr_pipeline(
 }
 ```
 
-Alright! We see that each segment of the transcript has a start and end time, with the speakers changing at the 15.48 second 
-mark. We can now pair this transcription with the speaker timestamps that we got from our diarization model to get our 
-final transcription.
+Отлично! Мы видим, что каждый сегмент транскрипции имеет начальное и конечное время, причем смена дикторов происходит на отметке 15,48 секунды. Теперь мы можем сопоставить
+эту транскрипцию с временными метками дикторов, полученными с помощью модели диаризации, и получить окончательную транскрипцию.
 
 ## Speechbox
 
-To get the final transcription, we'll align the timestamps from the diarization model with those from the Whisper model.
-The diarization model predicted the first speaker to end at 14.5 seconds, and the second speaker to start at 15.4s, whereas Whisper predicted segment boundaries at
-13.88, 15.48 and 19.44 seconds respectively. Since the timestamps from Whisper don't match perfectly with those from the 
-diarization model, we need to find which of these boundaries are closest to 14.5 and 15.4 seconds, and segment the transcription by
-speakers accordingly. Specifically, we'll find the closest alignment between diarization and transcription timestamps by 
-minimising the absolute distance between both.
+Чтобы получить окончательную транскрипцию, совместим временные метки, полученные с помощью модели диаризации, с временными метками, полученными с помощью модели Whisper.
+Модель диаризации предсказала окончание речи первого диктора на 14,5 с, а второго - на 15,4 с, в то время как Whisper предсказал границы сегментов на 13,88, 15,48 и 19,44 с соответственно.
+Поскольку временные метки, полученные с помощью Whisper, не полностью совпадают с данными модели диаризации, нам необходимо найти, какие из этих границ ближе всего к 14,5 и 15,4 с, и
+соответствующим образом сегментировать транскрипцию по дикторам. В частности, мы найдем наиболее близкое совпадение между временными метками диаризации и транскрипции,
+минимизировав абсолютное расстояние между ними.
 
-Luckily for us, we can use the 🤗 Speechbox package to perform this alignment. First, let's pip install `speechbox` from 
-main:
+К счастью для нас, мы можем использовать пакет 🤗 Speechbox для выполнения этого выравнивания. Сначала давайте установим пакет `speechbox` из main:
 
 ```bash
 pip install git+https://github.com/huggingface/speechbox
 ```
 
-We can now instantiate our combined diarization plus transcription pipeline, by passing the diarization model and 
-ASR model to the [`ASRDiarizationPipeline`](https://github.com/huggingface/speechbox/tree/main#asr-with-speaker-diarization) class:
+Теперь мы можем инстанцировать наш комбинированный конвейер диаризации и транскрипции, передав модель диаризации и
+модель ASR в класс [`ASRDiarizationPipeline`](https://github.com/huggingface/speechbox/tree/main#asr-with-speaker-diarization):
 
 ```python
 from speechbox import ASRDiarizationPipeline
@@ -169,12 +161,12 @@ pipeline = ASRDiarizationPipeline(
 ```
 
 <Tip>
-    You can also instantiate the <code>ASRDiarizationPipeline</code> directly from pre-trained by specifying the model id
-    of an ASR model on the Hub:
+    Вы также можете инстанцировать  <code>ASRDiarizationPipeline</code> directly непосредственно из предварительно обученных моделей, указав идентификатор 
+    модели ASR на Hub:
     <p><code>pipeline = ASRDiarizationPipeline.from_pretrained("openai/whisper-base")</code></p>
 </Tip>
 
-Let's pass the audio file to the composite pipeline and see what we get out:
+Передадим аудиофайл в композитный конвейер и посмотрим, что получится в результате:
 
 ```python
 pipeline(sample["audio"].copy())
@@ -189,12 +181,12 @@ pipeline(sample["audio"].copy())
   'timestamp': (15.48, 21.28)}]
 ```
 
-Excellent! The first speaker is segmented as speaking from 0 to 15.48 seconds, and the second speaker from 15.48 to 21.28 seconds,
-with the corresponding transcriptions for each.
+Отлично! Первый диктор сегментирован как говорящий с 0 до 15,48 секунды, а второй - с 15,48 до 21,28 секунды,
+с соответствующими транскрипциями для каждого из них.
 
-We can format the timestamps a little more nicely by defining two helper functions. The first converts a tuple of
-timestamps to a string, rounded to a set number of decimal places. The second combines the speaker id, timestamp and text
-information onto one line, and splits each speaker onto their own line for ease of reading:
+Для более удобного форматирования временных меток можно определить две вспомогательные функции. Первая преобразует кортеж временных меток в строку, округленную
+до заданного количества знаков после запятой. Вторая объединяет идентификатор диктора, временную метку и текстовую информацию в одну строку, а для удобства
+чтения разбивает каждого диктора на отдельные строки:
 
 ```python
 def tuple_to_string(start_end_tuple, ndigits=1):
@@ -210,7 +202,8 @@ def format_as_transcription(raw_segments):
     )
 ```
 
-Let's re-run the pipeline, this time formatting the transcription according to the function we've just defined:
+Повторно запустим конвейер, на этот раз форматируя транскрипцию в соответствии с функцией, которую мы только что определили:
+
 ```python
 outputs = pipeline(sample["audio"].copy())
 
@@ -225,7 +218,6 @@ SPEAKER_00 (15.5, 21.3) He was in a favored state of mind, owing to the blight h
 his entire future.
 ```
 
-There we go! With that, we've both diarized and transcribe our input audio and returned speaker-segmented transcriptions.
-While the minimum distance algoirthm to align the diarized timestamps and transcribed timestamps is simple, it
-works well in practice. If you want to explore more advanced methods for combining the timestamps, the
-source code for the `ASRDiarizationPipeline` is a good place to start: [speechbox/diarize.py](https://github.com/huggingface/speechbox/blob/96d2d1a180252d92263f862a1cd25a48860f1aed/src/speechbox/diarize.py#L12)
+Вот так! Таким образом, мы провели диарирование и транскрибацию входного аудиосигнала и получили транскрибации с сегментацией дикторов. Хотя алгоритм минимального расстояния для
+выравнивания временных меток диаризации и транскрибации прост, он хорошо работает на практике. Если вы хотите изучить более сложные методы совмещения временных меток, то исходный
+код `ASRDiarizationPipeline` является хорошей отправной точкой: [speechbox/diarize.py](https://github.com/huggingface/speechbox/blob/96d2d1a180252d92263f862a1cd25a48860f1aed/src/speechbox/diarize.py#L12)
