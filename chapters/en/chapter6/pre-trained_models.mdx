@@ -221,6 +221,11 @@ inputs = processor("This is a test!", voice_preset="v2/en_speaker_3")
 speech_output = model.generate(**inputs).cpu().numpy()
 ```
 
+<audio controls> 
+  <source src="https://huggingface.co/datasets/ylacombe/hf-course-audio-files/resolve/main/first_sample.wav" type="audio/wav"> 
+Your browser does not support the audio element. 
+</audio> 
+
 It can also generate ready-to-use multilingual speeches, such as French and Chinese. You can find a list of supported languages [here](https://huggingface.co/suno/bark). Unlike MMS, discussed below, it is not necessary to specify the language used, but simply adapt the input text to the corresponding language.
 
 ```python
@@ -229,6 +234,12 @@ inputs = processor("C'est un test!", voice_preset="v2/fr_speaker_1")
 
 speech_output = model.generate(**inputs).cpu().numpy()
 ```
+
+<audio controls> 
+  <source src="https://huggingface.co/datasets/ylacombe/hf-course-audio-files/resolve/main/second_sample.wav" type="audio/wav"> 
+Your browser does not support the audio element. 
+</audio> 
+
 
 The model can also generate **non-verbal communications** such as laughing, sighing and crying. You just have to modify the input text with corresponding cues such as `[clears throat]`, `[laughter]`, or `...`.
 
@@ -241,16 +252,26 @@ inputs = processor(
 speech_output = model.generate(**inputs).cpu().numpy()
 ```
 
+<audio controls> 
+  <source src="https://huggingface.co/datasets/ylacombe/hf-course-audio-files/resolve/main/third_sample.wav" type="audio/wav"> 
+Your browser does not support the audio element. 
+</audio> 
+
+
 Bark can even generate music. You can help by adding ♪ musical notes ♪ around your words.
 
 ```python
 inputs = processor(
     "♪ In the mighty jungle, I'm trying to generate barks.",
-    voice_preset="v2/fr_speaker_1",
 )
 
 speech_output = model.generate(**inputs).cpu().numpy()
 ```
+
+<audio controls> 
+  <source src="https://huggingface.co/datasets/ylacombe/hf-course-audio-files/resolve/main/fourth_sample.wav" type="audio/wav"> 
+Your browser does not support the audio element. 
+</audio> 
 
 Unlike SpeechT5, Bark directly generates raw speech waveforms. This means that you do not need to add a vocoder for inference, it's already "built-in".
 
@@ -284,16 +305,31 @@ sampling_rate = model.generation_config.sample_rate
 Audio(speech_output[0], rate=sampling_rate)
 ```
 
+<audio controls> 
+  <source src="https://huggingface.co/datasets/ylacombe/hf-course-audio-files/resolve/main/batch_1.wav" type="audio/wav"> 
+Your browser does not support the audio element. 
+</audio> 
+
 
 Second one:
 ```python
 Audio(speech_output[1], rate=sampling_rate)
 ```
 
+<audio controls> 
+  <source src="https://huggingface.co/datasets/ylacombe/hf-course-audio-files/resolve/main/batch_2.wav" type="audio/wav"> 
+Your browser does not support the audio element. 
+</audio> 
+
 Third one:
 ```python
 Audio(speech_output[2], rate=sampling_rate)
 ```
+
+<audio controls> 
+  <source src="https://huggingface.co/datasets/ylacombe/hf-course-audio-files/resolve/main/batch_3.wav" type="audio/wav"> 
+Your browser does not support the audio element. 
+</audio> 
 
 <Tip>
 
