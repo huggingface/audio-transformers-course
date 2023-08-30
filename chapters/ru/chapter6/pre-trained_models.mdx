@@ -161,7 +161,7 @@ vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
 speech = model.generate_speech(inputs["input_ids"], speaker_embeddings, vocoder=vocoder)
 ```
 
-Let's listen to the result. The sample rate used by SpeechT5 is always 16 kHz.
+Давайте послушаем результат. Частота дискретизации, используемая SpeechT5, всегда равна 16 кГц.
 
 ```python
 from IPython.display import Audio
