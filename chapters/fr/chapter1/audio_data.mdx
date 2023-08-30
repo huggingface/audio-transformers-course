@@ -45,13 +45,16 @@ Cependant, pour les signaux audio numériques, 0 dB est l'amplitude la plus fort
 En règle générale: chaque -6 dB est une réduction de moitié de l'amplitude, et tout ce qui est inférieur à -60 dB est généralement inaudible à moins que vous n'augmentiez vraiment le volume.
 
 ## L'audio comme forme d'onde
+
 Vous avez peut-être vu des sons visualisés sous la **forme d'onde** qui traçant les valeurs de l'échantillon au fil du temps et illustrant les changements d'amplitude du son. Ceci est aussi connu sous le nom de représentation du *domaine temporel* du son.
 Ce type de visualisation est utile pour identifier des caractéristiques spécifiques du signal audio telles que la synchronisation des événements sonores individuels, l'intensité sonore globale du signal et toute irrégularité ou bruit présent dans l'audio.
 
 Pour tracer la forme d'onde d'un signal audio, nous pouvons utiliser une bibliothèque Python `librosa`:
+
 ```bash
 pip install librosa
 ```
+
 Prenons un exemple de son appelé « trompette » qui vient avec la bibliothèque:
 
 ```py
@@ -59,8 +62,10 @@ import librosa
 
 array, sampling_rate = librosa.load(librosa.ex("trumpet"))
 ```
+
 L'exemple est chargé sous la forme d'un tuple de séries temporelles audio (ici nous l'appelons `array`) et de taux d'échantillonnage (`sampling_rate`).
 Jetons un coup d'œil à la forme d'onde de ce son en utilisant la fonction `waveshow()` de librosa:
+
 ```py
 import matplotlib.pyplot as plt
 import librosa.display
@@ -68,9 +73,11 @@ import librosa.display
 plt.figure().set_figwidth(12)
 librosa.display.waveshow(array, sr=sampling_rate)
 ```
+
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/waveform_plot.png" alt="Waveform plot">
 </div>
+
 Cela trace l'amplitude du signal sur l'axe des y et le temps le long de l'axe des x. 
 En d'autres termes, chaque point correspond à une seule valeur d'échantillon qui a été prise lors de l'échantillonnage de ce son. 
 Notez également que librosa renvoie déjà l'audio sous forme de valeurs à virgule flottante et que les valeurs d'amplitude sont effectivement comprises dans la plage [-1.0, 1.0].
@@ -80,6 +87,7 @@ Si vous prétraitez les données d'une manière ou d'une autre, telle que la nor
 Après avoir entraîné un modèle, vous pouvez également visualiser des exemples où des erreurs se produisent (par exemple, dans la tâche de classification audio) pour déboguer le problème.
 
 ## Le spectre de fréquences
+
 Une autre façon de visualiser les données audio consiste à tracer le **spectre de fréquences** d'un signal audio, également connu sous le nom de représentation du *domaine fréquentiel*. 
 Le spectre est calculé à l'aide de la transformée de Fourier discrète ou TFD. Il décrit les fréquences individuelles qui composent le signal et leur force.
 Traçons le spectre de fréquences pour le même son de trompette en prenant la TFD en utilisant la fonction `rfft()` de numpy. Bien qu'il soit possible de tracer le spectre de l'ensemble du son, il est plus utile de regarder une petite région à la place. 
@@ -108,9 +116,11 @@ plt.xlabel("Frequency (Hz)")
 plt.ylabel("Amplitude (dB)")
 plt.xscale("log")
 ```
+
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/spectrum_plot.png" alt="Spectrum plot">
 </div>
+
 Cela trace la force des différentes composantes de fréquence présentes dans ce segment audio. Les valeurs de fréquence sont sur l'axe des abscisses, généralement tracées sur une échelle logarithmique, tandis que leurs amplitudes sont sur l'axe des y.
 
 Le spectre de fréquences que nous avons tracé montre plusieurs pics. 
@@ -125,10 +135,12 @@ Parfois, les gens utilisent le **spectre de puissance**, qui mesure l'énergie p
 <Tip> 
 💡 En pratique, les gens utilisent le terme FFT de manière interchangeable avec TFD, car la FFT ou transformée de Fourier rapide est le seul moyen efficace de calculer la TFD sur un ordinateur.
 </Tip>
+
 Le spectre de fréquences d'un signal audio contient exactement la même information que sa forme d'onde. Ce sont simplement deux façons différentes de regarder les mêmes données (ici, les 4096 premiers échantillons du son de la trompette). 
 Là où la forme d'onde trace l'amplitude du signal audio au fil du temps, le spectre visualise les amplitudes des fréquences individuelles à un moment donné.
 
 ## Spectrogramme
+
 Et si nous voulons voir comment les fréquences d'un signal audio changent ? La trompette joue plusieurs notes et elles ont toutes des fréquences différentes. 
 Le problème est que le spectre ne montre qu'un instantané figé des fréquences à un instant donné.
 La solution consiste à prendre plusieurs TFD, chacune ne couvrant qu'une petite tranche de temps, et à empiler les spectres résultants dans un **spectrogramme**.
@@ -152,6 +164,7 @@ plt.colorbar()
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/spectrogram_plot.png" alt="Spectrogram plot">
 </div>
+
 Dans ce graphique, l'axe des x représente le temps comme dans la visualisation de la forme d'onde, mais maintenant l'axe des y représente la fréquence en Hz.
 L'intensité de la couleur donne l'amplitude ou la puissance de la composante fréquence à chaque point dans le temps, mesurée en décibels (dB).
 
@@ -167,6 +180,7 @@ Les spectrogrammes ne sont pas seulement utilisés pour la visualisation. De nom
 Maintenant que nous savons ce qu'est un spectrogramme et comment il est fabriqué, jetons un coup d'œil à une variante de celui-ci largement utilisée pour le traitement de la parole: le spectrogramme mel.
 
 ## Spectrogramme Mel
+
 Un spectrogramme mel est une variante du spectrogramme couramment utilisée dans les tâches de traitement de la parole et d'apprentissage automatique.
 Il est similaire à un spectrogramme en ce sens qu'il montre le contenu en fréquence d'un signal audio au fil du temps, mais sur un axe de fréquence différent.
 Dans un spectrogramme standard, l'axe de fréquence est linéaire et est mesuré en hertz (Hz). 
@@ -175,6 +189,7 @@ L'échelle mel est une échelle perceptuelle qui se rapproche de la réponse en 
 Pour créer un spectrogramme mel, le STFT est utilisé comme auparavant, divisant l'audio en segments courts pour obtenir une séquence de spectres de fréquence. 
 De plus, chaque spectre est envoyé à travers un ensemble de filtres, appelé *mel filterbank*, pour transformer les fréquences à l'échelle mel.
 Voyons comment nous pouvons tracer un spectrogramme mel en utilisant la fonction `melspectrogram()` de librosa, qui effectue toutes ces étapes pour nous:
+
 ```py
 S = librosa.feature.melspectrogram(y=array, sr=sampling_rate, n_mels=128, fmax=8000)
 S_dB = librosa.power_to_db(S, ref=np.max)
@@ -200,6 +215,7 @@ L'exemple ci-dessus utilisé `librosa.power_to_db()` car `librosa.feature.melspe
 La conversion en spectrogramme log-mel ne calcule pas toujours les décibels vrais, mais peut simplement prendre le « log ». 
 Par conséquent, si un modèle d'apprentissage automatique attend un spectrogramme mel en entrée, vérifiez deux fois pour vous assurer que vous le calculez de la même manière.
 </Tip>
+
 La création d'un spectrogramme mel est une opération avec perte car elle implique le filtrage du signal. 
 La conversion d'un spectrogramme mel en une forme d'onde est plus difficile que de le faire pour un spectrogramme régulier, car cela nécessite d'estimer les fréquences qui ont été jetées. 
 C'est pourquoi des modèles d'apprentissage automatique tels que le vocodeur HiFiGAN sont nécessaires pour produire une forme d'onde à partir d'un spectrogramme mel.
