@@ -194,6 +194,7 @@ def transcribe(chunk_length_s=5.0, stream_chunk_s=1.0):
 ```
 
 Essayons et voyons comment nous nous débrouillerons ! Une fois que le microphone est activé, commencez à parler et regardez votre transcription apparaître en semi-temps réel :
+
 ```python
 transcribe()
 ```
@@ -239,6 +240,7 @@ def query(text, model_id="tiiuae/falcon-7b-instruct"):
 ```
 
 Essayons-le avec une entrée de test !
+
 ```python
 query("What does Hugging Face do?")
 ```
@@ -263,6 +265,7 @@ vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan").to(devic
 ```
 
 Et aussi l'enchâssement des locuteurs :
+
 ```python
 from datasets import load_dataset
 
