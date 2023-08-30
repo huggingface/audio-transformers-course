@@ -65,17 +65,20 @@
 ### 4. Quel est le moyen le plus simple de convertir des données audio brutes en spectrogramme log-mel attendu par Whisper ?
 
 A.
+
 ```python
 librosa.feature.melspectrogram(audio["array"])
 ```
 
 B.
+
 ```python
 feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
 feature_extractor(audio["array"])
 ```
 
 C.
+
 ```python
 dataset.feature(audio["array"], model="whisper")
 ```
@@ -101,6 +104,7 @@ dataset.feature(audio["array"], model="whisper")
 ### 5. Comment charger un jeu de données depuis me 🤗 Hub ?
 
 A.
+
 ```python
 from datasets import load_dataset
 
@@ -108,6 +112,7 @@ dataset = load_dataset(DATASET_NAME_ON_HUB)
 ```
 
 B.
+
 ```python
 import librosa
 
@@ -115,6 +120,7 @@ dataset = librosa.load(PATH_TO_DATASET)
 ```
 
 C.
+
 ```python
 from transformers import load_dataset
 
