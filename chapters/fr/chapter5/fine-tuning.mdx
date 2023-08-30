@@ -28,6 +28,7 @@ notebook_login()
 ```
 
 **Sortie :**
+
 ```bash
 Login successful
 Your token has been saved to /root/.huggingface/token
@@ -53,7 +54,9 @@ common_voice["test"] = load_dataset(
 
 print(common_voice)
 ```
+
 **Sortie :**
+
 ```
 DatasetDict({
     train: Dataset({
@@ -130,11 +133,14 @@ Jetons un coup d'oeil aux caractéristiques du jeu de données. Portez une atten
 ```python
 common_voice["train"].features
 ```
+
 **Sortie :**
+
 ```
 {'audio': Audio(sampling_rate=48000, mono=True, decode=True, id=None),
  'sentence': Value(dtype='string', id=None)}
 ```
+
 Puisque notre audio d'entrée est échantillonné à 48kHz, nous devons le sous-échantillonner à 16kHz avant de le passer à l'extracteur de caractéristiques de Whisper qui est la fréquence d'échantillonnage attendue par le modèle.
 
 Nous allons régler les entrées audio à la bonne fréquence d'échantillonnage en utilisant la méthode [`cast_column`](https://huggingface.co/docs/datasets/main/en/package_reference/main_classes#datasets.Dataset.cast_column) du jeu de données. Cette opération ne modifie pas l'audio sur place, mais signale aux jeux de données de rééchantillonner les échantillons audio à la volée lorsqu'ils sont chargés :
@@ -200,7 +206,9 @@ Vérifions la quantité de données d'entraînement que nous avons supprimée gr
 ```python
 common_voice["train"]
 ```
+
 **Sortie :**
+
 ```
 Dataset({
     features: ['input_features', 'labels', 'input_length'],
