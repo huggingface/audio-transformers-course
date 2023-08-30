@@ -5,6 +5,47 @@ We'll use a lightweight model for this demonstration and fairly small dataset, m
 on any consumer grade GPU, including the T4 16GB GPU provided in the Google Colab free tier. The section includes various
 tips that you can try should you have a smaller GPU and encounter memory issues along the way.
 
+## Prepare Environment
+
+### Python Packages
+
+We require five Python packages to fine-tune a model with the 🤗 Trainer: PyTorch, Transformers, Accelerate, Datasets
+and Evaluate. To install PyTorch, follow the local installation instructions for your device on the [PyTorch installation page](https://pytorch.org/get-started/locally/).
+Note that PyTorch comes pre-installed on Google Colab instances, so you can skip this step if this applies to you.
+
+The remaining three Python packages can be installed using a `pip install` command. We'll install 🤗 Transformers from
+main since it has updates required for audio classification fine-tuning that are only on the `main` version of the 🤗
+Transformers repository, rather than the latest PyPi version:
+
+```bash
+pip install --upgrade --quiet pip
+pip install --upgrade git+https://github.com/huggingface/transformers accelerate datasets[audio] evaluate
+```
+
+### Linking your HF Account
+
+We strongly advise you to upload model checkpoints directly the [Hugging Face Hub](https://huggingface.co/) while training.
+The Hub provides:
+- Integrated version control: you can be sure that no model checkpoint is lost during training.
+- Tensorboard logs: track important metrics over the course of training.
+- Model cards: document what a model does and its intended use cases.
+- Community: an easy way to share and collaborate with the community! 🤗
+
+Linking the notebook to the Hub is straightforward - it simply requires entering your Hub authentication token when prompted.
+Find your Hub authentication token [here](https://huggingface.co/settings/tokens):
+
+```python
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+**Output:**
+```bash
+Login successful
+Your token has been saved to /root/.huggingface/token
+```
+
 
 ## The Dataset
 
@@ -403,28 +444,6 @@ model = AutoModelForAudioClassification.from_pretrained(
     label2id=label2id,
     id2label=id2label,
 )
-```
-
-We strongly advise you to upload model checkpoints directly the [Hugging Face Hub](https://huggingface.co/) while training.
-The Hub provides:
-- Integrated version control: you can be sure that no model checkpoint is lost during training.
-- Tensorboard logs: track important metrics over the course of training.
-- Model cards: document what a model does and its intended use cases.
-- Community: an easy way to share and collaborate with the community! 🤗
-
-Linking the notebook to the Hub is straightforward - it simply requires entering your Hub authentication token when prompted.
-Find your Hub authentication token [here](https://huggingface.co/settings/tokens):
-
-```python
-from huggingface_hub import notebook_login
-
-notebook_login()
-```
-
-**Output:**
-```bash
-Login successful
-Your token has been saved to /root/.huggingface/token
 ```
 
 The next step is to define the training arguments, including the batch size, gradient accumulation steps, number of
