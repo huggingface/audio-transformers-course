@@ -7,24 +7,24 @@ Avant de choisir un jeu de données, nous devons d'abord comprendre les principa
 ## Caractéristiques des jeux de données vocaux
 
 ### 1. Nombre d'heures
+
 En termes simples, le nombre d'heures d'entraînement indique la taille du jeu de données. Il est analogue au nombre d'exemples d'entraînement dans un jeu de données de NLP. Toutefois, les jeux de données plus importants ne sont pas nécessairement meilleurs. Si nous voulons un modèle qui généralise bien, nous avons besoin d'un jeu de données **varié** avec beaucoup de locuteurs, de domaines et de styles d'expression différents.
 
 ### 2. Domaine
+
 Le domaine est l'endroit d'où proviennent les données, qu'il s'agisse de livres audio, de podcasts, de YouTube ou de réunions professionnelles.
 Chaque domaine a une distribution de données différente. Par exemple, les livres audio sont enregistrés dans des conditions de studio, en haute qualité (sans bruit de fond) et le texte est tiré de la littérature. En revanche, pour YouTube, l'audio contient probablement plus de bruits de fond et un style de discours plus informel.
 
 Nous devons faire correspondre notre domaine aux conditions que nous prévoyons au moment de l'inférence. Par exemple, si nous entraînons notre modèle sur des livres audio, nous ne pouvons pas nous attendre à ce qu'il soit performant dans des environnements bruyants.
 
 ### 3. Style d'élocution
+
 Le style d'élocution peut être classé dans l'une des deux catégories suivantes :
 
 * narré : lu à partir d'un script
 * spontané : discours non scénarisé, conversationnel.
 
 Les données audio et textuelles reflètent le style d'élocution. Étant donné que le texte narré est écrit, il a tendance à être prononcé de manière articulée et sans erreur :
-
-*** Traduit avec www.DeepL.com/Translator (version gratuite) ***
-
 
 ```
 “Consider the task of training a model on a speech recognition dataset”
@@ -37,6 +37,7 @@ Dans le cas d'un discours spontané, on peut s'attendre à un style plus familie
 ```
 
 ### 4. Style de transcription
+
 Le style de transcription indique si le texte cible comporte de la ponctuation, de la casse ou les deux. Si nous voulons qu'un système génère un texte entièrement formaté pouvant être utilisé pour la transcription d'une publication ou d'une réunion, nous avons besoin de données d'entraînement comportant de la ponctuation et des majuscules. Si nous avons simplement besoin des mots prononcés dans une structure non formatée, ni la ponctuation ni la casse ne sont nécessaires.
 Dans ce cas, nous pouvons soit choisir un jeu de données sans ponctuation ni casse, soit choisir un jeu de données avec ponctuation et casse, puis les supprimer du texte cible par le biais d'un prétraitement.
 
