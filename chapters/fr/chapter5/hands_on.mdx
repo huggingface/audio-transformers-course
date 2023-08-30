@@ -11,6 +11,7 @@ Voici les instructions :
 * Pour évaluer le modèle, utilisez les métriques `wer` et `wer_ortho` comme décrit dans cette unité. Cependant, *ne convertissez pas* la métrique en pourcentages en la multipliant par 100 (par exemple, si WER est de 42%, nous nous attendons à voir la valeur de 0,42 dans cet exercice).
 
 Une fois que vous avez *finetuné* un modèle, assurez-vous de le télécharger sur le 🤗 *Hub* avec les `kwargs` suivants :
+
 ```
 kwargs = {
     "dataset_tags" : "PolyAI/minds14",
@@ -18,6 +19,7 @@ kwargs = {
     "tasks" : "automatic-speech-recognition",
 }
 ```
+
 Nous considérons cet exercice réussi si le WER normalisé (`wer`) de votre modèle est inférieur à **0.37**.
 
 N'hésitez pas à construire une démo de votre modèle obtenu et à la partager sur Discord ! Si vous avez des questions, posez-les dans le canal ``#audio-study-group`.
