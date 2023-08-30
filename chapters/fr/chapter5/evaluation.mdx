@@ -1,6 +1,6 @@
 # Évaluation et métriques pour la reconnaissance automatique de la parole
 
-Si vous connaissez la [distance de Levenshtein] (https://fr.wikipedia.org/wiki/Distance_de_Levenshtein) en NLP, les métriques d'évaluation des systèmes de reconnaissance vocale vous seront familières ! Ne vous inquiétez pas si ce n'est pas le cas, nous allons passer en revue les explications afin de nous assurer que vous maîtrisez les différentes métriques et que vous comprenez ce qu'elles signifient.
+Si vous connaissez la [distance de Levenshtein](https://fr.wikipedia.org/wiki/Distance_de_Levenshtein) en NLP, les métriques d'évaluation des systèmes de reconnaissance vocale vous seront familières ! Ne vous inquiétez pas si ce n'est pas le cas, nous allons passer en revue les explications afin de nous assurer que vous maîtrisez les différentes métriques et que vous comprenez ce qu'elles signifient.
 
 Lors de l'évaluation des systèmes de reconnaissance vocale, nous comparons les prédictions du système aux transcriptions du texte cible, en annotant toutes les erreurs présentes. Nous classons ces erreurs dans l'une des trois catégories suivantes :
 1. Substitutions (Sub) : lorsque nous transcrivons le **mauvais mot** dans notre prédiction (par exemple "sit" au lieu de "sat").
@@ -24,6 +24,7 @@ prediction = "the cat sit on the"
 Nous pouvons constater que la prédiction est assez proche, mais que certains mots ne sont pas tout à fait corrects. Nous allons évaluer cette prédiction par rapport à la référence pour les trois mesures de reconnaissance vocale les plus populaires et voir quels types de chiffres nous obtenons pour chacune d'entre elles.
 
 ## *Word Error Rate* (Taux d'erreur au niveau du mot)
+
 Le *word error rate (WER)* est la mesure de facto pour la reconnaissance vocale. Elle calcule les substitutions, les insertions et les suppressions au niveau du *mot*. Cela signifie que les erreurs sont annotées mot par mot. Prenons notre exemple :
 
 
@@ -68,7 +69,9 @@ wer = wer_metric.compute(references=[reference], predictions=[prediction])
 
 print(wer)
 ```
+
 **Sortie :**
+
 ```
 0.3333333333333333
 ```
@@ -151,7 +154,9 @@ normalized_prediction = normalizer(prediction)
 
 normalized_prediction
 ```
+
 **Sortie :**
+
 ```
 ' he tells us that at this festive season of the year with christmas and roast beef looming before us similarly is drawn from eating and its results occur most readily to the mind '
 ```
@@ -167,7 +172,9 @@ wer = wer_metric.compute(
 )
 wer
 ```
+
 **Sortie :**
+
 ```
 0.0625
 ```
@@ -229,6 +236,7 @@ common_voice_test = load_dataset(
 </Tip>
 
 L'évaluation sur un jeu de données entier peut être faite de la même manière que sur un seul exemple. Tout ce que nous avons à faire est de **boucler** sur les audios d'entrée, plutôt que d'inférer un seul échantillon. Pour ce faire, nous transformons d'abord notre jeu de données en un `KeyDataset`. Cela sélectionne la colonne particulière du jeu de données que nous voulons transmettre au modèle (dans notre cas, c'est la colonne `"audio"`), en ignorant le reste (comme les transcriptions cibles, que nous ne voulons pas utiliser pour l'inférence). Nous itérons ensuite sur ce jeu de données transformé, en ajoutant les sorties du modèle à une liste pour sauvegarder les prédictions. La cellule de code suivante prendra environ cinq minutes si elle est exécutée sur un GPU en demi-précision, avec un maximum de 12 Go de mémoire :
+
 ```python
 from tqdm import tqdm
 from transformers.pipelines.pt_utils import KeyDataset
@@ -264,7 +272,9 @@ wer_ortho = 100 * wer_metric.compute(
 )
 wer_ortho
 ```
+
 **Sortie :**
+
 ```
 167.29577268612022
 ```
@@ -300,7 +310,9 @@ wer = 100 * wer_metric.compute(
 
 wer
 ```
+
 **Sortie :**
+
 ```
 125.69809089960707
 ```
