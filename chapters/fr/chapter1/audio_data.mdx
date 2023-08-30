@@ -2,14 +2,14 @@
 
 Le **taux d'échantillonnage** (également appelé fréquence d'échantillonnage) est le nombre d'échantillons prélevés en une seconde et est mesuré en hertz (Hz). 
 Pour vous donner un point de référence, l'audio de qualité CD a un taux d'échantillonnage de 44 100 Hz, ce qui signifie que les échantillons sont prélevés 44 100 fois par seconde. À titre de comparaison, l'audio haute résolution a un taux d'échantillonnage de 192 000 Hz ou 192 kHz. 
-Un taux d'échantillonnage couramment utilisé dans les modèles vocaux d'apprentissage est de 16 000 Hz ou 16 kHz.
+Un taux d'échantillonnage couramment utilisé dans les modèles vocaux d'apprentissage est de 16 000 Hz ou 16 kHz.  
 
 Le choix de la fréquence d'échantillonnage détermine principalement la fréquence la plus élevée qui peut être capturée à partir du signal. 
 Ceci est également connu sous le nom de limite de Nyquist et correspond exactement à la moitié du taux d'échantillonnage. 
 Les fréquences audibles dans la parole humaine sont inférieures à 8 kHz et, par conséquent, l'échantillonnage de la parole à 16 kHz est suffisant.
 L'utilisation d'un taux d'échantillonnage plus élevé ne permettra pas de capturer plus d'informations et ne fera qu'augmenter le coût de calcul du traitement de ces fichiers. 
 D'autre part, l'échantillonnage audio à un taux d'échantillonnage trop faible entraînera une perte d'informations. 
-La parole échantillonnée à 8 kHz sonnera étouffée car les fréquences plus élevées ne peuvent pas être capturées à ce rythme.
+La parole échantillonnée à 8 kHz sonnera étouffée car les fréquences plus élevées ne peuvent pas être capturées à ce rythme.  
 
 Il est important de vous assurer que tous les exemples audio de votre jeu de données ont le même taux d'échantillonnage lorsque vous travaillez sur une tâche audio.
 Si vous prévoyez d'utiliser des données audio personnalisées pour finetuner un modèle pré-entraîné, le taux d'échantillonnage de vos données doit correspondre au taux d'échantillonnage des données sur lesquelles le modèle a été pré-entraîné. 
@@ -37,7 +37,7 @@ Cela stocke les échantillons sous forme de valeurs à virgule flottante, tandis
 La précision d'une valeur à virgule flottante de 32 bits est de 24 bits, ce qui lui donne la même profondeur de bits que l'audio 24 bits.
 Les échantillons audio en virgule flottante devraient se situer dans la plage [-1.0, 1.0]. 
 Étant donné que les modèles d'apprentissage automatique fonctionnent naturellement sur des données en virgule flottante, l'audio doit d'abord être converti au format à virgule flottante avant de pouvoir être utilisé pour entraîner le modèle. 
-Nous verrons comment faire cela dans la section suivante sur [Prétraitement] (preprocessing).
+Nous verrons comment faire cela dans la section suivante sur le [Prétraitement] (preprocessing).
 Tout comme pour les signaux audio continus, l'amplitude de l'audio numérique est généralement exprimée en décibels (dB). 
 L'audition humaine étant de nature logarithmique - nos oreilles sont plus sensibles aux petites fluctuations des sons calmes qu'à celles des sons forts - l'intensité d'un son est plus facile à interpréter si les amplitudes sont exprimées en décibels, qui sont également logarithmiques.
 L'échelle de décibels pour l'audio réel commence à 0 dB, ce qui représente le son le plus faible possible que les humains peuvent entendre, et les sons plus forts ont des valeurs plus importantes. 
