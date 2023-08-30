@@ -76,6 +76,7 @@ Bien, vérifions rapidement que nous obtenons un résultat raisonnable à partir
 ```python
 translate(sample["audio"].copy())
 ```
+
 ```
 ' psychological and social. I think that it is a very important step in the construction of a juridical space of freedom, circulation and protection of rights.'
 ```
@@ -85,6 +86,7 @@ Ok, et si nous comparons cela au texte source :
 ```python
 sample["raw_text"]
 ```
+
 ```
 'Penso che questo sia un passo in avanti importante nella costruzione di uno spazio giuridico di libertà di circolazione e di protezione dei diritti per le persone in Europa.'
 ```
@@ -113,6 +115,7 @@ vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
 </Tip>
 
 Comme pour le Whisper, nous placerons le SpeechT5 et le vocodeur sur notre GPU, si nous en avons un :
+
 ```python
 model.to(device)
 vocoder.to(device)
@@ -137,6 +140,7 @@ def synthesise(text):
 ```
 
 Vérifions qu'il fonctionne avec une entrée de texte fictive :
+
 ```python
 speech = synthesise("Hey there! This is a test!")
 
