@@ -25,10 +25,12 @@ Avec le mode streaming, les données ne sont pas téléchargées sur le disque. 
 Si nous voulons réutiliser le jeu de données, les étapes de streaming doivent être répétées, avec les fichiers audio chargés et traités à nouveau à la volée.
 Pour cette raison, il est conseillé de télécharger des jeux de données que vous êtes susceptible d'utiliser plusieurs fois.
 
-Comment activer le mode streaming ? Facile! Il suffit de définir `streaming=True` lorsque vous chargez votre jeu de données. Le reste sera pris en charge pour vous:
+Comment activer le mode streaming ? Facile! Il suffit de définir `streaming=True` lorsque vous chargez votre jeu de données. Le reste sera pris en charge pour vous :
+
 ```py
 gigaspeech = load_dataset("speechcolab/gigaspeech", "xs", streaming=True)
 ```
+
 Tout comme nous avons appliqué des étapes de prétraitement à un sous-ensemble téléchargé de MINDS-14, vous pouvez effectuer le même prétraitement avec un jeu de données en streaming exactement de la même manière.
 La seule différence est que vous ne pouvez plus accéder à des échantillons individuels à l'aide de l'indexation Python (c'est-à-dire `gigaspeech["train"][sample_idx]`).
 Au lieu de cela, vous devez itérer sur le jeu de données. Voici comment accéder à un exemple lors de la diffusion en continu d'un jeu de données :
@@ -36,7 +38,9 @@ Au lieu de cela, vous devez itérer sur le jeu de données. Voici comment accéd
 ```py
 next(iter(gigaspeech["train"]))
 ```
+ 
 **Sortie :**
+
 ```out
 {
     "segment_id": "YOU0000000315_S0000660",
@@ -65,7 +69,9 @@ Si vous souhaitez prévisualiser plusieurs exemples d'un grand jeu de données, 
 gigaspeech_head = gigaspeech["train"].take(2)
 list(gigaspeech_head)
 ```
+
 **Sortie :**
+
 ```out
 [
     {
@@ -126,5 +132,6 @@ list(gigaspeech_head)
     },
 ]
 ```
+
 Le mode streaming peut faire passer vos recherches au niveau supérieur : non seulement les plus grands jeux de données vous sont accessibles mais vous pouvez facilement évaluer les systèmes sur plusieurs jeux de données en une seule fois sans vous soucier de votre espace disque. 
 Par rapport à l'évaluation sur un seul jeu de données, l'évaluation multi-jeux de données donne une meilleure mesure des capacités de généralisation d'un système de reconnaissance vocale (cf. *End-to-end Speech Benchmark* (ESB)).
