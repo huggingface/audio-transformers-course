@@ -34,7 +34,7 @@ Encore une fois, nous avons fait cela plusieurs fois maintenant, donc le process
 
 ## Détection des mots déclencheur
 
-La première étape du pipeline de l'assistant vocal consiste à détecter si le mot déclencheur a été prononcé, et nous devons donc trouver un modèle pré-entraîné approprié pour cette tâche ! Vous vous souviendrez de la section sur les [modèles pré-entraînés pour la classification audio](../chapiter4/classification_models) que [Speech Commands](https://huggingface.co/datasets/speech_commands) est un jeu de données de mots prononcés conçu pour évaluer les modèles de classification audio sur plus de 15 mots de commande simples comme `up`, `down`, `yes` et `no`, ainsi qu'un label `silence` pour classer l'absence de parole. Prenez une minute pour écouter les échantillons sur le visualisateur de jeux de données du *Hub* et vous familiariser à nouveau avec le jeu de données : [visualisateur] (https://huggingface.co/datasets/speech_commands/viewer/v0.01/train).
+La première étape du pipeline de l'assistant vocal consiste à détecter si le mot déclencheur a été prononcé, et nous devons donc trouver un modèle pré-entraîné approprié pour cette tâche ! Vous vous souviendrez de la section sur les [modèles pré-entraînés pour la classification audio](../chapiter4/classification_models) que [Speech Commands](https://huggingface.co/datasets/speech_commands) est un jeu de données de mots prononcés conçu pour évaluer les modèles de classification audio sur plus de 15 mots de commande simples comme `up`, `down`, `yes` et `no`, ainsi qu'un label `silence` pour classer l'absence de parole. Prenez une minute pour écouter les échantillons sur le visualisateur de jeux de données du *Hub* et vous familiariser à nouveau avec le jeu de données : [visualisateur](https://huggingface.co/datasets/speech_commands/viewer/v0.01/train).
 
 Nous pouvons utiliser un modèle de classification audio pré-entraîné sur le jeu de données Speech Commands et choisir l'un de ces mots de commande simples comme mot déclencheur. Parmi plus de 15 mots de commande possibles, si le modèle prédit avec la plus grande probabilité le mot que nous avons choisi, nous pouvons être quasiment certains que ce mot de déclencheur a été prononcé.
 
@@ -168,7 +168,7 @@ transcriber = pipeline(
 
 Nous pouvons maintenant définir une fonction pour enregistrer l'entrée de notre microphone et transcrire le texte correspondant. Avec la fonction d'aide `ffmpeg_microphone_live`, nous pouvons contrôler le degré de "temps réel" de notre modèle de reconnaissance vocale. L'utilisation d'un `stream_chunk_s` plus petit se prête à une reconnaissance vocale davantage en temps réel, puisque nous divisons notre audio d'entrée en plus petits morceaux et que nous les transcrivons à la volée. Cependant, cela se fait au détriment de la précision, puisqu'il y a moins de contexte pour le modèle à déduire. 
 
-Lors de la transcription de la parole, nous devons également avoir une idée du moment où l'utilisateur **s'arrête** de parler, afin de pouvoir mettre fin à l'enregistrement. Pour des raisons de simplicité, nous mettrons fin à l'enregistrement après le premier `chunk_length_s` (qui est fixé à 5 secondes par défaut), mais vous pouvez essayer d'utiliser un modèle de [détection de l'activité vocale (VAD pour *voice activity detection*)] (https://huggingface.co/models?pipeline_tag=voice-activity-detection&sort=trending) pour prédire quand l'utilisateur s'est arrêté de parler.
+Lors de la transcription de la parole, nous devons également avoir une idée du moment où l'utilisateur **s'arrête** de parler, afin de pouvoir mettre fin à l'enregistrement. Pour des raisons de simplicité, nous mettrons fin à l'enregistrement après le premier `chunk_length_s` (qui est fixé à 5 secondes par défaut), mais vous pouvez essayer d'utiliser un modèle de [détection de l'activité vocale (VAD pour *voice activity detection*)](https://huggingface.co/models?pipeline_tag=voice-activity-detection&sort=trending) pour prédire quand l'utilisateur s'est arrêté de parler.
 
 ```python
 import sys
@@ -253,7 +253,7 @@ Vous remarquerez à quel point l'inférence est rapide en utilisant l'API Infere
 
 ## Synthétiser la parole
 
-Et maintenant, nous sommes prêts à obtenir la sortie vocale finale ! Une fois de plus, nous utiliserons le modèle [SpeechT5 TTS] (https://huggingface.co/microsoft/speecht5_tts) de Microsoft mais vous pouvez utiliser n'importe quel modèle TTS de votre choix. Chargeons le processeur et le modèle :
+Et maintenant, nous sommes prêts à obtenir la sortie vocale finale ! Une fois de plus, nous utiliserons le modèle [SpeechT5 TTS](https://huggingface.co/microsoft/speecht5_tts) de Microsoft mais vous pouvez utiliser n'importe quel modèle TTS de votre choix. Chargeons le processeur et le modèle :
 
 ```python
 from transformers import SpeechT5Processor, SpeechT5ForTextToSpeech, SpeechT5HifiGan
