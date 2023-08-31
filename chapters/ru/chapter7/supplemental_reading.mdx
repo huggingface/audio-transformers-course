@@ -1,0 +1,18 @@
+# Дополнительные материалы и ресурсы
+
+В этом разделе объединены многие компоненты из предыдущих разделов, представлены задачи перевода речи в речь, 
+голосовые помощники и диаризация диктора. Для удобства чтения дополнительный материал разбит на эти три новые задачи:
+
+Перевод речи в речь:
+* [STST с дискретными блоками](https://ai.facebook.com/blog/advancing-direct-speech-to-speech-modeling-with-discrete-units/) от Meta AI: прямой подход к STST через модели энкодер-декодер
+* [Hokkien прямой перевод речи в речь](https://ai.facebook.com/blog/ai-translation-hokkien/) от Meta AI: прямой подход к STST с использованием моделей энкодер-декодер с двухступенчатым декодером
+* [Использование неконтролируемых и слабоконтролируемых данных для улучшения прямой STST](https://arxiv.org/abs/2203.13339) от Google: предлагает новые подходы к использованию неконтролируемых (unsupervised) и слабоконтролируемых (weakly supervised) данных для обучения прямых STST-моделей и небольшие изменения в архитектуре Transformer
+* [Translatotron-2](https://google-research.github.io/lingvo-lab/translatotron2/) от Google: система, способная сохранять характеристики диктора в переведенной речи
+
+Голосовой ассистент:
+* [Точное обнаружение пробуждающих слов (wakeword)](https://www.amazon.science/publications/accurate-detection-of-wake-word-start-and-end-using-a-cnn) от Amazon: подход с низкой задержкой для обнаружения пробуждающих слов (wakeword) для приложений на устройствах
+* [RNN-Transducer Архитектура](https://arxiv.org/pdf/1811.06621.pdf) от Google: модификация архитектуры CTC для потокового ASR на устройствах
+
+Транскрипция встреч:
+* [pyannote.audio Технический отчет](https://huggingface.co/pyannote/speaker-diarization/blob/main/technical_report_2.1.pdf) Эрве Бредин: в этом докладе описываются основные принципы, лежащие в основе конвейера диаризации дикторов `pyannote.audio
+* [Whisper X](https://arxiv.org/pdf/2303.00747.pdf) by Max Bain et al.: усовершенствованный подход к вычислению временных меток на уровне слов с использованием модели Whisper
