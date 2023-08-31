@@ -1,0 +1,88 @@
+# Создание Демо с Gradio
+
+Теперь, когда мы настроили модель Whisper для распознавания речи на Дивехи, давайте продолжим и создадим демо с использованием [Gradio](https://gradio.app),
+чтобы показать ее сообществу!
+
+Первое, что нам нужно сделать, это загрузить дообученную модель, используя класс `pipeline()` - это уже знакомо из раздела о [предварительно обученных моделях](asr_models).
+Вы можете заменить идентификатор модели (`model_id`) на пространство имен вашей дообученной модели на Hugging Face Hub, или на одну из
+предобученных [моделей Whisper](https://huggingface.co/models?sort=downloads&search=openai%2Fwhisper-)  для выполнения распознавания речи без настройки (zero-shot):
+
+```python
+from transformers import pipeline
+
+model_id = "sanchit-gandhi/whisper-small-dv"  # update with your model id
+pipe = pipeline("automatic-speech-recognition", model=model_id)
+```
+
+Во-вторых, мы определим функцию, которая принимает путь к аудиофайлу в качестве входных данных и передает его через конвейер (`pipeline`).
+Здесь конвейер автоматически заботится о загрузке аудиофайла, пересэмплировании его до правильной частоты дискретизации и выполнении вывода модели.
+Затем мы просто вернем преобразованный текст в качестве выходных данных функции. Чтобы обеспечить возможность нашей модели обрабатывать аудиофайлы
+произвольной длины, мы включим *фрагментирование* (разбиение на фрагменты), как описано в разделе о [предварительно обученных моделях](asr_models):
+
+```python
+def transcribe_speech(filepath):
+    output = pipe(
+        filepath,
+        max_new_tokens=256,
+        generate_kwargs={
+            "task": "transcribe",
+            "language": "sinhalese",
+        },  # update with the language you've fine-tuned on
+        chunk_length_s=30,
+        batch_size=8,
+    )
+    return output["text"]
+```
+
+Мы будем использовать функцию [blocks](https://gradio.app/docs/#blocks) в Gradio, чтобы создать две вкладки в нашем демо: одну
+для транскрипции с микрофона и другую для загрузки файла.
+
+```python
+import gradio as gr
+
+demo = gr.Blocks()
+
+mic_transcribe = gr.Interface(
+    fn=transcribe_speech,
+    inputs=gr.Audio(source="microphone", type="filepath"),
+    outputs=gr.outputs.Textbox(),
+)
+
+file_transcribe = gr.Interface(
+    fn=transcribe_speech,
+    inputs=gr.Audio(source="upload", type="filepath"),
+    outputs=gr.outputs.Textbox(),
+)
+```
+
+Наконец, мы запускаем демонстрацию Gradio, используя два только что определенных блока:
+
+```python
+with demo:
+    gr.TabbedInterface(
+        [mic_transcribe, file_transcribe],
+        ["Transcribe Microphone", "Transcribe Audio File"],
+    )
+
+demo.launch(debug=True)
+```
+
+Это запустит демонстрацию Gradio, подобную той, которая работает на пространстве Hugging Face:
+
+<iframe src="https://course-demos-whisper-small.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
+Если вы хотите разместить своё демо на платформе Hugging Face Hub, вы можете использовать этот Space в качестве шаблона для своей модели.
+Для этого выполните следующие шаги:
+
+Щелкните по ссылке, чтобы дублировать шаблон демо в свою учетную запись: https://huggingface.co/spaces/course-demos/whisper-small?duplicate=true
+
+Рекомендуем дать своему Space имя, подобное имени вашей обученной модели (например, whisper-small-dv-demo) и установить видимость на "Public" (Публичный).
+
+После дублирования Space в вашей учетной записи перейдите в раздел "Files and versions" -> "app.py" -> "edit". Затем измените идентификатор модели
+на идентификатор вашей обученной модели(строка 6). Прокрутите страницу вниз и нажмите "Commit changes to main" (Зафиксировать изменения в главной версии).
+Демо перезагрузится, используя вашу обученную модель. Теперь вы можете поделиться этим демо со своими друзьями и родственниками, чтобы они могли использовать
+модель, которую вы обучили!
+
+Вы можете посмотреть наш видеоурок, чтобы лучше понять, как продублировать Space: [YouTube Video](https://www.youtube.com/watch?v=VQYuvl6-9VE)
+
+Ожидаем с нетерпением увидеть ваши демо на Hugging Face Hub!
