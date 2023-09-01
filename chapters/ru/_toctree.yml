@@ -57,7 +57,7 @@
   - local: chapter4/introduction
     title: Чему вы научитесь и что создадите
   - local: chapter4/classification_models
-    title: Предварительно обученные модели классификации аудио
+    title: Предварительно обученные модели классификации звука
   - local: chapter4/fine-tuning
     title: Дообучение модели классификации музыки
   - local: chapter4/demo
@@ -65,56 +65,56 @@
   - local: chapter4/hands_on
     title: Практическое занятие
 
-# - title: Раздел 5. Automatic Speech Recognition
-#   sections:
-#   - local: chapter5/introduction
-#     title: Чему вы научитесь и что создадите
-#   - local: chapter5/asr_models
-#     title: Предварительно обученные модели для распознавания речи
-#   - local: chapter5/choosing_dataset
-#     title: Выбор набора данных
-#   - local: chapter5/evaluation
-#     title: Оценка и метрики для распознавания речи
-#   - local: chapter5/fine-tuning
-#     title: Как дообучить ASR-систему с помощью Trainer API
-#   - local: chapter5/demo
-#     title: Создание демо
-#   - local: chapter5/hands_on
-#     title: Практическое занятие
-#   - local: chapter5/supplemental_reading
-#     title: Дополнительные материалы и ресурсы
+- title: Раздел 5. Automatic Speech Recognition
+  sections:
+  - local: chapter5/introduction
+    title: Чему вы научитесь и что создадите
+  - local: chapter5/asr_models
+    title: Предварительно обученные модели для распознавания речи
+  - local: chapter5/choosing_dataset
+    title: Выбор набора данных
+  - local: chapter5/evaluation
+    title: Оценка и метрики для распознавания речи
+  - local: chapter5/fine-tuning
+    title: Как дообучить ASR-систему с помощью Trainer API
+  - local: chapter5/demo
+    title: Создание демо
+  - local: chapter5/hands_on
+    title: Практическое занятие
+  - local: chapter5/supplemental_reading
+    title: Дополнительные материалы и ресурсы
 
-# - title: Раздел 6. От текста к речи
-#   sections:
-#   - local: chapter6/introduction
-#     title: Чему вы научитесь и что создадите
-#   - local: chapter6/tts_datasets
-#     title: Наборы данных Text-to-speech
-#   - local: chapter6/pre-trained_models
-#     title: Предварительно обученные модели text-to-speech
-#   - local: chapter6/fine-tuning
-#     title: Дообучение SpeechT5
-#   - local: chapter6/evaluation
-#     title: Оценка моделей text-to-speech
-#   - local: chapter6/hands_on
-#     title: Практическое занятие
-#   - local: chapter6/supplemental_reading
-#     title: Дополнительные материалы и ресурсы
+- title: Раздел 6. От текста к речи
+  sections:
+  - local: chapter6/introduction
+    title: Чему вы научитесь и что создадите
+  - local: chapter6/tts_datasets
+    title: Наборы данных Text-to-speech
+  - local: chapter6/pre-trained_models
+    title: Предварительно обученные модели text-to-speech
+  - local: chapter6/fine-tuning
+    title: Дообучение SpeechT5
+  - local: chapter6/evaluation
+    title: Оценка моделей text-to-speech
+  - local: chapter6/hands_on
+    title: Практическое занятие
+  - local: chapter6/supplemental_reading
+    title: Дополнительные материалы и ресурсы
 
-# - title: Раздел 7. Собираем все воедино
-#   sections:
-#   - local: chapter7/introduction
-#     title: Чему вы научитесь и что создадите
-#   - local: chapter7/speech-to-speech
-#     title: Перевод Speech-to-speech
-#   - local: chapter7/voice-assistant
-#     title: Создание голосового ассистента
-#   - local: chapter7/transcribe-meeting
-#     title: Транскрибирование встречи
-#   - local: chapter7/hands-on
-#     title: Практическое занятие
-#   - local: chapter7/supplemental_reading
-#     title: Дополнительные материалы и ресурсы
+- title: Раздел 7. Собираем все воедино
+  sections:
+  - local: chapter7/introduction
+    title: Чему вы научитесь и что создадите
+  - local: chapter7/speech-to-speech
+    title: Перевод Speech-to-speech
+  - local: chapter7/voice-assistant
+    title: Создание голосового ассистента
+  - local: chapter7/transcribe-meeting
+    title: Транскрибирование встречи
+  - local: chapter7/hands-on
+    title: Практическое занятие
+  - local: chapter7/supplemental_reading
+    title: Дополнительные материалы и ресурсы
 
 - title: Раздел 8. Финишная прямая
   sections:

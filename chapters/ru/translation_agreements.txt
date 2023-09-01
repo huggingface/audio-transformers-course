@@ -65,6 +65,13 @@ alignment                               выравнивание
 beam search                             лучевой поиск (https://en.wikipedia.org/wiki/Beam_search)
 Mean opinion score                      Средняя экспертная оценка
 image patche                            фрагмент изображения
+Gaussian mixture model                  Смешанная модель Гаусса
+dropout                                 исключение (обязательно с указанием англ. формы - dropout) https://ru.wikipedia.org/wiki/%D0%98%D1%81%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%D0%B8%D0%B5_(%D0%BD%D0%B5%D0%B9%D1%80%D0%BE%D0%BD%D0%BD%D1%8B%D0%B5_%D1%81%D0%B5%D1%82%D0%B8)
+Mean opinion score                      Средняя экспертная оценка
+wake word                               "слово пробуждения" (слово, благодаря анличию которого голосовой ассистент понимает что обращаются к нему)
+chank					фрагмент (напр. фрагмент аудиообразца)
+chanking				фрагментирование (процесс дробления чего-либо на множество мелких разрозненных фрагментов)
+
 
 
 Примечание:
