@@ -243,6 +243,7 @@ Alors maintenant que nous savons comment traiter nos fichiers audio rééchantil
 ```python
 max_duration = 30.0
 
+
 def preprocess_function(examples):
     audio_arrays = [x["array"] for x in examples["audio"]]
     inputs = feature_extractor(
