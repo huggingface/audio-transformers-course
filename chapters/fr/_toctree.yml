@@ -1,0 +1,119 @@
+- title: Unité 0. Bienvenue au cours !
+  sections:
+  - local: chapter0/introduction
+    title: Introduction
+  - local: chapter0/get_ready
+    title: Se préparer à suivre le cours
+  - local: chapter0/community
+    title: Rejoindre la communauté
+
+- title: Unité 1. Travailler avec des données audio
+  sections:
+  - local: chapter1/introduction
+    title: Ce que vous allez apprendre
+  - local: chapter1/audio_data
+    title: Introduction aux données audio
+  - local: chapter1/load_and_explore
+    title: Charger et explorer un jeu de données audio
+  - local: chapter1/preprocessing
+    title: Prétraitement des données audio
+  - local: chapter1/streaming
+    title: Streaming de données audio
+  - local: chapter1/quiz
+    title: Quiz
+    quiz: 1
+  - local: chapter1/supplemental_reading
+    title: Lectures et ressources complémentaires
+
+- title: Unité 2. Une introduction en douceur aux applications audio
+  sections:
+  - local: chapter2/introduction
+    title: Tour d'horizon des applications audio
+  - local: chapter2/audio_classification_pipeline
+    title: Classification audio avec un pipeline
+  - local: chapter2/asr_pipeline
+    title: Reconnaissance automatique de la parole avec un pipeline
+  - local: chapter2/hands_on
+    title: Exercice pratique
+
+- title: Unité 3. Architectures de transformers pour l'audio
+  sections:
+  - local: chapter3/introduction
+    title: Rappel sur les transformers
+  - local: chapter3/ctc
+    title: Architectures CTC
+  - local: chapter3/seq2seq
+    title: Architectures Seq2Seq
+  - local: chapter3/classification
+    title: Architectures de classification audio
+  - local: chapter3/supplemental_reading
+    title: Lectures et ressources complémentaires
+
+- title: Unité 4. Construire un classifieur de genres musicaux
+  sections:
+  - local: chapter4/introduction
+    title: Ce que vous allez apprendre et construire
+  - local: chapter4/classification_models
+    title: Modèles pré-entraînés pour la classification audio
+  - local: chapter4/fine-tuning
+    title: Finetuner un modèle de classification musicale
+  - local: chapter4/demo
+    title: Construire une démo avec Gradio
+  - local: chapter4/hands_on
+    title: Exercice pratique
+
+- title: Unité 5. Reconnaissance automatique de la parole
+  sections:
+  - local: chapter5/introduction
+    title: Ce que vous allez apprendre et construire
+  - local: chapter5/asr_models
+    title: Modèles pré-entraînés pour la reconnaissance automatique de la parole
+  - local: chapter5/choosing_dataset
+    title: Choisir un jeu de données
+  - local: chapter5/evaluation
+    title: Évaluation et métriques pour la reconnaissance automatique de la parole
+  - local: chapter5/fine-tuning
+    title: Comment finetuner un système de reconnaissance automatique de la parole avec l'API Trainer
+  - local: chapter5/demo
+    title: Construire une démo avec Gradio
+  - local: chapter5/hands_on
+    title: Exercice pratique
+  - local: chapter5/supplemental_reading
+    title: Lectures et ressources complémentaires
+#
+- title: Unité 6. Du texte à la parole
+  sections:
+  - local: chapter6/introduction
+    title: Ce que vous allez apprendre et construire
+  - local: chapter6/tts_datasets
+    title: Jeux de données de synthèse vocale
+  - local: chapter6/pre-trained_models
+    title: Modèles pré-entraînés pour la synthèse vocale
+  - local: chapter6/fine-tuning
+    title: Finetuner SpeechT5
+  - local: chapter6/evaluation
+    title: Évaluation des modèles de synthèse vocale
+  - local: chapter6/hands_on
+    title: Exercice pratique
+  - local: chapter6/supplemental_reading
+    title: Lectures et ressources complémentaires
+
+- title: Unité 7. Rassemblement de tous les éléments
+  sections:
+  - local: chapter7/introduction
+    title: Ce que vous apprendrez et ce que vous construirez
+  - local: chapter7/speech-to-speech
+    title: Traduction parole-à-parole 
+  - local: chapter7/voice-assistant
+    title: Créer un assistant vocal
+  - local: chapter7/transcribe-meeting
+    title: Transcrire une réunion
+  - local: chapter7/hands-on
+    title: Exercice pratique
+  - local: chapter7/supplemental_reading
+    title: Lectures et ressources complémentaires
+
+- title: Événements liés au cours
+  sections:
+  - local: events/introduction
+    title: Sessions en direct et ateliers

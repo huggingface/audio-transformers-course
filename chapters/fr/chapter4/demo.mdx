@@ -1,0 +1,39 @@
+# Construire une démo avec Gradio
+
+Dans cette dernière section sur la classification audio, nous allons construire une démo avec [*Gradio*](https://gradio.app) pour présenter le modèle de classification musicale que nous venons d'entraîner sur le jeu de données [GTZAN](https://huggingface.co/datasets/marsyas/gtzan). 
+La première chose à faire est de charger le *checkpoint* *finetuné* en utilisant la classe `pipeline()` que vous connaissez grâce à la section sur les [modèles pré-entraînés](classification_models). Vous pouvez changer le `model_id` avec le nom de votre modèle *finetuné* et présent sur *Hub* :
+
+```python
+from transformers import pipeline
+
+model_id = "sanchit-gandhi/distilhubert-finetuned-gtzan"
+pipe = pipeline("audio-classification", model=model_id)
+```
+
+Deuxièmement, nous allons définir une fonction qui prend le chemin du fichier d'une entrée audio et le passe à travers le pipeline. 
+Ici, le pipeline s'occupe automatiquement de charger le fichier audio, de le ré-échantillonner à la bonne fréquence d'échantillonnage, et de lancer l'inférence avec le modèle. 
+Nous prenons les prédictions de `preds` du modèle et les formatons en tant qu'objet dictionnaire à afficher sur la sortie :
+
+```python
+def classify_audio(filepath):
+    preds = pipe(filepath)
+    outputs = {}
+    for p in preds:
+        outputs[p["label"]] = p["score"]
+    return outputs
+```
+
+Enfin, nous lançons la démo Gradio en utilisant la fonction que nous venons de définir :
+
+```python
+import gradio as gr
+
+demo = gr.Interface(
+    fn=classify_audio, inputs=gr.Audio(type="filepath"), outputs=gr.outputs.Label()
+)
+demo.launch(debug=True)
+```
+
+Ceci lancera une démo similaire à celle qui tourne sur le *Space* :
+
+<iframe src="https://course-demos-song-classifier.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
