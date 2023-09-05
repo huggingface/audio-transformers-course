@@ -1,0 +1,137 @@
+# Streaming de données audio
+
+L'un des plus grands défis auxquels sont confrontés les ensembles de données audio est leur taille. 
+Une seule minute d'audio non compressé de qualité CD (44,1 kHz, 16 bits) occupe un peu plus de 5 Mo de stockage. En règle générale, un jeu de données audio contient des heures d'enregistrements.
+Dans les sections précédentes, nous avons utilisé un très petit sous-ensemble de jeux de données audio MINDS-14, mais les jeux de données audio typiques sont beaucoup plus volumineux.
+Par exemple, la configuration `xs` (la plus petite) de [GigaSpeech de SpeechColab](https://huggingface.co/datasets/speechcolab/gigaspeech) ne contient que 10 heures de données d'entraînement, mais prend plus de 13 Go d'espace de stockage pour le téléchargement et la préparation. 
+Alors, que se passe-t-il lorsque nous voulons nous entraîner sur un split plus grand ? 
+La configuration `xl` complète du même jeu de données contient 10 000 heures de données d'entraînement, nécessitant plus de 1 To d'espace de stockage. 
+Pour la plupart d'entre nous, cela dépasse largement les spécifications d'un disque dur typique. Devons-nous débourser et acheter du stockage supplémentaire ? Ou existe-t-il un moyen de nous entraîner sur ces ensembles de données sans contraintes d'espace disque ?
+
+ 🤗 *Datasets* vient à la rescousse en proposant le mode [streaming](https://huggingface.co/docs/datasets/stream). 
+ Le streaming nous permet de charger les données progressivement au fur et à mesure que nous itérons sur le jeu de données. Plutôt que de télécharger l'ensemble du jeu de données en une seule fois, nous chargeons le jeu de données un exemple à la fois.
+ Nous itérons sur le jeu de données, chargeant et préparant des exemples à la volée lorsqu'ils sont nécessaires. De cette façon, nous ne chargeons que les exemples que nous utilisons, et non ceux que nous ne sommes pas !
+Une fois que nous avons terminé avec un exemple d'exemple, nous continuons à itérer sur le jeu de données et chargeons le suivant.
+Le mode streaming présente trois avantages principaux par rapport au téléchargement simultané de l'ensemble du jeu de données :
+* Espace disque : les exemples sont chargés en mémoire un par un au fur et à mesure que nous itérons sur l'ensemble de données. Étant donné que les données ne sont pas téléchargées localement, il n'y a pas d'espace disque requis, vous pouvez donc utiliser des jeux de données de taille arbitraire.
+* Temps de téléchargement et de traitement: les ensembles de données audio sont volumineux et nécessitent beaucoup de temps pour être téléchargés et traités. Avec le streaming, le chargement et le traitement se font à la volée, ce qui signifie que vous pouvez commencer à utiliser le jeu de données dès que le premier exemple est prêt.
+* Expérimentation facile : vous pouvez expérimenter sur une poignée d'exemples pour vérifier que votre script fonctionne sans avoir à télécharger l'ensemble du jeu de données.
+
+Il y a une mise en garde au mode streaming. Lors du téléchargement d'un jeu de données complet sans streaming, les données brutes et les données traitées sont enregistrées localement sur le disque. 
+Si nous voulons réutiliser ce jeu de données, nous pouvons charger directement les données traitées à partir du disque, en sautant les étapes de téléchargement et de traitement.  
+Par conséquent, nous ne devons effectuer les opérations de téléchargement et de traitement qu'une seule fois, après quoi nous pouvons réutiliser les données préparées.
+
+Avec le mode streaming, les données ne sont pas téléchargées sur le disque. Ainsi, ni les données téléchargées ni les données prétraitées ne sont mises en cache.
+Si nous voulons réutiliser le jeu de données, les étapes de streaming doivent être répétées, avec les fichiers audio chargés et traités à nouveau à la volée.
+Pour cette raison, il est conseillé de télécharger des jeux de données que vous êtes susceptible d'utiliser plusieurs fois.
+
+Comment activer le mode streaming ? Facile! Il suffit de définir `streaming=True` lorsque vous chargez votre jeu de données. Le reste sera pris en charge pour vous :
+
+```py
+gigaspeech = load_dataset("speechcolab/gigaspeech", "xs", streaming=True)
+```
+
+Tout comme nous avons appliqué des étapes de prétraitement à un sous-ensemble téléchargé de MINDS-14, vous pouvez effectuer le même prétraitement avec un jeu de données en streaming exactement de la même manière.
+La seule différence est que vous ne pouvez plus accéder à des échantillons individuels à l'aide de l'indexation Python (c'est-à-dire `gigaspeech["train"][sample_idx]`).
+Au lieu de cela, vous devez itérer sur le jeu de données. Voici comment accéder à un exemple lors de la diffusion en continu d'un jeu de données :
+
+```py
+next(iter(gigaspeech["train"]))
+```
+ 
+**Sortie :**
+
+```out
+{
+    "segment_id": "YOU0000000315_S0000660",
+    "speaker": "N/A",
+    "text": "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+    "audio": {
+        "path": "xs_chunks_0000/YOU0000000315_S0000660.wav",
+        "array": array(
+            [0.0005188, 0.00085449, 0.00012207, ..., 0.00125122, 0.00076294, 0.00036621]
+        ),
+        "sampling_rate": 16000,
+    },
+    "begin_time": 2941.89,
+    "end_time": 2945.07,
+    "audio_id": "YOU0000000315",
+    "title": "Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43",
+    "url": "https://www.youtube.com/watch?v=zr2n1fLVasU",
+    "source": 2,
+    "category": 24,
+    "original_full_path": "audio/youtube/P0004/YOU0000000315.opus",
+}
+```
+Si vous souhaitez prévisualiser plusieurs exemples d'un grand jeu de données, utilisez `take()` pour obtenir les $n$ premiers éléments. Prenons les deux premiers exemples dans le jeu de données gigaspeech :
+
+```py
+gigaspeech_head = gigaspeech["train"].take(2)
+list(gigaspeech_head)
+```
+
+**Sortie :**
+
+```out
+[
+    {
+        "segment_id": "YOU0000000315_S0000660",
+        "speaker": "N/A",
+        "text": "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+        "audio": {
+            "path": "xs_chunks_0000/YOU0000000315_S0000660.wav",
+            "array": array(
+                [
+                    0.0005188,
+                    0.00085449,
+                    0.00012207,
+                    ...,
+                    0.00125122,
+                    0.00076294,
+                    0.00036621,
+                ]
+            ),
+            "sampling_rate": 16000,
+        },
+        "begin_time": 2941.89,
+        "end_time": 2945.07,
+        "audio_id": "YOU0000000315",
+        "title": "Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43",
+        "url": "https://www.youtube.com/watch?v=zr2n1fLVasU",
+        "source": 2,
+        "category": 24,
+        "original_full_path": "audio/youtube/P0004/YOU0000000315.opus",
+    },
+    {
+        "segment_id": "AUD0000001043_S0000775",
+        "speaker": "N/A",
+        "text": "SIX TOMATOES <PERIOD>",
+        "audio": {
+            "path": "xs_chunks_0000/AUD0000001043_S0000775.wav",
+            "array": array(
+                [
+                    1.43432617e-03,
+                    1.37329102e-03,
+                    1.31225586e-03,
+                    ...,
+                    -6.10351562e-05,
+                    -1.22070312e-04,
+                    -1.83105469e-04,
+                ]
+            ),
+            "sampling_rate": 16000,
+        },
+        "begin_time": 3673.96,
+        "end_time": 3675.26,
+        "audio_id": "AUD0000001043",
+        "title": "Asteroid of Fear",
+        "url": "http//www.archive.org/download/asteroid_of_fear_1012_librivox/asteroid_of_fear_1012_librivox_64kb_mp3.zip",
+        "source": 0,
+        "category": 28,
+        "original_full_path": "audio/audiobook/P0011/AUD0000001043.opus",
+    },
+]
+```
+
+Le mode streaming peut faire passer vos recherches au niveau supérieur : non seulement les plus grands jeux de données vous sont accessibles mais vous pouvez facilement évaluer les systèmes sur plusieurs jeux de données en une seule fois sans vous soucier de votre espace disque. 
+Par rapport à l'évaluation sur un seul jeu de données, l'évaluation multi-jeux de données donne une meilleure mesure des capacités de généralisation d'un système de reconnaissance vocale (cf. *End-to-end Speech Benchmark* (ESB)).

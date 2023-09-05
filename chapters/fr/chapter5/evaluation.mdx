@@ -1,0 +1,322 @@
+# Évaluation et métriques pour la reconnaissance automatique de la parole
+
+Si vous connaissez la [distance de Levenshtein](https://fr.wikipedia.org/wiki/Distance_de_Levenshtein) en NLP, les métriques d'évaluation des systèmes de reconnaissance vocale vous seront familières ! Ne vous inquiétez pas si ce n'est pas le cas, nous allons passer en revue les explications afin de nous assurer que vous maîtrisez les différentes métriques et que vous comprenez ce qu'elles signifient.
+
+Lors de l'évaluation des systèmes de reconnaissance vocale, nous comparons les prédictions du système aux transcriptions du texte cible, en annotant toutes les erreurs présentes. Nous classons ces erreurs dans l'une des trois catégories suivantes :
+1. Substitutions (Sub) : lorsque nous transcrivons le **mauvais mot** dans notre prédiction (par exemple "sit" au lieu de "sat").
+2. Insertions (Ins) : lorsque nous ajoutons un **mot supplémentaire** dans notre prédiction.
+3. Suppressions (Sup)  : lorsque nous **supprimons un mot** dans notre prédiction.
+
+Ces catégories d'erreurs sont les mêmes pour toutes les mesures de reconnaissance vocale. Ce qui diffère, c'est le niveau auquel nous calculons ces erreurs : nous pouvons les calculer soit au niveau du _mot_, soit au niveau du _caractère_.
+
+Nous utiliserons un exemple courant pour chacune des définitions des mesures. Nous avons ici une séquence de texte de _vérité de base_ ou de _référence_ :
+
+```python
+reference = "the cat sat on the mat"
+```
+
+Et une séquence prédite par le système de reconnaissance vocale que nous essayons d'évaluer :
+
+```python
+prediction = "the cat sit on the"
+```
+
+Nous pouvons constater que la prédiction est assez proche, mais que certains mots ne sont pas tout à fait corrects. Nous allons évaluer cette prédiction par rapport à la référence pour les trois mesures de reconnaissance vocale les plus populaires et voir quels types de chiffres nous obtenons pour chacune d'entre elles.
+
+## *Word Error Rate* (Taux d'erreur au niveau du mot)
+
+Le *word error rate (WER)* est la mesure de facto pour la reconnaissance vocale. Elle calcule les substitutions, les insertions et les suppressions au niveau du *mot*. Cela signifie que les erreurs sont annotées mot par mot. Prenons notre exemple :
+
+
+| Réference :  | the | cat | sat     | on  | the | mat |
+|-------------|-----|-----|---------|-----|-----|-----|
+| Prediction : | the | cat | **sit** | on  | the |     |  |
+| Étiquette :  | ✅   | ✅   | Sub       | ✅   | ✅   | Sup  |
+
+Ici, nous avons
+* 1 substitution ("sit" au lieu de "sat")
+* 0 insertion
+* 1 suppression ("mat" est manquant)
+
+Cela donne 2 erreurs au total. Pour obtenir notre taux d'erreur, nous divisons le nombre d'erreurs par le nombre total de mots de notre référence (N), qui est de 6 pour cet exemple :
+
+$$
+\begin{aligned}
+WER &= \frac{Sub + Ins + Sup}{N} \\
+&= \frac{1 + 0 + 1}{6} \\
+&= 0.333
+\end{aligned}
+$$
+
+Ok, nous avons donc un WER de 0,333, soit 33,3 %. Remarquez que le mot "sit" ne comporte qu'un seul caractère erroné, mais que le mot entier est marqué comme incorrect. Il s'agit là d'une caractéristique essentielle du WER : les fautes d'orthographe sont lourdement pénalisées, même si elles sont mineures.
+
+Le WER est défini de telle sorte que *plus il est bas, mieux c'est* : un WER bas signifie qu'il y a moins d'erreurs dans notre prédiction, de sorte qu'un système de reconnaissance vocale parfait aurait un WER de zéro (pas d'erreurs).
+
+Voyons comment nous pouvons calculer le WER en utilisant 🤗 *Evaluate*. Nous aurons besoin de deux packages pour calculer notre métrique WER : 🤗 *Evaluate* pour l'interface API, et JIWER pour effectuer le gros du travail de calcul :
+
+```
+pip install --upgrade evaluate jiwer
+```
+
+Nous pouvons maintenant charger la métrique WER et calculer le résultat pour notre exemple :
+
+```python
+from evaluate import load
+
+wer_metric = load("wer")
+
+wer = wer_metric.compute(references=[reference], predictions=[prediction])
+
+print(wer)
+```
+
+**Sortie :**
+
+```
+0.3333333333333333
+```
+
+0,33, soit 33,3 %, comme prévu ! Nous savons maintenant ce qui se passe sous le capot avec ce calcul du WER.
+
+Maintenant, voici quelque chose qui est assez déroutant... D'après vous, quelle est la limite supérieure du WER ? On pourrait s'attendre à ce qu'elle soit de 1 ou de 100 %, n'est-ce pas ? Le WER étant le rapport entre le nombre d'erreurs et le nombre de mots (N), il n'y a pas de limite supérieure au WER !
+Prenons un exemple dans lequel nous prédisons 10 mots et la cible n'en a que 2. Si toutes nos prédictions étaient fausses (10 erreurs), nous aurions un REE de 10 / 2 = 5, soit 500 % ! Il convient de garder cela à l'esprit si vous entraînez un système ASR et que vous obtenez un WER supérieur à 100 %. Toutefois, si vous obtenez ce résultat, il est probable que quelque chose n'a pas fonctionné... 😅
+
+## *Word Accuracy* (Précision au niveau du mot)
+
+Nous pouvons inverser le WER pour obtenir une mesure où *plus c'est haut, mieux c'est*. Plutôt que de mesurer le taux d'erreurs au niveau du mot, nous pouvons mesurer la *précision au niveau du mot* (WAcc) de notre système :
+
+$$
+\begin{equation}
+WAcc = 1 - WER \nonumber
+\end{equation}
+$$
+
+Le WAcc est mesuré au niveau du mot, il s'agit simplement du WER reformulé en tant que mesure de précision plutôt qu'en tant que mesure d'erreur. Le WAcc est très rarement cité dans la littérature : nous pensons aux prédictions de notre système en termes d'erreurs de mots, et nous préférons donc les mesures de taux d'erreur qui sont plus associées à ces annotations de type d'erreur.
+
+## *Character Error Rate* (Taux d'erreur au niveau des caractères)
+
+Il semble un peu injuste que nous ayons marqué l'ensemble du mot "sit" comme erroné alors qu'en fait une seule lettre était incorrecte.
+Le *Character Error Rate (CER)* évalue les systèmes au *niveau des caractères*. Cela signifie que nous divisons nos mots en caractères individuels et que nous annotons les erreurs caractère par caractère :
+
+| Réference :  | t   | h   | e   |     | c   | a   | t   |     | s   | a     | t   |     | o   | n   |     | t   | h   | e   |     | m   | a   | t   |
+|-------------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+| Prediction : | t   | h   | e   |     | c   | a   | t   |     | s   | **i** | t   |     | o   | n   |     | t   | h   | e   |     |     |     |     |
+| Étiquette :      | ✅   | ✅   | ✅   |     | ✅   | ✅   | ✅   |     | ✅   | Sub     | ✅   |     | ✅   | ✅   |     | ✅   | ✅   | ✅   |     | D   | D   | D   |
+
+Nous voyons maintenant que pour le mot "sit", le "s" et le "t" sont marqués comme corrects. Seul le "i" est étiqueté comme une erreur de substitution. Nous récompensons donc notre système pour la prédiction partiellement correcte 🤝
+
+Dans notre exemple, nous avons 1 substitution de caractère, 0 insertion et 3 suppressions. Au total, nous avons 14 caractères. Notre CER est donc :
+
+$$
+\begin{aligned}
+CER &= \frac{S + I + D}{N} \\
+&= \frac{1 + 0 + 3}{14} \\
+&= 0.286
+\end{aligned}
+$$
+
+Nous obtenons un CER de 0,286, soit 28,6 %. Remarquez que ce chiffre est inférieur à notre WER. Nous avons beaucoup moins pénalisé l'erreur d'orthographe.
+
+## Quelle mesure dois-je utiliser ?
+
+En général, le WER est beaucoup plus utilisé que le CER pour évaluer les systèmes vocaux. En effet, le WER exige des systèmes une meilleure compréhension du contexte des prédictions. Dans notre exemple, "sit" n'est pas au bon temps. Un système qui comprend la relation entre le verbe et le temps de la phrase aurait prédit le temps correct du verbe "sat". Nous voulons encourager ce niveau de compréhension de la part de nos systèmes vocaux. Ainsi, bien que le WER soit moins indulgent que le CER, il est également plus propice aux types de systèmes intelligibles que nous souhaitons développer. C'est pourquoi nous utilisons généralement le WER et nous vous encourageons à faire de même ! Toutefois, dans certaines circonstances, il n'est pas possible de l'utiliser.
+En effet, certaines langues, comme le mandarin et le japonais, n'ont pas de notion de "mots", et le WER n'a donc pas de sens. Dans ce cas, nous revenons à l'utilisation du CER.
+
+Dans notre exemple, nous n'avons utilisé qu'une seule phrase pour calculer le WER. Lors de l'évaluation d'un système réel, nous utilisons généralement un ensemble de test complet composé de plusieurs milliers de phrases. Lorsque l'évaluation porte sur plusieurs phrases, nous agrégeons Sub, Inv, Sup et N pour toutes les phrases, puis nous calculons le WER à l'aide de la formule définie ci-dessus. Cela permet d'obtenir une meilleure estimation du WER pour des données inédites.
+
+## Normalisation
+
+Si nous entraînons un modèle d'ASR sur des données contenant de la ponctuation et de la casse, il apprendra à prédire la casse et la ponctuation dans ses transcriptions. C'est une bonne chose lorsque nous voulons utiliser notre modèle pour des applications réelles, telles que la transcription de réunions ou de dictées, car les transcriptions prédites seront entièrement formatées avec la casse et la ponctuation, un style appelé *orthographique*.
+
+Cependant, nous avons également la possibilité de *normaliser* le jeu de données afin d'en supprimer la casse et la ponctuation. La normalisation du jeu de données facilite la tâche de reconnaissance vocale : le modèle n'a plus besoin de faire la distinction entre les majuscules et les minuscules, ni de prédire la ponctuation à partir des seules données audio (par exemple, quel est le son d'un point-virgule ?).
+De ce fait, les taux d'erreur sur les mots sont naturellement plus faibles (ce qui signifie que les résultats sont meilleurs). L'article de Whisper démontre
+l'effet radical que la normalisation des transcriptions peut avoir sur les résultats du WER (*cf.* Section 4.4 du [papier] (https://cdn.openai.com/papers/whisper.pdf)).
+Bien que nous obtenions des WER plus bas, le modèle n'est pas nécessairement meilleur pour la production. L'absence de casse et de ponctuation rend le texte prédit par le modèle nettement plus difficile à lire. Prenons l'exemple de la [section précédente](asr_models), où nous avons utilisé Wav2Vec2 et Whisper sur le même échantillon audio du jeu de données LibriSpeech. Le modèle Wav2Vec2 ne prédit ni la ponctuation ni la casse, alors que Whisper prédit les deux. En comparant les transcriptions côte à côte, nous constatons que la transcription de Whisper est beaucoup plus facile à lire :
+
+```
+Wav2Vec2:  HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAUS AND ROSE BEEF LOOMING BEFORE US SIMALYIS DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
+Whisper:   He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similarly is drawn from eating and its results occur most readily to the mind.
+```
+
+La transcription Whisper est orthographique et donc prête à l'emploi. Au contraire, nous devrions utiliser un post-traitement supplémentaire pour restaurer la ponctuation et la casse dans nos prédictions Wav2Vec2 si nous voulions les utiliser pour des applications en aval.
+
+Il existe un juste milieu entre normaliser et ne pas normaliser : nous pouvons entraîner nos systèmes sur des transcriptions orthographiques, puis normaliser les prédictions et les cibles avant de calculer le WER. De cette manière, nous entraînons nos systèmes à prédire des textes entièrement formatés, mais nous bénéficions également des améliorations du WER que nous obtenons en normalisant les transcriptions.
+
+Whisper a été publié avec un normaliseur qui gère efficacement la normalisation de la casse, de la ponctuation et du formatage des nombres, entre autres. Appliquons le aux transcriptions de Whisper pour montrer comment nous pouvons les normaliser :
+
+```python
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer
+
+normalizer = BasicTextNormalizer()
+
+prediction = " He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similarly is drawn from eating and its results occur most readily to the mind."
+normalized_prediction = normalizer(prediction)
+
+normalized_prediction
+```
+
+**Sortie :**
+
+```
+' he tells us that at this festive season of the year with christmas and roast beef looming before us similarly is drawn from eating and its results occur most readily to the mind '
+```
+
+Nous pouvons constater que le texte a été entièrement mis en minuscules et que toute la ponctuation a été supprimée. Définissons maintenant la transcription de référence et calculons le WER normalisé entre la référence et la cible :
+
+```python
+reference = "HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND"
+normalized_referece = normalizer(reference)
+
+wer = wer_metric.compute(
+    references=[normalized_referece], predictions=[normalized_prediction]
+)
+wer
+```
+
+**Sortie :**
+
+```
+0.0625
+```
+
+6,25 % ; c'est à peu près ce à quoi nous nous attendions pour le modèle de base de Whisper sur l'ensemble de validation de LibriSpeech. Comme nous le voyons ici, nous avons prédit une transcription orthographique, mais nous avons bénéficié de l'augmentation du WER obtenue en normalisant la référence et la prédiction avant de calculer le WER.
+
+Le choix de la méthode de normalisation des transcriptions dépend en fin de compte de vos besoins. Nous recommandons d'entraîner sur du texte orthographique et d'évaluer sur du texte normalisé afin d'obtenir le meilleur des deux mondes.
+
+## Assembler le tout
+
+Nous avons couvert trois sujets jusqu'à présent dans cette unité : les modèles pré-entraînés, la sélection des jeux de données et l'évaluation. 
+Nous allons nous préparer pour la prochaine section sur le *finetuning* en évaluant le modèle Whisper pré-entraîné sur l'ensemble de test Common Voice 13 Dhivehi. Nous utiliserons le WER pour établir une _base_ pour la prochaine section où notre objectif sera d'essayer de le battre 🥊
+
+Tout d'abord, nous allons charger le modèle Whisper pré-entraîné en utilisant la classe `pipeline()`. Ce processus vous est maintenant familier !
+La seule nouveauté est de charger le modèle en demi-précision (float16) s'il est exécuté sur un GPU. Cela permet d'accélérer l'inférence sans que le WER n'en souffre.
+
+```python
+from transformers import pipeline
+import torch
+
+if torch.cuda.is_available():
+    device = "cuda:0"
+    torch_dtype = torch.float16
+else:
+    device = "cpu"
+    torch_dtype = torch.float32
+
+pipe = pipeline(
+    "automatic-speech-recognition",
+    model="openai/whisper-small",
+    torch_dtype=torch_dtype,
+    device=device,
+)
+```
+
+Ensuite, nous allons charger l'échantillon test Dhivehi de Common Voice 13. Nous avons vu dans la section précédente que Common Voice 13 est *sécurisé*, ce qui signifie que nous avons dû accepter les conditions d'utilisation du jeu de données avant d'y avoir accès. Nous pouvons maintenant relier notre compte Hugging Face à notre *notebook*, afin d'avoir accès au jeu de données à partir de la machine que nous utilisons actuellement.
+
+Lier le *notebook* au *Hub* est très simple, il suffit d'entrer votre *token* d'authentification au *Hub* lorsque l'on vous y invite.
+Votre *token* d'authentification est trouvable [ici](https://huggingface.co/settings/tokens).
+
+```python
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+Une fois que nous avons lié le *notebook* à notre compte Hugging Face, nous pouvons procéder au téléchargement du jeu de données Common Voice. Cela prendra quelques minutes de les télécharger et de les prétraiter automatiquement sur votre *notebook* :
+
+```python
+from datasets import load_dataset
+
+common_voice_test = load_dataset(
+    "mozilla-foundation/common_voice_13_0", "dv", split="test"
+)
+```
+
+<Tip>
+    Si vous rencontrez un problème d'authentification lors du chargement du jeu de données, assurez-vous que vous avez accepté les conditions d'utilisation du jeu de données sur le *Hub* via le lien suivant : https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0.
+</Tip>
+
+L'évaluation sur un jeu de données entier peut être faite de la même manière que sur un seul exemple. Tout ce que nous avons à faire est de **boucler** sur les audios d'entrée, plutôt que d'inférer un seul échantillon. Pour ce faire, nous transformons d'abord notre jeu de données en un `KeyDataset`. Cela sélectionne la colonne particulière du jeu de données que nous voulons transmettre au modèle (dans notre cas, c'est la colonne `"audio"`), en ignorant le reste (comme les transcriptions cibles, que nous ne voulons pas utiliser pour l'inférence). Nous itérons ensuite sur ce jeu de données transformé, en ajoutant les sorties du modèle à une liste pour sauvegarder les prédictions. La cellule de code suivante prendra environ cinq minutes si elle est exécutée sur un GPU en demi-précision, avec un maximum de 12 Go de mémoire :
+
+```python
+from tqdm import tqdm
+from transformers.pipelines.pt_utils import KeyDataset
+
+all_predictions = []
+
+# lancer l'inférence en streaming
+for prediction in tqdm(
+    pipe(
+        KeyDataset(common_voice_test, "audio"),
+        max_new_tokens=128,
+        generate_kwargs={"task": "transcribe"},
+        batch_size=32,
+    ),
+    total=len(common_voice_test),
+):
+    all_predictions.append(prediction["text"])
+```
+
+<Tip>
+Si vous rencontrez une erreur de mémoire CUDA lors de l'exécution de la cellule ci-dessus, réduisez progressivement la taille du batch par un facteur de 2 jusqu'à ce que vous trouviez une taille de batch qui convienne à votre appareil.
+</Tip>
+
+Enfin, nous pouvons calculer le WER. Calculons d'abord le WER orthographique, c'est-à-dire le WER sans post-traitement :
+
+```python
+from evaluate import load
+
+wer_metric = load("wer")
+
+wer_ortho = 100 * wer_metric.compute(
+    references=common_voice_test["sentence"], predictions=all_predictions
+)
+wer_ortho
+```
+
+**Sortie :**
+
+```
+167.29577268612022
+```
+
+D'accord... 167% signifie essentiellement que notre modèle produit n'imprte quoi 😜 Ne vous inquiétez pas, notre objectif est d'améliorer ce résultat en *fientunant* le modèle sur l'ensemble d'entraînement Dhivehi !
+
+Ensuite, nous évaluons le WER normalisé, c'est-à-dire le WER avec post-traitement de normalisation. Nous devons filtrer nos échantillons qui seraient vides après normalisation, car sinon le nombre total de mots dans notre référence (N) serait nul, ce qui donnerait une erreur de division par zéro dans notre calcul :
+
+```python
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer
+
+normalizer = BasicTextNormalizer()
+
+# calculer le WER normalisé
+all_predictions_norm = [normalizer(pred) for pred in all_predictions]
+all_references_norm = [normalizer(label) for label in common_voice_test["sentence"]]
+
+# étape de filtrage pour n'évaluer que les échantillons qui correspondent à des références non nulles
+all_predictions_norm = [
+    all_predictions_norm[i]
+    for i in range(len(all_predictions_norm))
+    if len(all_references_norm[i]) > 0
+]
+all_references_norm = [
+    all_references_norm[i]
+    for i in range(len(all_references_norm))
+    if len(all_references_norm[i]) > 0
+]
+
+wer = 100 * wer_metric.compute(
+    references=all_references_norm, predictions=all_predictions_norm
+)
+
+wer
+```
+
+**Sortie :**
+
+```
+125.69809089960707
+```
+
+Une fois de plus, nous constatons la réduction drastique du WER obtenue en normalisant nos références et nos prédictions : le modèle de base obtient un WER de 168 % pour le test orthographique, alors que le WER normalisé est de 126 %.
+
+Voilà qui est clair ! Ce sont les chiffres que nous voulons essayer de battre lors du *finetuning* du modèle de reconnaissance de la parole en Dhivehi. Poursuivez votre lecture pour vous familiariser avec un exemple de *finetuning* 🚀

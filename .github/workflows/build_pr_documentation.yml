@@ -17,4 +17,4 @@ jobs:
       package_name: audio-course
       path_to_docs: audio-transformers-course/chapters/
       additional_args: --not_python_module
-      languages: en bn ko es zh-CN ru
+      languages: en bn ko es zh-CN ru fr

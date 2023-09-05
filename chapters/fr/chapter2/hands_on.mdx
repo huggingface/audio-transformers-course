@@ -1,0 +1,15 @@
+# Exercice pratique
+
+Cet exercice n'est pas noté et a pour but de vous aider à vous familiariser avec les outils et les bibliothèques que vous utiliserez pendant le reste du cours. Si vous avez déjà l'habitude d'utiliser Google Colab, 🤗 *Datasets*, librosa et 🤗 *Transformers*, vous pouvez choisir de passer cet exercice.
+
+1. Créez un *notebook* [Google Colab](https://colab.research.google.com).
+2. Utilisez 🤗 *Datasets* pour charger le split d'entraînement du jeu de données [`facebook/voxpopuli`](https://huggingface.co/datasets/facebook/voxpopuli) dans la langue de votre choix en mode streaming.
+3. Récupérez le troisième exemple de la partie `train` du jeu de données et explorez-le. Compte tenu des caractéristiques de cet exemple, pour quels types de tâches audio pouvez-vous utiliser ce jeu de données ?
+4. Tracez la forme d'onde et le spectrogramme de cet exemple.
+5. Allez sur le [🤗 *Hub*](https://huggingface.co/models), explorez les modèles pré-entraînés et trouvez-en un qui peut être utilisé pour la reconnaissance automatique de la parole dans la langue que vous avez choisie plus tôt. Instanciez un pipeline correspondant avec le modèle que vous avez trouvé, et transcrivez l'exemple.
+6. Comparez la transcription que vous obtenez du pipeline à la transcription fournie dans l'exemple.
+
+Si cet exercice vous pose problème, n'hésitez pas à jeter un coup d'œil à un [exemple de solution](https://colab.research.google.com/drive/1NGyo5wFpRj8TMfZOIuPaJHqyyXCITftc?usp=sharing). 
+Vous avez découvert quelque chose d'intéressant ? Vous avez trouvé un modèle intéressant ? Vous avez un beau spectrogramme ? N'hésitez pas à partager votre travail et vos découvertes sur Twitter ! 
+
+Dans les prochains chapitres, vous en apprendrez plus sur les différentes architectures de transformers audio et vous entraînerez votre propre modèle !

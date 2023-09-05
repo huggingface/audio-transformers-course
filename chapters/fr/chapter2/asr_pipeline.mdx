@@ -1,0 +1,92 @@
+# Reconnaissance automatique de la parole avec pipeline
+
+La reconnaissance automatique de la parole (ASR pour *Automatic Speech Recognition*) est une tâche qui implique la transcription de l'enregistrement vocal en texte.
+Cette tâche a de nombreuses applications pratiques, de la création de sous-titres codés pour les vidéos à l'activation des commandes vocales pour les assistants virtuels comme Siri et Alexa.
+
+Dans cette section, nous utiliserons le pipeline `automatic-speech-recognition` pour transcrire un enregistrement audio d'une personne posant une question sur le paiement d'une facture en utilisant le même jeu de données MINDS-14 qu'auparavant.
+
+Pour commencer, chargez le jeu de données et suréchantillonnez-le à 16 kHz comme décrit dans [Classification audio avec un pipeline](audio_classification_pipeline), si vous ne l'avez pas encore fait.
+
+Pour transcrire un enregistrement audio, nous pouvons utiliser le pipeline de `automatic-speech-recognition` de 🤗 *Transformers*. Instancions le pipeline :
+
+```py
+from transformers import pipeline
+
+asr = pipeline("automatic-speech-recognition")
+```
+
+Ensuite, nous allons prendre un exemple du jeu de données et transmettre ses données brutes au pipeline :
+
+```py
+example = minds[0]
+asr(example["audio"]["array"])
+```
+
+**Sortie :**
+
+```out
+{"text": "I WOULD LIKE TO PAY MY ELECTRICITY BILL USING MY COD CAN YOU PLEASE ASSIST"}
+# "Je voudrais payer ma facture d'électricité avec ma morue, pouvez-vous m'aider"
+```
+
+Comparons cette sortie à ce qu'est la transcription réelle pour cet exemple :
+
+```py
+example["english_transcription"]
+``` 
+**Sortie :**
+```out
+"I would like to pay my electricity bill using my card can you please assist"
+# "Je voudrais payer ma facture d'électricité avec ma carte, pouvez-vous m'aider"
+``` 
+
+Le modèle semble avoir fait un assez bon travail pour transcrire l'audio ! Il n'a eu qu'un mot erroné (*card*) par rapport à la transcription originale, ce qui est plutôt bon étant donné que le locuteur a un accent australien, où la lettre « r » est souvent silencieuse. Cela dit, je ne recommanderais pas d'essayer de payer votre prochaine facture d'électricité avec un poisson !
+
+Par défaut, ce pipeline utilise un modèle entraîné pour la reconnaissance automatique de la parole pour la langue anglaise, ce qui est très bien dans cet exemple. Si vous souhaitez essayer de transcrire d'autres sous-ensembles de MINDS-14 dans une langue différente, vous pouvez trouver un modèle ASR pré-entraîné sur le [🤗 *Hub*](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&language=fr&sort=downloads).
+Vous pouvez d'abord filtrer la liste des modèles par tâche, puis par langue. Une fois que vous avez trouvé le modèle que vous aimez, passez son nom comme argument `model` au pipeline.
+
+Essayons cela pour l’échantillon allemand de MINDS-14. Chargez le sous-ensemble `de-DE` :
+
+```py
+from datasets import load_dataset
+from datasets import Audio
+
+minds = load_dataset("PolyAI/minds14", name="de-DE", split="train")
+minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
+```
+
+Obtenez un exemple et voyez ce que la transcription est censée être:
+
+```py
+example = minds[0]
+example["transcription"]
+```
+
+**Sortie :**
+
+```out
+"ich möchte gerne Geld auf mein Konto einzahlen"
+```
+
+Trouvez un modèle ASR pré-entraîné pour la langue allemande sur le 🤗 *Hub*, instanciez un pipeline et transcrivez l'exemple :
+
+```py
+from transformers import pipeline
+
+asr = pipeline("automatic-speech-recognition", model="maxidl/wav2vec2-large-xlsr-german")
+asr(example["audio"]["array"])
+```
+
+**Sortie :**
+
+```out
+{"text": "ich möchte gerne geld auf mein konto einzallen"}
+```
+
+Identique !
+
+Lorsque vous travaillez à résoudre votre propre tâche, commencer par un pipeline simple comme ceux que nous avons montrés dans cette unité est un outil précieux qui offre plusieurs avantages :
+- Il peut exister un modèle pré-entraîné qui résout déjà très bien votre tâche, vous faisant gagner beaucoup de temps
+- `pipeline()` s'occupe de tout le pré/post-traitement pour vous, vous n'avez donc pas à vous soucier d'obtenir les données dans le bon format pour un modèle
+- Si le résultat n'est pas idéal, cela vous donne quand même une base de référence rapide pour les ajustements futurs
+- une fois que vous avez affiné un modèle sur vos données personnalisées et que vous l'avez partagé sur le *Hub*, toute la communauté pourra l'utiliser rapidement et sans effort via la méthode 'pipeline()' rendant l'IA plus accessible.

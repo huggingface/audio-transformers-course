@@ -1,0 +1,28 @@
+# Architectures de classification d’audio
+
+L'objectif de la classification d’audio est de prédire une étiquette de classe pour une entrée audio. Le modèle peut prédire une étiquette de classe unique qui couvre toute la séquence d'entrée, ou il peut prédire une étiquette pour chaque trame audio (généralement toutes les 20 millisecondes d'entrée audio), auquel cas la sortie du modèle est une séquence de probabilités d'étiquette de classe. Un exemple du premier cas est la détection des chants des oiseaux. Un exemple du second est la séparation des locuteurs où le modèle prédit quel locuteur parle à un moment donné.
+
+## Classification à l'aide de spectrogrammes
+
+L'un des moyens les plus simples d'effectuer une classification audio est de prétendre qu'il s'agit d'un problème de classification d'image !
+Rappelons qu'un spectrogramme est un tenseur bidimensionnel de forme `(frequencies, sequence length)`. Dans le [chapitre sur les données audio](.. /chapter1/audio_data) nous avons tracé ces spectrogrammes sous forme d'images. Devinez quoi ? Nous pouvons littéralement traiter le spectrogramme comme une image et le transmettre à un modèle de classification de type ConvNet standard tel qu’un ResNet ou ConvNext et obtenir de très bonnes prédictions. Même chose avec un modèle de type *transformer* tel que le ViT.
+C'est ce que fait **Audio Spectrogram Transformer**. Il utilise le ViT et lui transmet des spectrogrammes en entrée au lieu d'images. Grâce aux couches d'auto-attention du *transformer*, le modèle est mieux en mesure de capturer le contexte global qu'un ConvNet.
+Tout comme le ViT, le modèle AST divise le spectrogramme audio en une séquence de patchs d'image partiellement chevauchants de 16×16 pixels. Cette séquence de patchs est ensuite projetée dans une séquence d’enchâssement, et ceux-ci sont donnés à l’encodeur du *transformer* en entrée comme d'habitude. L’AST est un modèle de *transformer* encodeur et la sortie est donc une séquence d'états cachés, un pour chaque patch d'entrée 16×16. En plus de cela, il y a une couche de classification simple avec activation sigmoïde pour associer les états cachés aux probabilités de classification.
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/ast.png" alt="The audio spectrogram transformer works on a sequence of patches taken from the spectrogram">
+</div>
+
+Image tirée du papier [*AST: Audio Spectrogram Transformer*](https://arxiv.org/pdf/2104.01778.pdf)
+
+<Tip>
+💡 Même si ici nous prétendons que les spectrogrammes sont comme les images, il existe des différences importantes. Par exemple, déplacer le contenu d'une image vers le haut ou vers le bas ne change généralement pas la signification de ce qui se trouve dans l'image. Cependant, déplacer un spectrogramme vers le haut ou vers le bas changera les fréquences qui sont dans le son et changera complètement son caractère. Les images sont invariantes sous translation mais les spectrogrammes ne le sont pas. Traiter les spectrogrammes comme des images peut très bien fonctionner dans la pratique, mais gardez à l'esprit que ce n'est pas vraiment la même chose.
+</Tip>
+
+## Tout transformer peut être un classifieur
+
+Dans une [section précédente](CTC), vous avez vu que CTC est une technique efficace pour effectuer une reconnaissance automatique de la parole à l'aide d'un *transformer* encodeur.  De tels modèles sont déjà des classifieurs, prédisant les probabilités pour les étiquettes de classe à partir d'un vocabulaire de *tokenizer*. Nous pouvons prendre un modèle avec CTC et le transformer en un classifieur d’audio à usage général en changeant les étiquettes et en l'entraînant avec une fonction de perte d'entropie croisée standard au lieu de la perte CTC spéciale.
+Par exemple, 🤗 *Transformers* a un modèle `Wav2Vec2ForCTC` mais aussi `Wav2Vec2ForSequenceClassification` et `Wav2Vec2ForAudioFrameClassification`. Les seules différences entre les architectures de ces modèles sont la taille de la couche de classification et la fonction de perte utilisée.
+En fait, n'importe quel *transformer* encodeur audio peut être transformé en classifieur d’audio en ajoutant une couche de classification au-dessus de la séquence d'états cachés. Les classifieurs n'ont généralement pas besoin du décodeur du *transformer*.
+Pour prédire un score de classification unique pour l'ensemble de la séquence (`Wav2Vec2ForSequenceClassification`), le modèle prend la moyenne sur les états masqués et l'introduit dans la couche de classification. Le résultat est une distribution de probabilité unique.
+Pour créer une classification distincte pour chaque trame audio (`Wav2Vec2ForAudioFrameClassification`), le classifieur est exécuté sur la séquence d'états masqués, et donc la sortie du classifieur est également une séquence.

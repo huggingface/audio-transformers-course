@@ -1,0 +1,24 @@
+# Unité 6 : Du texte à la parole
+
+Dans l'unité précédente, vous avez appris à utiliser les *transformers* pour convertir la parole en texte. Maintenant, inversons le scénario et voyons comment vous pouvez transformer un texte d'entrée donné en une sortie audio qui ressemble à de la parole.
+
+La tâche que nous allons étudier dans cette unité s'appelle "*Text-to-speech*" (TTS) ou synthèse vocale. Les modèles capables de gérer cette tâche ont un large éventail d'applications potentielles : 
+
+* Applications d'assistance : des outils permettant aux malvoyants d'accéder au contenu numérique par le biais du son.
+* Narrations de livres audio : rendre la littérature plus accessible aux personnes qui préfèrent écouter ou qui ont des difficultés à lire.
+* Assistants virtuels : les modèles TTS sont un élément fondamental des assistants virtuels tels que Siri, Google Assistant ou Amazon Alexa. Une fois qu'ils ont utilisé un modèle de classification pour repérer le mot déclencheur et un modèle ASR pour traiter la demande, ils peuvent utiliser un modèle de TTS pour répondre à votre demande.
+* Divertissement, jeux et apprentissage des langues : donnez une voix à vos personnages, racontez des événements d’un jeu ou aidez les apprenants en leur donnant des exemples de prononciation et d'intonation correctes des mots et des phrases.
+
+Il ne s'agit là que de quelques exemples, et je suis sûr que vous pouvez en imaginer beaucoup d'autres ! Il est important de souligner que les modèles de TTS peuvent être utilisés à des fins malveillantes.
+Par exemple, avec suffisamment d'échantillons de voix, il serait possible potentiellement de créer de faux enregistrements audio convaincants, conduisant à l'utilisation non autorisée de la voix d'une personne à des fins frauduleuses ou de manipulation. 
+Si vous envisagez de collecter des données pour *finetuner* vos propres systèmes, examinez attentivement la question de la protection de la vie privée et du consentement.
+Les données vocales doivent être obtenues avec le consentement explicite des personnes, en veillant à ce qu'elles comprennent l'objectif, la portée et les risques potentiels associés à l'utilisation de leur voix dans un système de synthèse vocale. Utilisez la synthèse vocale de manière responsable.
+
+## Ce que vous allez apprendre et construire
+
+Dans cette unité, nous parlerons de : 
+
+* [Jeux de données pour entraîner un modèle de synthèse vocale](tts_datasets)
+* [Modèles pré-entraînés de synthèse vocale](pre-trained_models)
+* [*Finetuning* du modèle SpeechT5 sur une nouvelle langue](fine-tuning)
+* [Evaluation des modèles TTS](evaluation)

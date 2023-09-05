@@ -1,0 +1,14 @@
+# Unité 4 : Construire un classifieur de genres musicaux
+
+## Ce que vous allez apprendre et construire
+
+La classification d'audio est l'une des applications les plus courantes des *transformers* dans le traitement du son et de la parole. Comme d'autres tâches de classification dans l'apprentissage automatique, cette tâche consiste à attribuer une ou plusieurs étiquettes à un enregistrement audio en fonction de son contenu. Par exemple, dans le cas de la parole, nous pourrions vouloir détecter quand des mots de réveil comme « Hey Siri » sont prononcés, ou déduire un mot clé comme « température » d'une requête vocale comme « Quel temps fait-il aujourd'hui ? ». Les sons environnementaux constituent un autre exemple : nous pourrions vouloir distinguer automatiquement des sons tels que « klaxon de voiture », « sirène », « aboiement de chien », etc.
+
+Dans cette section, nous verrons comment les *transformers* audio pré-entraînés peuvent être appliqués à une série de tâches de classification d'audio.
+Nous allons ensuite *finetuner* un *transformer* sur la tâche de classification de la musique, en classant les chansons dans des genres comme « pop » et « rock ». Il s'agit d'une partie importante des plateformes de streaming musical, qui recommandent des chansons similaires à celles que l'utilisateur est en train d'écouter.
+À la fin de cette section, vous saurez comment :
+
+* Trouver des modèles pré-entraînés appropriés pour les tâches de classification d'audio
+* Utiliser la bibliothèque 🤗 *Datasets* et le *Hub* pour sélectionner des jeux de données de classification d'audio
+* *Finetuner * un modèle pré-entraîné pour classer les chansons par genre
+* Construire une démo *Gradio* permettant de classer vos propres chansons
