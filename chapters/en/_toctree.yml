@@ -111,7 +111,7 @@
     title: Creating a voice assistant
   - local: chapter7/transcribe-meeting
     title: Transcribe a meeting
-  - local: chapter7/hands-on
+  - local: chapter7/hands_on
     title: Hands-on exercise
   - local: chapter7/supplemental_reading
     title: Supplemental reading and resources

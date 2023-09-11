@@ -1,0 +1,95 @@
+# Choisir un jeu de données
+
+Comme pour tout problème d'apprentissage automatique, la qualité de notre modèle dépend des données sur lesquelles nous l'entraînons. Les jeux de données de reconnaissance vocale varient considérablement dans la façon dont ils sont gérés et dans les domaines qu'ils couvrent. Pour choisir le bon jeu de données, nous devons faire correspondre nos critères aux caractéristiques offertes par un jeu de données.
+
+Avant de choisir un jeu de données, nous devons d'abord comprendre les principales caractéristiques qui le définissent.
+
+## Caractéristiques des jeux de données vocaux
+
+### 1. Nombre d'heures
+
+En termes simples, le nombre d'heures d'entraînement indique la taille du jeu de données. Il est analogue au nombre d'exemples d'entraînement dans un jeu de données de NLP. Toutefois, les jeux de données plus importants ne sont pas nécessairement meilleurs. Si nous voulons un modèle qui généralise bien, nous avons besoin d'un jeu de données **varié** avec beaucoup de locuteurs, de domaines et de styles d'expression différents.
+
+### 2. Domaine
+
+Le domaine est l'endroit d'où proviennent les données, qu'il s'agisse de livres audio, de podcasts, de YouTube ou de réunions professionnelles.
+Chaque domaine a une distribution de données différente. Par exemple, les livres audio sont enregistrés dans des conditions de studio, en haute qualité (sans bruit de fond) et le texte est tiré de la littérature. En revanche, pour YouTube, l'audio contient probablement plus de bruits de fond et un style de discours plus informel.
+
+Nous devons faire correspondre notre domaine aux conditions que nous prévoyons au moment de l'inférence. Par exemple, si nous entraînons notre modèle sur des livres audio, nous ne pouvons pas nous attendre à ce qu'il soit performant dans des environnements bruyants.
+
+### 3. Style d'élocution
+
+Le style d'élocution peut être classé dans l'une des deux catégories suivantes :
+
+* narré : lu à partir d'un script
+* spontané : discours non scénarisé, conversationnel.
+
+Les données audio et textuelles reflètent le style d'élocution. Étant donné que le texte narré est écrit, il a tendance à être prononcé de manière articulée et sans erreur :
+
+```
+“Consider the task of training a model on a speech recognition dataset”
+```
+
+Dans le cas d'un discours spontané, on peut s'attendre à un style plus familier, avec des répétitions, des hésitations et des faux départs :
+
+```
+“Let’s uhh let's take a look at how you'd go about training a model on uhm a sp- speech recognition dataset”
+```
+
+### 4. Style de transcription
+
+Le style de transcription indique si le texte cible comporte de la ponctuation, de la casse ou les deux. Si nous voulons qu'un système génère un texte entièrement formaté pouvant être utilisé pour la transcription d'une publication ou d'une réunion, nous avons besoin de données d'entraînement comportant de la ponctuation et des majuscules. Si nous avons simplement besoin des mots prononcés dans une structure non formatée, ni la ponctuation ni la casse ne sont nécessaires.
+Dans ce cas, nous pouvons soit choisir un jeu de données sans ponctuation ni casse, soit choisir un jeu de données avec ponctuation et casse, puis les supprimer du texte cible par le biais d'un prétraitement.
+
+## Résumé de jeux de données sur le *Hub*
+
+Voici un résumé de jeux de données de reconnaissance vocale en anglais les plus populaires sur le *Hub* :
+
+| Jeu de données                                                                          | Heures d'entraînement | Domaine                      | Style d'élocution        | Casse | Ponctuation | Licence         | Usage recommandé                 |
+|-----------------------------------------------------------------------------------------|-------------|-----------------------------|-----------------------|--------|-------------|-----------------|----------------------------------|
+| [LibriSpeech](https://huggingface.co/datasets/librispeech_asr)                          | 960         | Audiobook                   | Narrated              | ❌      | ❌           | CC-BY-4.0       | Academic benchmarks              |
+| [Common Voice 11](https://huggingface.co/datasets/mozilla-foundation/common_voice_11_0) | 3000        | Wikipedia                   | Narrated              | ✅      | ✅           | CC0-1.0         | Non-native speakers              |
+| [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli)                         | 540         | European Parliament         | Oratory               | ❌      | ✅           | CC0             | Non-native speakers              |
+| [TED-LIUM](https://huggingface.co/datasets/LIUM/tedlium)                                | 450         | TED talks                   | Oratory               | ❌      | ❌           | CC-BY-NC-ND 3.0 | Technical topics                 |
+| [GigaSpeech](https://huggingface.co/datasets/speechcolab/gigaspeech)                    | 10000       | Audiobook, podcast, YouTube | Narrated, spontaneous | ❌      | ✅           | apache-2.0      | Robustness over multiple domains |
+| [SPGISpeech](https://huggingface.co/datasets/kensho/spgispeech)                         | 5000        | Financial meetings          | Oratory, spontaneous  | ✅      | ✅           | User Agreement  | Fully formatted transcriptions   |
+| [Earnings-22](https://huggingface.co/datasets/revdotcom/earnings22)                     | 119         | Financial meetings          | Oratory, spontaneous  | ✅      | ✅           | CC-BY-SA-4.0    | Diversity of accents             |
+| [AMI](https://huggingface.co/datasets/edinburghcstr/ami)                                | 100         | Meetings                    | Spontaneous           | ✅      | ✅           | CC-BY-4.0       | Noisy speech conditions          |
+
+Ce tableau sert de référence pour sélectionner un jeu de données en fonction de vos critères. Vous trouverez ci-dessous un tableau équivalent pour la reconnaissance vocale multilingue. Notez que nous omettons la colonne des heures d'entraînement, qui varie en fonction de la langue pour chaque jeu de données, et que nous la remplaçons par le nombre de langues par jeu de données :
+
+| Jeu de données                                                                                | Langues | Domaine                                | Style d'élocution | Casse | Ponctuation | Licence   | Usage recommandé        |
+|-----------------------------------------------------------------------------------------------|-----------|---------------------------------------|----------------|--------|-------------|-----------|-------------------------|
+| [Multilingual LibriSpeech](https://huggingface.co/datasets/facebook/multilingual_librispeech) | 6         | Audiobooks                            | Narrated       | ❌      | ❌           | CC-BY-4.0 | Academic benchmarks     |
+| [Common Voice 13](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0)       | 108       | Wikipedia text & crowd-sourced speech | Narrated       | ✅      | ✅           | CC0-1.0   | Diverse speaker set     |
+| [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli)                               | 15        | European Parliament recordings        | Spontaneous    | ❌      | ✅           | CC0       | European languages      |
+| [FLEURS](https://huggingface.co/datasets/google/fleurs)                                       | 101       | European Parliament recordings        | Spontaneous    | ❌      | ❌           | CC-BY-4.0 | Multilingual evaluation |
+
+Pour une analyse détaillée des jeux de données audio couverts dans les deux tableaux, consultez l'article de blog [*A Complete Guide to Audio Datasets*](https://huggingface.co/blog/audio-datasets#a-tour-of-audio-datasets-on-the-hub) (en anglais).
+Bien qu'il existe plus de 180 jeux de données de reconnaissance vocale sur le *Hub*, il est possible qu'aucun jeu de données ne corresponde à vos besoins. Dans ce cas, il est également possible d'utiliser vos propres données audio avec 🤗 *Datasets*. Pour créer un jeu de données audio personnalisé, reportez-vous au guide [Créer un jeu de données audio](https://huggingface.co/docs/datasets/audio_dataset). Lorsque vous créez un jeu de données audio personnalisé, pensez à partager le jeu de données final sur le *Hub* afin que d'autres membres de la communauté puissent bénéficier de vos efforts et apprécieront votre travail comme vous appréciez le leur.
+
+Très bien ! Maintenant que nous avons passé en revue tous les critères de sélection d'un jeu de données d'ASR, choisissons-en un pour les besoins de ce tutoriel.
+Nous savons que Whisper fait déjà un très bon travail de transcription de données dans des langues à hautes ressources (telles que l'anglais et l'espagnol), nous allons donc nous concentrer sur la transcription multilingue à faibles ressources. Nous voulons conserver la capacité de Whisper à prédire la ponctuation et la casse, donc il semble, d'après le deuxième tableau, que Common Voice 13 est un excellent jeu de données candidat !
+
+## Common Voice 13
+
+Common Voice 13 est un jeu de données *crown-sourcés* dans lequel des locuteurs enregistrent des textes tirés de Wikipédia dans différentes langues. Il fait partie de la série Common Voice, une collection de jeux de données publiés par la Fondation Mozilla. À l'heure où nous écrivons ces lignes, Common Voice 13 est la dernière édition du jeu de données, avec le plus grand nombre de langues et d'heures par langue de toutes les versions à ce jour.
+
+Nous pouvons obtenir la liste complète des langues pour le jeu de données Common Voice 13 en consultant la page du jeu de données sur le *Hub* : [mozilla-foundation/common_voice_13_0](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0).
+La première fois que vous consulterez cette page, il vous sera demandé d'accepter les conditions d'utilisation. Ensuite, vous aurez un accès complet au jeu de données.
+
+Une fois que nous nous sommes authentifiés pour utiliser le jeu de données, son aperçu s'affiche montrant les 100 premiers échantillons du jeu de données pour chaque langue, prêts à être écoutés en temps réel. Pour cette unité, nous sélectionnerons le [_Dhivehi_](https://en.wikipedia.org/wiki/Maldivian_language) (ou _Maldivien_), une langue indo-aryenne parlée dans le pays insulaire d'Asie du Sud, les Maldives. Bien que nous choisissions le dhivehi pour ce tutoriel, les étapes couvertes ici s'appliquent à n'importe laquelle des 108 langues de l'ensemble de données Common Voice 13, et plus généralement à n'importe lequel des 180+ jeux de données audio du *Hub*. Il n'y a donc pas de restriction sur la langue ou le dialecte.
+
+Nous pouvons sélectionner le sous-ensemble Dhivehi de Common Voice 13 en réglant le sous-ensemble sur `dv` à l'aide du menu déroulant (`dv` étant le code d'identification de la langue pour le Dhivehi) :
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/cv_13_dv_selection.png" alt="Selecting the Dhivehi split from the Dataset's Preview">
+</div>
+
+Si nous appuyons sur le bouton de lecture du premier échantillon, nous pouvons écouter le son et voir le texte correspondant. Parcourez les échantillons des ensembles d'entraînement et de test pour vous faire une idée plus précise des données que nous traitons.
+L'intonation et le style indiquent que les enregistrements sont issus d'un discours narré. Vous remarquerez également la grande diversité des locuteurs et de la qualité des enregistrements, un trait commun aux données provenant de données *crown-sourcées*.
+
+L'aperçu des données est un excellent moyen d'expérimenter les données audio avant de s'engager à les utiliser. Vous pouvez choisir n'importe quel jeu de données sur le Hub, faire défiler les échantillons et écouter l'audio pour les différents sous-ensembles et divisions, afin d'évaluer s'il s'agit du bon jeu de données pour vos besoins. Une fois que vous avez sélectionné un jeu de données, il est facile de charger les données afin de pouvoir commencer à les utiliser.
+
+Personnellement, je ne parle pas le dhivehi et je m'attends à ce que la grande majorité des lecteurs ne le parlent pas non plus ! Pour savoir si notre modèle *finetuné* est bon, nous aurons besoin d'un moyen rigoureux de l'_évaluer_ sur des données inédites et de mesurer sa précision de transcription.
+C'est exactement ce que nous allons faire dans la section suivante !

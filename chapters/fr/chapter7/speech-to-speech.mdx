@@ -1,0 +1,211 @@
+# Traduction parole-à-parole 
+
+La traduction parole-à-parole (STST ou S2ST pour *Speech-to-speech translation*) est une tâche de traitement du langage parlé relativement nouvelle. Elle consiste à traduire le discours d'une langue en un discours dans une langue **différente** :
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/s2st.png" alt="Diagram of speech to speech translation">
+</div>
+
+La STST peut être considérée comme une extension de la tâche traditionnelle de traduction automatique : au lieu de traduire du **texte** d'une langue à une autre, nous traduisons de la **parole** d'une langue à une autre. La STST trouve des applications dans le domaine de la communication multilingue, en permettant à des locuteurs de langues différentes de communiquer entre eux par l'intermédiaire de la parole.
+
+Supposons que vous souhaitiez communiquer avec une autre personne au-delà de la barrière de la langue. Plutôt que d'écrire l'information que vous souhaitez transmettre et de la traduire ensuite en texte dans la langue cible, vous pouvez la parler directement et demander à un système STST de convertir votre discours dans la langue cible. Le destinataire peut alors répondre en s'adressant au système STST, et vous pouvez écouter sa réponse. Cette méthode de communication est plus naturelle que la traduction automatique basée sur le texte.
+
+Dans ce chapitre, nous allons explorer une approche *cascadée* de la STST, en rassemblant les connaissances que vous avez acquises dans les unités 5 et 6 du cours. Nous utiliserons un système de *traduction vocale* pour transcrire le discours source en texte dans la langue cible, puis un système de *text-to-speech* pour générer du discours dans la langue cible à partir du texte traduit :
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/s2st_cascaded.png" alt="Diagram of s2st_cascaded speech to speech translation">
+</div>
+
+Nous aurions également pu utiliser une approche en trois étapes, en commençant par utiliser un système de reconnaissance automatique de la parole (ASR) pour transcrire la parole source en texte dans la même langue, puis la traduction automatique pour traduire le texte transcrit dans la langue cible, et enfin la synthèse vocale pour générer de la parole dans la langue cible. Cependant, l'ajout d'autres composants au pipeline se prête à la propagation d'erreurs, où les erreurs introduites dans un système sont aggravées lorsqu'elles passent par les systèmes restants, et augmente également le temps de latence, puisque l'inférence doit être effectuée pour davantage de modèles.
+
+Bien que cette approche en deux étapes de la STST soit assez simple, elle permet d'obtenir des systèmes très efficaces. Le système en deux étapes à trois étapes ASR + traduction automatique + TTS a été utilisé précédemment pour de nombreux produits STST commerciaux, y compris [*Google Translate*](https://ai.googleblog.com/2019/05/introducing-translatotron-end-to-end.html).
+Il s'agit également d'une méthode très efficace en termes de données et de calcul, puisque les systèmes de reconnaissance vocale et de synthèse vocale existants peuvent être couplés pour produire un nouveau modèle de STST sans aucun entraînement supplémentaire.
+
+Dans la suite de cette unité, nous nous concentrerons sur la création d'un système de STST qui traduit la parole de n'importe quelle langue X en anglais. Les méthodes abordées peuvent être étendues aux systèmes de STST qui traduisent de n'importe quelle langue X vers n'importe quelle langue Y, mais nous laissons cette extension au lecteur et fournissons des pointeurs le cas échéant. Nous divisons ensuite la tâche de STST en ses deux composantes constitutives : traduction vocale et synthèse vocale. Nous terminerons en les assemblant pour construire une démo Gradio afin de présenter notre système.
+
+
+## Traduction vocale
+
+Nous utilisons le modèle Whisper puisqu'il est capable de traduire plus de 96 langues vers l'anglais. Plus précisément, nous chargerons le *checkpoint* [Whisper Base](https://huggingface.co/openai/whisper-base), qui contient 74 millions de paramètres. Ce n'est en aucun cas le modèle Whisper le plus performant (le [plus grand *checkpoint* Whisper](https://huggingface.co/openai/whisper-large-v2) étant plus de 20 fois plus grand) mais comme nous concaténons deux systèmes autorégressifs, nous voulons nous assurer que chaque modèle peut générer relativement rapidement afin d'obtenir une vitesse d'inférence raisonnable :
+
+```python
+import torch
+from transformers import pipeline
+
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+pipe = pipeline(
+    "automatic-speech-recognition", model="openai/whisper-base", device=device
+)
+```
+
+C'est très bien ! Pour tester notre système de STST, nous allons charger un échantillon audio dans une autre langue que l'anglais. Chargeons le premier exemple de la partie italienne (`it`) du jeu de données [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli) :
+
+```python
+from datasets import load_dataset
+
+dataset = load_dataset("facebook/voxpopuli", "it", split="validation", streaming=True)
+sample = next(iter(dataset))
+```
+
+Pour écouter cet échantillon, nous pouvons soit le jouer en utilisant le *viewer* sur le *Hub* : [facebook/voxpopuli/viewer](https://huggingface.co/datasets/facebook/voxpopuli/viewer/it/validation?row=0)
+
+Ou le lire à l'aide de la fonction audio d'ipynb :
+
+```python
+from IPython.display import Audio
+
+Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
+```
+
+Maintenant, définissons une fonction qui prend cette entrée audio et retourne le texte traduit. Vous vous rappelez que nous devons passer l'argument `"task": "translate"` pour s'assurer que Whisper effectue de la traduction vocale et non de la reconnaissance vocale :
+
+```python
+def translate(audio):
+    outputs = pipe(audio, max_new_tokens=256, generate_kwargs={"task": "translate"})
+    return outputs["text"]
+```
+
+<Tip>
+
+Whisper peut aussi être "trompé" pour traduire de la parole dans n'importe quelle langue X vers n'importe quelle langue Y. Il suffit de mettre la tâche à `"transcribe"` et `"language"` à votre langue cible en argument. Par exemple pour l'espagnol, on mettrait : `generate_kwargs={"task" : "transcribe", "language" : "es"&rcub;`
+
+</Tip>
+
+Bien, vérifions rapidement que nous obtenons un résultat raisonnable à partir du modèle :
+
+```python
+translate(sample["audio"].copy())
+```
+
+```
+' psychological and social. I think that it is a very important step in the construction of a juridical space of freedom, circulation and protection of rights.'
+```
+
+Ok, et si nous comparons cela au texte source :
+
+```python
+sample["raw_text"]
+```
+
+```
+'Penso che questo sia un passo in avanti importante nella costruzione di uno spazio giuridico di libertà di circolazione e di protezione dei diritti per le persone in Europa.'
+```
+
+Nous constatons que la traduction est plus ou moins conforme (vous pouvez la vérifier en utilisant Google Translate ou DeepL), à l'exception de quelques mots supplémentaires au début de la transcription, lorsque le locuteur terminait sa phrase précédente.
+
+Nous avons ainsi terminé la première moitié de notre pipeline de STST en deux étapes, en mettant en pratique les compétences acquises dans l'unité 5 lorsque nous avons appris à utiliser le modèle Whisper pour la reconnaissance vocale et la traduction. Si vous souhaitez vous rafraîchir la mémoire sur l'une des étapes que nous avons couvertes, lisez la section [Modèles pré-entraînés pour la reconnaissance automatique de la parole](../chapiter5/asr_models) de l'unité 5.
+
+## Synthèse vocale
+
+La deuxième partie de notre système de STST en deux étapes consiste à passer d'un texte anglais à la parole en anglais. Pour cela, nous utiliserons le modèle pré-entraîné [SpeechT5 TTS](https://huggingface.co/microsoft/speecht5_tts). 🤗 *Transformers* n'a actuellement pas de `pipeline` TTS, donc nous devrons utiliser le modèle directement nous-mêmes. Ce n'est pas grave, vous êtes tous experts dans l'utilisation du modèle pour l'inférence après l'unité 6 !
+
+Tout d'abord, chargeons le processeur SpeechT5, le modèle et le vocodeur à partir du *checkpoint* pré-entraîné :
+
+```python
+from transformers import SpeechT5Processor, SpeechT5ForTextToSpeech, SpeechT5HifiGan
+
+processor = SpeechT5Processor.from_pretrained("microsoft/speecht5_tts")
+
+model = SpeechT5ForTextToSpeech.from_pretrained("microsoft/speecht5_tts")
+vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
+```
+
+<Tip>
+    Nous utilisons ici le *checkpoint* SpeechT5 entraîné spécifiquement pour le TTS anglais. Si vous souhaitez traduire dans une autre langue que l'anglais, remplacez le *checkpoint* par un modèle SpeechT5 TTS *finetuné* dans la langue de votre choix, ou utilisez un *checkpoint* MMS TTS pré-entraîné dans la langue cible.
+</Tip>
+
+Comme pour le Whisper, nous placerons le SpeechT5 et le vocodeur sur notre GPU, si nous en avons un :
+
+```python
+model.to(device)
+vocoder.to(device)
+```
+
+Bien, chargeons les enregistrements du locuteur :
+
+```python
+embeddings_dataset = load_dataset("Matthijs/cmu-arctic-xvectors", split="validation")
+speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze(0)
+```
+
+Nous pouvons maintenant écrire une fonction qui prend en entrée un prompt de texte et génère le discours correspondant. Nous allons d'abord prétraiter l'entrée textuelle à l'aide du processeur SpeechT5, en tokenisant le texte pour obtenir nos identifiants d'entrée. Nous transmettons ensuite les identifiants d'entrée et les enchâssements de locuteurs au modèle SpeechT5, en plaçant chacun d'entre eux sur le GPU s'il est disponible. Enfin, nous renverrons le discours généré au CPU pour qu'il puisse être lu dans notre *notebook* :
+
+```python
+def synthesise(text):
+    inputs = processor(text=text, return_tensors="pt")
+    speech = model.generate_speech(
+        inputs["input_ids"].to(device), speaker_embeddings.to(device), vocoder=vocoder
+    )
+    return speech.cpu()
+```
+
+Vérifions qu'il fonctionne avec une entrée de texte fictive :
+
+```python
+speech = synthesise("Hey there! This is a test!")
+
+Audio(speech, rate=16000)
+```
+
+Ça a l'air bien ! Passons maintenant à la partie la plus excitante : assembler le tout.
+
+## Creating a STST demo
+
+Avant de créer une démo [Gradio](https://gradio.app) pour présenter notre système de STST, effectuons d'abord une vérification rapide pour nous assurer que nous pouvons concaténer les deux modèles, en introduisant un échantillon audio et en obtenant un échantillon audio. Pour ce faire, nous concaténerons les deux fonctions définies dans les deux sous-sections précédentes, de sorte que nous entrons l'audio source et récupérons le texte traduit, puis nous synthétisons le texte traduit pour obtenir la parole traduite. Enfin, nous allons convertir la synthèse vocale en un *array* `int16`, qui est le format de fichier audio de sortie attendu par Gradio. Pour ce faire, nous devons d'abord normaliser l'*array* audio par la plage dynamique de la cible de type (`int16`), puis convertir le type par défaut de NumPy (`float64`) vers la cible de type (`int16`) :
+
+```python
+import numpy as np
+
+target_dtype = np.int16
+max_range = np.iinfo(target_dtype).max
+
+
+def speech_to_speech_translation(audio):
+    translated_text = translate(audio)
+    synthesised_speech = synthesise(translated_text)
+    synthesised_speech = (synthesised_speech.numpy() * max_range).astype(np.int16)
+    return 16000, synthesised_speech
+```
+
+Vérifions que cette fonction concaténée donne le résultat attendu :
+
+```python
+sampling_rate, synthesised_speech = speech_to_speech_translation(sample["audio"])
+
+Audio(synthesised_speech, rate=sampling_rate)
+```
+
+Parfait ! Nous allons à présent intégrer tout cela dans une belle démo Gradio afin d'enregistrer notre source vocale à l'aide d'un microphone ou d'un fichier et de lire la prédiction du système :
+
+```python
+import gradio as gr
+
+demo = gr.Blocks()
+
+mic_translate = gr.Interface(
+    fn=speech_to_speech_translation,
+    inputs=gr.Audio(source="microphone", type="filepath"),
+    outputs=gr.Audio(label="Generated Speech", type="numpy"),
+)
+
+file_translate = gr.Interface(
+    fn=speech_to_speech_translation,
+    inputs=gr.Audio(source="upload", type="filepath"),
+    outputs=gr.Audio(label="Generated Speech", type="numpy"),
+)
+
+with demo:
+    gr.TabbedInterface([mic_translate, file_translate], ["Microphone", "Audio File"])
+
+demo.launch(debug=True)
+```
+
+Cela lancera une démo Gradio similaire à celle qui fonctionne sur le *Space* suivant :
+
+<iframe src="https://course-demos-speech-to-speech-translation.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
+Vous pouvez [dupliquer](https://huggingface.co/spaces/course-demos/speech-to-speech-translation?duplicate=true) cette démo et l'adapter pour utiliser un *checkpoint* Whisper différent, un *checkpoint* TTS différent, ou travailler sur une autre langue que l'anglais et suivre les conseils fournis pour traduire dans la langue de votre choix !
+
+## Pour aller plus loin
+
+Bien que le système en deux étapes soit un moyen efficace de construire un système de STST, il souffre des problèmes de propagation d'erreurs et de latence additive décrits ci-dessus. Des travaux récents ont exploré une approche *directe* de la STST, qui ne prédit pas de texte intermédiaire et qui, au lieu de cela, établit une correspondance directe entre la parole source et la parole cible. Ces systèmes sont également capables de conserver les caractéristiques de la parole du locuteur source dans la parole cible (telles que la prosodie, la hauteur et l'intonation). Si vous souhaitez en savoir plus sur ces systèmes, consultez les ressources répertoriées dans la section [lectures complémentaires](supplemental_reading).

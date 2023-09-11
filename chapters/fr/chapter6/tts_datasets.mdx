@@ -1,0 +1,40 @@
+# Jeux de données de synthèse vocale
+
+La tâche de synthèse vocale comporte une série de défis.
+Tout d'abord, tout comme dans la reconnaissance automatique de la parole discutée précédemment, l'alignement entre le texte et la parole peut être délicat.  
+Cependant, contrairement à l’ASR,  le TTS est un problème d’association **un-à-plusieurs**, c'est-à-dire que le même texte peut être synthétisé de différentes manières. Pensez à la diversité des voix et des styles de parole dans le discours que vous entendez quotidiennement : chaque personne a une façon différente de prononcer la même phrase, mais elles sont toutes valides et correctes. Même des sorties différentes (spectrogrammes ou formes d'ondes audio) peuvent correspondre à la même réalité de terrain. Le modèle doit apprendre à générer la durée et le timing corrects pour chaque phonème, mot ou phrase, ce qui peut être difficile, en particulier pour les phrases longues et complexes.
+
+Ensuite, il y a le problème de la dépendance : la langue a un aspect temporel, et comprendre le sens d'une phrase nécessite souvent de tenir compte du contexte des mots environnants. Il est crucial de s'assurer que le modèle de TTS capture et conserve les informations contextuelles sur de longues séquences pour générer un discours cohérent et naturel.
+
+Enfin, l'apprentissage des modèles de TTS nécessite généralement des paires de texte et des enregistrements vocaux correspondants. En plus de cela, pour s'assurer que le modèle peut générer un discours qui sonne naturel pour différents locuteurs et styles de parole, les données doivent contenir des échantillons de discours divers et représentatifs de plusieurs locuteurs. La collecte de ces données est coûteuse, prend du temps et, pour certaines langues, n'est pas réalisable. Vous vous demandez peut-être, pourquoi ne pas simplement prendre un jeu de données conçu pour l'ASR et l'utiliser pour entraîner un modèle TTS ? Malheureusement, ces jeux de données ne sont pas la meilleure option. Les caractéristiques qui le rendent bénéfique pour l'ASR, telles qu'un bruit de fond excessif, sont généralement indésirables dans le TTS. C'est génial de pouvoir transcrire la parole à partir d'un enregistrement bruyant d’une rue par exemple, mais pas tellement si votre assistant vocal vous répond avec des voitures qui klaxonnent et des bruits de travaux en arrière-plan. Néanmoins, certains jeux de données ASR peuvent parfois être utiles pour *finetuner*, car trouver des jeux de données de TTS de haute qualité, multilingues et multi-locuteurs peut être assez difficile.
+Explorons quelques ensembles de données adaptés au TTS que vous pouvez trouver sur le  *Hub*.
+
+## LJSpeech
+
+[LJSpeech](https://huggingface.co/datasets/lj_speech) est un jeu de données composé de 13 100 échantillons audio de langue anglaise jumelés à leurs transcriptions correspondantes. Le jeu de données contient l'enregistrement d'un seul locuteur lisant des phrases de 7 livres en anglais. LJSpeech est souvent utilisé comme référence pour évaluer les modèles de TTS en raison de sa haute qualité audio et de son contenu linguistique diversifié.
+
+## Multilingual LibriSpeech
+[Multilingual LibriSpeech] (https://huggingface.co/datasets/facebook/multilingual_librispeech) est une extension multilingue du jeu de données LibriSpeech, qui est à la base une collection à grande échelle de livres audio lus en anglais. LibriSpeech multilingue inclus des langues supplémentaires, telles que l'allemand, le néerlandais, l'espagnol, le français, l'italien, le portugais et le polonais. 
+Il propose des enregistrements audio ainsi que des transcriptions alignées pour chaque langue. Le jeu de données fournit une ressource précieuse pour développer des systèmes et techniques TTS de synthèse vocale multilingue.
+
+## VCTK (*Voice Cloning Toolkit*)
+
+[VCTK](https://huggingface.co/datasets/vctk) est un jeu de données spécialement conçu pour la recherche et le développement de synthèse vocale.
+Il contient des enregistrements audio de 110 anglophones avec divers accents. Chaque orateur lit environ 400 phrases, qui ont été choisies dans un journal, et un paragraphe d'élicitation utilisé pour les archives de l'accent de la parole.
+C’est une ressource précieuse pour l’entraînement de modèles de TTS avec des voix et des accents variés, permettant une synthèse vocale plus naturelle et diversifiée.
+
+## Libri-TTS/ LibriTTS-R
+[Libri-TTS/ LibriTTS-R](https://huggingface.co/datasets/cdminix/libritts-r-aligned) est un corpus multi-locuteurs d'environ 585 heures de lecture de l'anglais, préparé par Heiga Zen avec l'aide des membres de l'équipe Google Speech et Google Brain. Le corpus LibriTTS est conçu pour la recherche. Il est dérivé des matériaux originaux (fichiers audio mp3 de LibriVox et fichiers texte du projet Gutenberg) du corpus LibriSpeech. Les principales différences par rapport au corpus LibriSpeech sont énumérées ci-dessous : 
+* Les fichiers audio sont à une fréquence d'échantillonnage de 24 kHz. 
+* Le discours est divisé lors des pauses de phrase. 
+* Les textes originaux et normalisés sont inclus. 
+* Des informations contextuelles (par exemple, des phrases voisines) peuvent être extraites. 
+* Les énoncés avec un bruit de fond important sont exclus.
+
+La conception d'un bon jeu de données pour le TTS n'est pas une tâche facile car un tel jeu de données devrait posséder plusieurs caractéristiques clés :
+
+* Enregistrements de haute qualité et diversifiés qui couvrent un large éventail de modèles de parole, d'accents, de langues et d'émotions. Les enregistrements doivent être clairs, exempts de bruit de fond et présenter des caractéristiques naturelles de la parole.
+* Chaque enregistrement audio doit être accompagné de sa transcription textuelle correspondante.
+* Le jeu de données doit contenir un large éventail de contenu linguistique, y compris différents types de phrases, de phrases et de mots. Il devrait couvrir divers sujets, genres et domaines pour assurer la capacité du modèle à gérer différents contextes linguistiques.
+
+La bonne nouvelle est qu'il est peu probable que vous ayez à entraîner un modèle de TTS à partir de zéro. Dans la section suivante, nous examinerons les modèles pré-entraînés disponibles sur le *Hub*.

@@ -1,0 +1,198 @@
+# Transcrire une réunion
+
+Dans cette dernière section, nous utiliserons le modèle Whisper pour générer la transcription d'une conversation ou d'une réunion entre deux ou plusieurs locuteurs. Nous l'associerons ensuite à un modèle de *séparation des locuteurs* pour prédire "qui a parlé quand". En faisant correspondre les horodatages des transcriptions Whisper avec les horodatages du modèle de séparation des locuteurs, nous pouvons prédire une transcription de réunion de bout en bout avec des heures de début et de fin entièrement formatées pour chaque locuteur. Il s'agit d'une version basique des services de transcription de réunions que vous avez pu voir en ligne sur [Otter.ai](https://otter.ai) et co :
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/diarization_transcription.png">
+ </div>
+
+## Séparation des locuteurs
+
+La séparation des locuteur (tâche de *diarization* en anglais) consiste à prendre une entrée audio non étiquetée et à prédire "qui a parlé quand".
+Ce faisant, nous pouvons prédire les horodatages de début / fin pour chaque tour de parole, correspondant au moment où chaque locuteur commence à parler et au moment où il termine.
+
+🤗 *Transformers* n'a actuellement pas de modèle de *diarization* inclus, mais il y a des *checkpoints* sur le *Hub* qui peuvent être utilisés avec une relative facilité. Dans cet exemple, nous utiliserons le modèle pré-entraîné de [pyannote.audio](https://github.com/pyannote/pyannote-audio). Commençons par l'installation du paquet avec pip :
+
+```bash
+pip install --upgrade pyannote.audio
+```
+
+Bien, les poids de ce modèle sont hébergés sur le *Hub*. Pour y accéder, nous devons d'abord accepter les conditions d'utilisation du modèle de *diarization* : [pyannote/speaker-diarization](https://huggingface.co/pyannote/speaker-diarization). Et ensuite les conditions d'utilisation du modèle de segmentation : [pyannote/segmentation](https://huggingface.co/pyannote/segmentation).
+
+Une fois terminé, nous pouvons charger le pipeline de séparation des locuteurs localement sur notre appareil :
+
+```python
+from pyannote.audio import Pipeline
+
+diarization_pipeline = Pipeline.from_pretrained(
+    "pyannote/speaker-diarization@2.1", use_auth_token=True
+)
+```
+
+Essayons-le sur un échantillon de fichier audio ! Pour cela, nous allons charger un échantillon du jeu de données [LibriSpeech ASR](https://huggingface.co/datasets/librispeech_asr) qui consiste en deux locuteurs différents qui ont été concaténés ensemble pour donner un seul fichier audio :
+
+```python
+from datasets import load_dataset
+
+concatenated_librispeech = load_dataset(
+    "sanchit-gandhi/concatenated_librispeech", split="train", streaming=True
+)
+sample = next(iter(concatenated_librispeech))
+```
+
+Nous pouvons écouter l'audio pour voir à quoi cela ressemble :
+
+```python
+from IPython.display import Audio
+
+Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
+```
+
+Nous pouvons clairement entendre deux locuteurs différents, avec une transition d'environ 15 secondes. Passons ce fichier audio au modèle de séparation pour obtenir les heures de début et de fin du locuteur. Notez que pyannote.audio s'attend à ce que l'entrée audio soit un tenseur PyTorch de la forme `(channels, seq_len)`, nous devons donc effectuer cette conversion avant d'exécuter le modèle :
+
+```python
+import torch
+
+input_tensor = torch.from_numpy(sample["audio"]["array"][None, :]).float()
+outputs = diarization_pipeline(
+    {"waveform": input_tensor, "sample_rate": sample["audio"]["sampling_rate"]}
+)
+
+outputs.for_json()["content"]
+```
+
+```text
+[{'segment': {'start': 0.4978125, 'end': 14.520937500000002},
+  'track': 'B',
+  'label': 'SPEAKER_01'},
+ {'segment': {'start': 15.364687500000002, 'end': 21.3721875},
+  'track': 'A',
+  'label': 'SPEAKER_00'}]
+```
+
+Cela semble plutôt bien ! Nous pouvons voir que le premier locuteur est prédit comme parlant jusqu'à la marque de 14,5 secondes, et le second locuteur à partir de 15,4s. Il ne nous reste plus qu'à obtenir notre transcription !
+
+## Transcription de la parole
+
+Pour la troisième fois dans cette unité, nous allons utiliser le modèle Whisper pour notre système de transcription de la parole. Plus précisément, nous chargerons le *checkpoint* [Whisper Base](https://huggingface.co/openai/whisper-base), car il est suffisamment petit pour donner une bonne vitesse d'inférence avec une précision de transcription raisonnable. Comme auparavant, vous pouvez utiliser n'importe quel *checkpoint *de reconnaissance vocale disponible sur le [*Hub*](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&library=transformers&sort=trending), y compris Wav2Vec2, MMS ASR ou d'autres tailles de Whisper :
+
+```python
+from transformers import pipeline
+
+asr_pipeline = pipeline(
+    "automatic-speech-recognition",
+    model="openai/whisper-base",
+)
+```
+
+Obtenons la transcription de notre échantillon audio, en retournant également les horodatages au niveau du segment afin que nous connaissions les heures de début et de fin de chaque segment. Vous vous souviendrez de l'unité 5 que nous devons passer l'argument `return_timestamps=True` pour activer la tâche de prédiction de l'horodatage de Whisper :
+
+```python
+asr_pipeline(
+    sample["audio"].copy(),
+    generate_kwargs={"max_new_tokens": 256},
+    return_timestamps=True,
+)
+```
+
+```text
+{
+    "text": " The second and importance is as follows. Sovereignty may be defined to be the right of making laws. In France, the king really exercises a portion of the sovereign power, since the laws have no weight. He was in a favored state of mind, owing to the blight his wife's action threatened to cast upon his entire future.",
+    "chunks": [
+        {"timestamp": (0.0, 3.56), "text": " The second and importance is as follows."},
+        {
+            "timestamp": (3.56, 7.84),
+            "text": " Sovereignty may be defined to be the right of making laws.",
+        },
+        {
+            "timestamp": (7.84, 13.88),
+            "text": " In France, the king really exercises a portion of the sovereign power, since the laws have",
+        },
+        {"timestamp": (13.88, 15.48), "text": " no weight."},
+        {
+            "timestamp": (15.48, 19.44),
+            "text": " He was in a favored state of mind, owing to the blight his wife's action threatened to",
+        },
+        {"timestamp": (19.44, 21.28), "text": " cast upon his entire future."},
+    ],
+}
+```
+
+Ok, nous constatons que chaque segment de la transcription a une heure de début et une heure de fin, avec un changement de locuteur au bout de 15,48 secondes. Nous pouvons maintenant associer cette transcription aux horodatages des locuteurs que nous avons obtenus à partir de notre modèle de *diarization* pour obtenir notre transcription finale.
+
+## Speechbox
+
+Pour obtenir la transcription finale, nous allons aligner les timestamps du modèle de diarisation avec ceux du modèle Whisper.
+Le modèle de séparation prédit que le premier locuteur se termine à 14,5 secondes et que le second locuteur commence à 15,4 secondes, alors que Whisper prédit les limites des segments à 13,88, 15,48 et 19,44 secondes respectivement. Comme les timestamps de Whisper ne correspondent pas parfaitement à ceux du modèle de séparation, nous devons trouver lesquelles de ces limites sont les plus proches de 14,5 et 15,4 secondes, et segmenter la transcription par locuteur en conséquence. Plus précisément, nous trouverons l'alignement le plus proche entre les horodatages de la séparation et de la transcription en minimisant la distance absolue entre les deux.
+
+Heureusement pour nous, nous pouvons utiliser 🤗 *Speechbox* pour effectuer cet alignement. Tout d'abord, installons `speechbox` depuis *main* :
+
+```bash
+pip install git+https://github.com/huggingface/speechbox
+```
+
+Nous pouvons maintenant instancier notre pipeline combiné de *diarization* et de transcription, en passant nos deux modèles à la classe [`ASRDiarizationPipeline`](https://github.com/huggingface/speechbox/tree/main#asr-with-speaker-diarization) :
+
+```python
+from speechbox import ASRDiarizationPipeline
+
+pipeline = ASRDiarizationPipeline(
+    asr_pipeline=asr_pipeline, diarization_pipeline=diarization_pipeline
+)
+```
+
+<Tip>
+    Vous pouvez également instancier le `ASRDiarizationPipeline` directement à partir d'un modèle pré-entraîné en spécifiant l'identifiant d'un modèle ASR sur le *Hub* : `pipeline = ASRDiarizationPipeline.from_pretrained("openai/whisper-base")`
+</Tip>
+
+Passons le fichier audio au pipeline et voyons ce que nous obtenons :
+
+```python
+pipeline(sample["audio"].copy())
+```
+
+```text
+[{'speaker': 'SPEAKER_01',
+  'text': ' The second and importance is as follows. Sovereignty may be defined to be the right of making laws. In France, the king really exercises a portion of the sovereign power, since the laws have no weight.',
+  'timestamp': (0.0, 15.48)},
+ {'speaker': 'SPEAKER_00',
+  'text': " He was in a favored state of mind, owing to the blight his wife's action threatened to cast upon his entire future.",
+  'timestamp': (15.48, 21.28)}]
+```
+
+Excellent ! Le premier locuteur est segmenté comme parlant de 0 à 15,48 secondes, et le second locuteur de 15,48 à 21,28 secondes, avec les transcriptions correspondantes pour chacun.
+
+Nous pouvons formater les horodatages de manière un peu plus agréable en définissant deux fonctions d'aide. La première convertit un *tuple* d'horodatages en une chaîne de caractères, arrondie à un nombre défini de décimales. La seconde combine l'identifiant du locuteur, l'horodatage et les informations textuelles sur une seule ligne, et sépare chaque locuteur sur sa propre ligne pour faciliter la lecture :
+
+```python
+def tuple_to_string(start_end_tuple, ndigits=1):
+    return str((round(start_end_tuple[0], ndigits), round(start_end_tuple[1], ndigits)))
+
+
+def format_as_transcription(raw_segments):
+    return "\n\n".join(
+        [
+            chunk["speaker"] + " " + tuple_to_string(chunk["timestamp"]) + chunk["text"]
+            for chunk in raw_segments
+        ]
+    )
+```
+
+Exécutons à nouveau le pipeline, en formatant cette fois la transcription selon la fonction que nous venons de définir :
+
+```python
+outputs = pipeline(sample["audio"].copy())
+
+format_as_transcription(outputs)
+```
+
+```text
+SPEAKER_01 (0.0, 15.5) The second and importance is as follows. Sovereignty may be defined to be the right of making laws.
+In France, the king really exercises a portion of the sovereign power, since the laws have no weight.
+
+SPEAKER_00 (15.5, 21.3) He was in a favored state of mind, owing to the blight his wife's action threatened to cast upon
+his entire future.
+```
+
+Et voilà ! Nous avons ainsi séparé et transcrit notre audio et renvoyé des transcriptions segmentées par locuteur.
+Bien que l'algorithme de distance minimale pour aligner les horodatages diarisés et les horodatages transcrits soit simple, il fonctionne bien dans la pratique. Si vous souhaitez explorer des méthodes plus avancées pour combiner les horodatages, le code source de `ASRDiarizationPipeline` est un bon point de départ : [speechbox/diarize.py](https://github.com/huggingface/speechbox/blob/96d2d1a180252d92263f862a1cd25a48860f1aed/src/speechbox/diarize.py#L12).

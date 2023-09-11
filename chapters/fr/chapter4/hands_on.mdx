@@ -1,0 +1,34 @@
+# Exercice pratique
+
+Il est temps de manipuler les modèles audio et d'appliquer ce que vous avez appris jusqu'à présent. Cet exercice est l'un des quatre exercices pratiques requis pour obtenir un certificat de fin de cours.
+
+Voici les instructions.
+Dans cette unité, nous avons démontré comment *finetuner* un modèle HuBERT sur le jeu de données `marsyas/gtzan` pour de la classification de musique. Notre exemple a atteint une précision de 83%. 
+Votre tâche consiste à améliorer cette mesure de précision. 
+
+Vous pouvez choisir n'importe quel modèle sur le [🤗 *Hub*](https://huggingface.co/models) que vous pensez adapté à la classification audio, et utiliser exactement le même jeu de données [`marsyas/gtzan`](https://huggingface.co/datasets/marsyas/gtzan) pour construire votre propre classifieur.
+
+Votre objectif est d'atteindre une précision de 87% sur ce jeu de données. Vous pouvez choisir exactement le même modèle, et jouer avec les hyperparamètres d'entraînement, ou choisir un modèle complètement différent. A vous de décider ! 
+
+Pour que votre résultat soit pris en compte dans votre certificat, n'oubliez pas de pousser votre modèle sur le  *Hub* comme cela a été montré dans cette unité avec les `**kwargs` suivants à la fin de l'entraînement :
+
+```python
+kwargs = {
+    "dataset_tags": "marsyas/gtzan",
+    "dataset": "GTZAN",
+    "model_name": f"{model_name}-finetuned-gtzan",
+    "finetuned_from": model_id,
+    "tasks": "audio-classification",
+}
+
+trainer.push_to_hub(**kwargs)
+```
+
+Voici quelques ressources supplémentaires qui pourraient vous être utiles dans le cadre de cet exercice :
+* [Guide de classification audio dans la documentation de 🤗 Transformers](https://huggingface.co/docs/transformers/tasks/audio_classification)
+* [Documentation du modèle HuBERT](https://huggingface.co/docs/transformers/model_doc/hubert)
+* [Documentation du modèle M-CTC-T](https://huggingface.co/docs/transformers/model_doc/mctct)
+* [Audio Spectrogram Transformer documentation](https://huggingface.co/docs/transformers/model_doc/audio-spectrogram-transformer)
+* [Documentation du Wav2Vec2](https://huggingface.co/docs/transformers/model_doc/wav2vec2)
+
+N'hésitez pas à créer une démo de votre modèle et à la partager sur Discord ! Si vous avez des questions, posez-les dans le canal `#audio-study-group`.

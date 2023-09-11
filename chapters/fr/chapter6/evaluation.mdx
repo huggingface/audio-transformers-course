@@ -1,0 +1,14 @@
+# Évaluation des modèles de synthèse vocale
+
+Pendant la période d'entraînement, les modèles de synthèse vocale optimisent la perte d'erreur quadratique moyenne (ou l'erreur absolue moyenne) entre les valeurs prédites du spectrogramme et celles générées. La MSE et la MAE encouragent toutes deux le modèle à minimiser la différence entre les spectrogrammes prédits et les spectrogrammes cibles.
+Toutefois, étant donné que la synthèse vocale est un problème d'association un-à-plusieurs, c'est-à-dire que le spectrogramme de sortie pour un texte donné peut être représenté de nombreuses manières différentes, l'évaluation des modèles de synthèse vocale qui en résultent est beaucoup plus difficile. 
+
+Contrairement à de nombreuses autres tâches informatiques qui peuvent être mesurées objectivement à l'aide de paramètres quantitatifs, tels que l'exactitude ou la précision, l'évaluation des modèles de synthèse vocale repose en grande partie sur une analyse humaine subjective.
+
+L'une des méthodes d'évaluation les plus couramment employées pour les systèmes de reconnaissance vocale consiste à réaliser des évaluations qualitatives à l'aide de scores d'opinion moyens (MOS pour *mean opinion scores*). Le MOS est un système de notation subjectif qui permet aux évaluateurs humains de noter la qualité perçue de la parole synthétisée sur une échelle de 1 à 5. Ces scores sont généralement recueillis lors de tests d'écoute, au cours desquels des participants humains écoutent et évaluent des échantillons de parole synthétisée.
+
+L'une des principales raisons pour lesquelles il est difficile de développer des mesures objectives pour l'évaluation de la synthèse vocale est la nature subjective de la perception de la parole. Les auditeurs humains ont des préférences et des sensibilités diverses pour différents aspects de la parole, notamment la prononciation, l'intonation, le naturel et la clarté. Saisir ces nuances perceptives avec une seule valeur numérique est une tâche ardue. En même temps, la subjectivité de l'évaluation humaine rend difficile la comparaison et l'étalonnage de différents systèmes de traitement de la parole.
+
+En outre, ce type d'évaluation peut négliger certains aspects importants de la synthèse vocale, tels que le naturel, l'expressivité et l'impact émotionnel. Ces qualités sont difficiles à quantifier objectivement mais sont très importantes dans les applications où la parole synthétisée doit transmettre des qualités humaines et susciter des réactions émotionnelles appropriées.
+
+En résumé, l'évaluation des modèles de synthèse vocale est une tâche complexe en raison de l'absence d'une mesure véritablement objective. La méthode d'évaluation la plus courante, le MOS, repose sur une analyse humaine subjective. Bien qu'il fournisse des informations précieuses sur la qualité de la parole synthétisée, il introduit également de la variabilité et de la subjectivité. 
