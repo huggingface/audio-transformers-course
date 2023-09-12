@@ -357,13 +357,10 @@ Like Bark, there's no need for a vocoder, as waveforms are generated directly.
 
 <Tip warning={true}>
 	
-MMS model has been added to 🤗 Transformers very recently, so the API may still slightly change. At the time of this Unit's 
-release, the MMS for TTS is scheduled to be merged in Transformers `main` in a couple of days. 
-Once it's merged, you will have to install the library from source. Meanwhile, if you're eager to try the following inference 
-example, you can install the model from the PR's branch:
+MMS model has been added to 🤗 Transformers very recently, so you will have to install the library from source:
 
 ```bash
-pip install git+https://github.com/hollance/transformers.git@6900e8ba6532162a8613d2270ec2286c3f58f57b
+pip install git+https://github.com/huggingface/transformers.git
 ```
 
 </Tip>
@@ -389,7 +386,8 @@ text_example = (
 )
 ```
 
-To generate a waveform output, preprocess the text with the tokenizer, and pass it to the model: 
+To generate a waveform output, preprocess the text with the tokenizer, and pass it to the model:
+
 ```python
 import torch
 
@@ -400,7 +398,7 @@ input_ids = inputs["input_ids"]
 with torch.no_grad():
     outputs = model(input_ids)
 
-speech = outputs.audio[0]
+speech = outputs["waveform"]
 ```
 
 Let's listen to it:
