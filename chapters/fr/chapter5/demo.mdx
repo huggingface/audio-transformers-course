@@ -1,0 +1,82 @@
+# Construire une démo avec Gradio
+
+Maintenant que nous avons *finetuné* un Whisper pour le Dhivehi, construisons une démo [Gradio](https://gradio.app) pour le présenter à la communauté !
+
+La première chose à faire est de charger le *checkpoint* en utilisant la classe `pipeline()` - vous êtes maintenant familier avec la section sur les [modèles pré-entraînés](asr_models). Vous pouvez changer le `model_id` pour l'espace de noms de votre modèle *finetuné* sur le Hugging Face Hub, ou l'un des [modèles Whisper](https://huggingface.co/models?sort=downloads&search=openai%2Fwhisper-) pré-entraînés pour effectuer de la reconnaissance vocale à partir de zéro :
+
+```python
+from transformers import pipeline
+
+model_id = (
+    "sanchit-gandhi/whisper-small-dv"  # mettre à jour avec l'identifiant de votre modèle
+)
+pipe = pipeline("automatic-speech-recognition", model=model_id)
+```
+
+Deuxièmement, nous allons définir une fonction qui prend le chemin du fichier d'une entrée audio et le passe à travers le pipeline. 
+Ici, le pipeline se charge automatiquement de charger le fichier audio, de le rééchantillonner à la bonne fréquence d'échantillonnage et d'exécuter l'inférence.
+Nous pouvons alors simplement renvoyer le texte transcrit en tant que sortie de la fonction. 
+Pour s'assurer que notre modèle puisse gérer des entrées audio de longueur arbitraire, nous activons le *chunking* comme décrit dans la section sur les [modèles pré-entraînés](asr_models) :
+
+```python
+def transcribe_speech(filepath):
+    output = pipe(
+        filepath,
+        max_new_tokens=256,
+        generate_kwargs={
+            "task": "transcribe",
+            "language": "sinhalese",
+        },  # mettre à jour avec la langue sur laquelle vous avez finetuné
+        chunk_length_s=30,
+        batch_size=8,
+    )
+    return output["text"]
+```
+
+Nous allons utiliser la fonctionnalité [blocks](https://gradio.app/docs/#blocks) de Gradio pour lancer deux onglets sur notre démo : l'un pour la transcription par microphone et l'autre pour le chargement de fichiers.
+
+```python
+import gradio as gr
+
+demo = gr.Blocks()
+
+mic_transcribe = gr.Interface(
+    fn=transcribe_speech,
+    inputs=gr.Audio(source="microphone", type="filepath"),
+    outputs=gr.outputs.Textbox(),
+)
+
+file_transcribe = gr.Interface(
+    fn=transcribe_speech,
+    inputs=gr.Audio(source="upload", type="filepath"),
+    outputs=gr.outputs.Textbox(),
+)
+```
+
+Enfin, nous lançons la démo en utilisant les deux blocs que nous venons de définir :
+
+```python
+with demo:
+    gr.TabbedInterface(
+        [mic_transcribe, file_transcribe],
+        ["Transcrire le microphone", "Transcrire le fichier audio"],
+    )
+
+demo.launch(debug=True)
+```
+
+Ceci lancera une démo Gradio similaire à celle qui tourne sur le *Space* suivant :
+
+<iframe src="https://course-demos-whisper-small.hf. space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer ; ambient-light-sensor ; autoplay ; battery ; camera ; document-domain ; encrypted-media ; fullscreen ; geolocation ; gyroscope ; layout-animations ; legacy-image-formats ; magnetometer ; microphone ; midi ; oversized-images ; payment ; picture-in-picture ; publickey-credentials-get ; sync-xhr ; usb ; vr ; wake-lock ; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
+Si vous souhaitez héberger votre démo sur le *Hub*, vous pouvez utiliser ce *Space* comme exemple pour votre modèle *finetuné*.
+
+Cliquez sur le lien pour dupliquer le *Space* sur votre compte : [https://huggingface.co/spaces/course-demos/whisper-small?duplicate=true](https://huggingface.co/spaces/course-demos/whisper-small?duplicate=true).
+
+Nous vous recommandons de donner à votre *Space* un nom similaire à celui de votre modèle *finetuné* (par exemple whisper-small-dv-demo) et de régler la visibilité sur *Public*.
+
+Une fois que vous avez dupliqué le *Space* sur votre compte, cliquez sur *Files and versions* -> *app.py* -> *edit*. Changez ensuite l'identifiant du modèle par le votre (ligne 6). 
+Descendez au bas de la page et cliquez sur *Commit changes to main*.
+La démo redémarre, cette fois en utilisant votre modèle *finetuné*. Vous pouvez partager cette démo avec vos amis et votre famille afin qu'ils puissent utiliser le modèle que vous avez entraîné !
+
+Alternativement, vous pouvez consulter notre tutoriel vidéo pour mieux comprendre comment dupliquer un *Space* : [vidéo YouTube](https://www.youtube.com/watch?v=VQYuvl6-9VE).

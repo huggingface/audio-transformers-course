@@ -1,0 +1,18 @@
+# Lectures et ressources complémentaires
+
+Cette unité a rassemblé de nombreux éléments des unités précédentes, en introduisant les tâches de traduction vocale (audio à audio), les assistants vocaux et séparation des locuteurs. 
+Le matériel de lecture supplémentaire est donc divisé en ces trois nouvelles tâches :
+
+Traduction vocale (audio à audio) :
+* [STST avec unités discrètes](https://ai.facebook.com/blog/advancing-direct-speech-to-speech-modeling-with-discrete-units/) par Meta AI : une approche directe de la STST par le biais de modèles encodeur-décodeur.
+* [Hokkien direct speech-to-speech translation](https://ai.facebook.com/blog/ai-translation-hokkien/) par Meta AI : une approche directe de STST en utilisant des modèles encodeur-décodeur avec un décodeur en deux étapes.
+* [Leveraging unsupervised and weakly-supervised data to improve direct STST](https://arxiv.org/abs/2203.13339) par Google : propose de nouvelles approches pour tirer parti des données non supervisées et faiblement supervisées pour entraîner les modèles STST directs et une petite modification de l'architecture du *transformer*.
+* [Translatotron-2](https://google-research.github.io/lingvo-lab/translatotron2/) par Google : un système capable de conserver les caractéristiques du locuteur dans la traduction de parole.
+
+Assistant vocal :
+* [Accurate wakeword detection](https://www.amazon.science/publications/accurate-detection-of-wake-word-start-and-end-using-a-cnn) par Amazon : une approche à faible latence pour la détection des mots déclencheur pour les applications sur appareil.
+* [Architecture RNN-Transducteur](https://arxiv.org/pdf/1811.06621.pdf) par Google : une modification de l'architecture CTC pour l'ASR en *streaming* sur appareil.
+
+Transcriptions de réunions :
+* [pyannote.audio Technical Report](https://huggingface.co/pyannote/speaker-diarization/blob/main/technical_report_2.1.pdf) par Hervé Bredin : ce rapport décrit les principes fondamentaux du pipeline de séparation des locuteurs `pyannote.audio`.
+* [Whisper X](https://arxiv.org/pdf/2303.00747.pdf) par Max Bain et al. : une approche supérieure pour calculer les horodatages au niveau des mots en utilisant le modèle Whisper.

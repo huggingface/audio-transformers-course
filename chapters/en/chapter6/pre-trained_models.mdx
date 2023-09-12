@@ -187,7 +187,11 @@ pre-trained checkpoint only supports English language:
 
 Bark is a transformer-based text-to-speech model proposed by Suno AI in [suno-ai/bark](https://github.com/suno-ai/bark).
 
-Bark is made of 4 main models:
+Unlike SpeechT5, Bark generates raw speech waveforms directly, eliminating the need for a separate vocoder during inference – it's already integrated. This efficiency is achieved through the utilization of [`Encodec`](https://huggingface.co/docs/transformers/main/en/model_doc/encodec), which serves as both a codec and a compression tool.
+
+With `Encodec`, you can compress audio into a lightweight format to reduce memory usage and subsequently decompress it to restore the original audio. This compression process is facilitated by 8 codebooks, each consisting of integer vectors. Think of these codebooks as representations or embeddings of the audio in integer form. It's important to note that each successive codebook improves the quality of the audio reconstruction from the previous codebooks. As codebooks are integer vectors, they can be learned by transformer models, which are very efficient in this task. This is what Bark was specifically trained to do. 
+
+To be more specific, Bark is made of 4 main models:
 
 - `BarkSemanticModel` (also referred to as the 'text' model): a causal auto-regressive transformer model that takes as input tokenized text, and predicts semantic text tokens that capture the meaning of the text.
 - `BarkCoarseModel` (also referred to as the 'coarse acoustics' model): a causal autoregressive transformer, that takes as input the results of the `BarkSemanticModel` model. It aims at predicting the first two audio codebooks necessary for EnCodec.
@@ -273,9 +277,8 @@ speech_output = model.generate(**inputs).cpu().numpy()
 Your browser does not support the audio element. 
 </audio> 
 
-Unlike SpeechT5, Bark directly generates raw speech waveforms. This means that you do not need to add a vocoder for inference, it's already "built-in".
 
-In addition, Bark supports batch processing, which means you can process several text entries at the same time, at the expense of more intensive computation.
+In addition to all these features, Bark supports batch processing, which means you can process several text entries at the same time, at the expense of more intensive computation.
 On some hardware, such as GPUs, batching enables faster overall generation, which means it can be faster to generate samples all at once than to generate them one by one.
 
 Let's try generating a few examples:
@@ -354,13 +357,10 @@ Like Bark, there's no need for a vocoder, as waveforms are generated directly.
 
 <Tip warning={true}>
 	
-MMS model has been added to 🤗 Transformers very recently, so the API may still slightly change. At the time of this Unit's 
-release, the MMS for TTS is scheduled to be merged in Transformers `main` in a couple of days. 
-Once it's merged, you will have to install the library from source. Meanwhile, if you're eager to try the following inference 
-example, you can install the model from the PR's branch:
+MMS model has been added to 🤗 Transformers very recently, so you will have to install the library from source:
 
 ```bash
-pip install git+https://github.com/hollance/transformers.git@6900e8ba6532162a8613d2270ec2286c3f58f57b
+pip install git+https://github.com/huggingface/transformers.git
 ```
 
 </Tip>
@@ -386,7 +386,8 @@ text_example = (
 )
 ```
 
-To generate a waveform output, preprocess the text with the tokenizer, and pass it to the model: 
+To generate a waveform output, preprocess the text with the tokenizer, and pass it to the model:
+
 ```python
 import torch
 
@@ -397,7 +398,7 @@ input_ids = inputs["input_ids"]
 with torch.no_grad():
     outputs = model(input_ids)
 
-speech = outputs.audio[0]
+speech = outputs["waveform"]
 ```
 
 Let's listen to it:

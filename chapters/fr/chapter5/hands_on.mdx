@@ -1,0 +1,25 @@
+# Exercice pratique
+
+Dans cette unité, nous avons exploré les défis du *finetuning* des modèles d'ASR, en mettant en avant le temps et les ressources nécessaires pour *finetuner* un modèle comme Whisper (même un petit *checkpoint*) sur une nouvelle langue. 
+Afin de fournir une expérience pratique, nous avons conçu un exercice qui vous permet de naviguer dans le processus de *finetuning* d'un modèle d'ASR tout en utilisant un jeu de données plus petit.
+L'objectif principal de cet exercice est de vous familiariser avec le processus plutôt que de vous attendre à des résultats de niveau production.
+Nous avons délibérément fixé une métrique basse pour que vous puissiez l'atteindre, même avec des ressources limitées.
+
+Voici les instructions :
+* *Finetuner* le modèle `"openai/whisper-tiny"` en utilisant le sous-échantillon anglais américain ("en-US") du jeu de données `"PolyAI/minds14"`.
+* Utilisez les premiers **450 exemples pour l'entraînement**, et le reste pour l'évaluation. Assurez-vous de mettre `num_proc=1` lors du pré-traitement du jeu de données en utilisant la méthode `.map` (ceci assurera que votre modèle est soumis correctement lors de l'évaluation).
+* Pour évaluer le modèle, utilisez les métriques `wer` et `wer_ortho` comme décrit dans cette unité. Cependant, *ne convertissez pas* la métrique en pourcentages en la multipliant par 100 (par exemple, si WER est de 42%, nous nous attendons à voir la valeur de 0,42 dans cet exercice).
+
+Une fois que vous avez *finetuné* un modèle, assurez-vous de le télécharger sur le 🤗 *Hub* avec les `kwargs` suivants :
+
+```
+kwargs = {
+    "dataset_tags" : "PolyAI/minds14",
+    "finetuned_from" : "openai/whisper-tiny",
+    "tasks" : "automatic-speech-recognition",
+}
+```
+
+Nous considérons cet exercice réussi si le WER normalisé (`wer`) de votre modèle est inférieur à **0.37**.
+
+N'hésitez pas à construire une démo de votre modèle obtenu et à la partager sur Discord ! Si vous avez des questions, posez-les dans le canal ``#audio-study-group`.

@@ -1,0 +1,471 @@
+# Finetuner un modèle de classification musicale
+
+Dans cette section, nous présenterons un guide étape par étape sur le *finetuning* d'un *transformer* encodeur pour la classification de la musique.
+Nous utiliserons un modèle léger pour cette démonstration et un jeu de données assez petit, ce qui signifie que le code est exécutable de bout en bout sur n'importe quel GPU grand public, y compris le GPU T4 16GB fourni gratuitement par Google Colab. La section comprend divers conseils que vous pouvez essayer si vous avez un GPU plus petit et rencontrez des problèmes de mémoire en cours de route.
+
+## Le de données
+
+Pour entraîner notre modèle, nous utiliserons le jeu de données [GTZAN](https://huggingface.co/datasets/marsyas/gtzan), qui est un jeu de données populaire de 1 000 chansons pour la classification des genres musicaux. Chaque chanson dure 30 secondes et fait partie de l'un des 10 genres de musique disponible, allant du disco au métal. Nous pouvons obtenir les fichiers audio et leurs étiquettes correspondantes à partir du *Hub* avec la fonction `load_dataset()`  de 🤗 *Datasets* :
+
+```python
+from datasets import load_dataset
+
+gtzan = load_dataset("marsyas/gtzan", "all")
+gtzan
+``` 
+
+**Sortie :**
+
+```out
+Dataset({
+    features: ['file', 'audio', 'genre'],
+    num_rows: 999
+})
+``` 
+
+<Tip warning={true}>
+L'un des enregistrements dans GTZAN est corrompu, il a donc été supprimé du jeu de données. C'est pourquoi nous avons 999 exemples au lieu de 1 000.
+</Tip>
+
+GTZAN ne fournit pas de jeu de validation prédéfini, nous devrons donc en créer un nous-mêmes. Le jeu de données est équilibré entre les genres, nous pouvons donc utiliser la méthode `train_test_split()` pour créer rapidement une répartition 90/10 comme suit :
+
+```python
+gtzan = gtzan["train"].train_test_split(seed=42, shuffle=True, test_size=0.1)
+gtzan
+``` 
+
+**Sortie :**
+
+```out
+DatasetDict({
+    train: Dataset({
+        features: ['file', 'audio', 'genre'],
+        num_rows: 899
+    })
+    test: Dataset({
+        features: ['file', 'audio', 'genre'],
+        num_rows: 100
+    })
+})
+``` 
+
+Maintenant que nous avons nos jeux d’entraînement et de validation, jetons un coup d'œil à l'un des fichiers audio :
+
+```python
+gtzan["train"][0]
+``` 
+
+**Sortie :**
+
+```out
+{
+    "file": "~/.cache/huggingface/datasets/downloads/extracted/fa06ce46130d3467683100aca945d6deafb642315765a784456e1d81c94715a8/genres/pop/pop.00098.wav",
+    "audio": {
+        "path": "~/.cache/huggingface/datasets/downloads/extracted/fa06ce46130d3467683100aca945d6deafb642315765a784456e1d81c94715a8/genres/pop/pop.00098.wav",
+        "array": array(
+            [
+                0.10720825,
+                0.16122437,
+                0.28585815,
+                ...,
+                -0.22924805,
+                -0.20629883,
+                -0.11334229,
+            ],
+            dtype=float32,
+        ),
+        "sampling_rate": 22050,
+    },
+    "genre": 7,
+}
+``` 
+
+Comme nous l'avons vu dans [Unité 1](.. /chapter1/audio_data), les fichiers audio sont représentés sous forme de tableaux NumPy à 1 dimension, où la valeur du tableau représente l'amplitude à ce pas de temps. Pour ces chansons, la fréquence d'échantillonnage est de 22 050 Hz, ce qui signifie qu'il y a 22 050 valeurs d'amplitude échantillonnées par seconde. Nous devrons garder cela à l'esprit lorsque nous utiliserons un modèle pré-entraîné avec un taux d'échantillonnage différent, en convertissant nous-mêmes les taux d'échantillonnage pour nous assurer qu'ils correspondent. Nous pouvons également voir que le genre est représenté sous la forme d'un entier, ou _class label_, qui est le format dans lequel le modèle fera ses prédictions. Utilisons la méthode `int2str()` de la caractéristique `genre` pour associer ces entiers à des noms lisibles par l'homme :
+
+```python
+id2label_fn = gtzan["train"].features["genre"].int2str
+id2label_fn(gtzan["train"][0]["genre"])
+``` 
+
+**Sortie :**
+
+```out
+'pop'
+```
+
+Cette étiquette semble correcte, car elle correspond au nom de fichier du fichier audio. Écoutons maintenant quelques exemples supplémentaires en utilisant Gradio pour créer une interface simple avec l'API `Blocks` :
+
+```python
+def generate_audio():
+    example = gtzan["train"].shuffle()[0]
+    audio = example["audio"]
+    return (
+        audio["sampling_rate"],
+        audio["array"],
+    ), id2label_fn(example["genre"])
+
+
+with gr.Blocks() as demo:
+    with gr.Column():
+        for _ in range(4):
+            audio, label = generate_audio()
+            output = gr.Audio(audio, label=label)
+
+demo.launch(debug=True)
+```
+
+<iframe src="https://course-demos-gtzan-samples.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
+À partir de ces échantillons, nous pouvons certainement entendre la différence entre les genres, mais un *transformer* peut-il le faire aussi ? Entraînons un modèle pour le découvrir ! Tout d'abord, nous devrons trouver un modèle pré-entraîné approprié pour cette tâche. Voyons comment nous pouvons le faire.
+
+## Choisir un modèle pré-entraîné pour la classification audio
+
+Pour commencer, choisissons un modèle pré-entraîné approprié pour la classification audio. Dans ce domaine, le pré-entraînement est généralement effectuée sur de grandes quantités de données audio non étiquetées, en utilisant des jeux de données tels que [LibriSpeech](https://huggingface.co/datasets/librispeech_asr) et [Voxpopuli](https://huggingface.co/datasets/facebook/voxpopuli). La meilleure façon de trouver ces modèles sur le *Hub* est d'utiliser le filtre « classification audio », comme décrit dans la section précédente. Bien que des modèles comme Wav2Vec2 et HuBERT soient très populaires, nous utiliserons un modèle appelé _DistilHuBERT_. Il s'agit d'une version beaucoup plus petite (ou distillée) du modèle [HuBERT](https://huggingface.co/docs/transentraîners/model_doc/hubert), qui s’entraîne environ 73% plus vite, tout en préservant la plupart des performances.
+
+<iframe src="https://autoevaluate-leaderboards.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
+## De l'audio aux caractéristiques d'apprentissage automatique
+
+## Prétraitement des données
+
+À l'instar de la tokenisation en NLP, les modèles audio et vocaux nécessitent que l'entrée soit encodée dans un format que le modèle peut traiter. Dans 🤗 *Transformers*, la conversion de l'audio au format d'entrée est gérée par l’extracteur de caractéristique du modèle. 🤗 *Transformers* fournit une classe pratique `AutoFeatureExtractor` qui peut sélectionner automatiquement le bon extracteur de caractéristiques pour un modèle donné. Pour voir comment nous pouvons traiter nos fichiers audio, commençons par instancier l'extracteur de caractéristiques pour DistilHuBERT à partir du *checkpoint* pré-entraîné :
+
+```python
+from transformers import AutoFeatureExtractor
+
+model_id = "ntu-spml/distilhubert"
+feature_extractor = AutoFeatureExtractor.from_pretrained(
+    model_id, do_normalize=True, return_attention_mask=True
+)
+``` 
+
+Comme le taux d'échantillonnage du modèle et de le jeu de données est différent, nous devons rééchantillonner le fichier audio à 16 000 Hz avant de le transmettre à l'extracteur de caractéristiques. Nous pouvons le faire en obtenant d'abord la fréquence d'échantillonnage du modèle à partir de l'extracteur de caractéristiques :
+
+```python
+sampling_rate = feature_extractor.sampling_rate
+sampling_rate
+```
+
+**Sortie :**
+
+```out
+16000
+``` 
+
+Ensuite, nous rééchantillonnons le jeu de données à l'aide de la méthode `cast_column()` et de la fonction `Audio`  de 🤗 *Datasets* :
+
+```python
+from datasets import Audio
+
+gtzan = gtzan.cast_column("audio", Audio(sampling_rate=sampling_rate))
+``` 
+
+Nous pouvons maintenant vérifier le premier échantillon de l’échantillon d’entraînement de notre jeu de données pour vérifier qu'il est bien à 16 000 Hz. 🤗 *Datasets* rééchantillonnent le fichier audio *à la volée* lorsque nous chargeons chaque échantillon audio :
+
+```python
+gtzan["train"][0]
+``` 
+
+**Sortie :**
+
+```out
+{
+    "file": "~/.cache/huggingface/datasets/downloads/extracted/fa06ce46130d3467683100aca945d6deafb642315765a784456e1d81c94715a8/genres/pop/pop.00098.wav",
+    "audio": {
+        "path": "~/.cache/huggingface/datasets/downloads/extracted/fa06ce46130d3467683100aca945d6deafb642315765a784456e1d81c94715a8/genres/pop/pop.00098.wav",
+        "array": array(
+            [
+                0.0873509,
+                0.20183384,
+                0.4790867,
+                ...,
+                -0.18743178,
+                -0.23294401,
+                -0.13517427,
+            ],
+            dtype=float32,
+        ),
+        "sampling_rate": 16000,
+    },
+    "genre": 7,
+}
+``` 
+
+Bien. Nous pouvons voir que le taux d'échantillonnage a été sous-échantillonné à 16kHz. Les valeurs de tableau sont également différentes car nous n'avons maintenant qu'environ une valeur d'amplitude pour chaque 1,5 pas que nous avions auparavant.
+Une caractéristique de conception des modèles de type Wav2Vec2 et HuBERT est qu'ils acceptent un tableau de flottants correspondant à la forme d'onde brute du signal vocal comme entrée. Cela contraste avec d'autres modèles, comme Whisper, où nous prétraitons la forme d'onde audio brute au format spectrogramme.
+Nous avons mentionné que les données audio sont représentées comme un tableau à 1 dimension, elles sont donc déjà dans le bon format pour être lues par le modèle (un ensemble d'entrées continues à pas de temps discrets). Alors, que fait exactement l'extracteur de caractéristiques ?
+Eh bien, les données audio sont dans le bon format, mais nous n'avons imposé aucune restriction sur les valeurs qu'elles peuvent prendre. Pour que notre modèle fonctionne de manière optimale, nous voulons conserver toutes les entrées dans la même plage dynamique. Cela va nous assurer d'obtenir une plage similaire d'activations et de gradients pour nos échantillons, ce qui nous aidera à la stabilité et à la convergence pendant l'entraînement.
+Pour ce faire, nous *normalisons* nos données audio, en redimensionnant chaque échantillon à une moyenne nulle et une variance unitaire pour avoir des variables centrées réduites. C'est exactement cette normalisation des caractéristiques que notre extracteur de caractéristiques effectue.
+Nous pouvons jeter un coup d'œil à l'extracteur de caractéristiques en fonctionnement en l'appliquant à notre premier échantillon audio. Tout d'abord, calculons la moyenne et la variance de nos données audio brutes :
+
+```python
+import numpy as np
+
+sample = gtzan["train"][0]["audio"]
+
+print(f"Mean: {np.mean(sample['array']):.3}, Variance: {np.var(sample['array']):.3}")
+```
+
+**Sortie :**
+
+```out
+Mean: 0.000185, Variance: 0.0493
+``` 
+
+Nous pouvons voir que la moyenne est déjà proche de 0, mais la variance est plus proche de 0,05. Si la variance de l'échantillon était plus grande, cela pourrait causer des problèmes à notre modèle, car la plage dynamique des données audio serait très petite et donc difficile à séparer. Appliquons l'extracteur de caractéristiques et voyons à quoi ressemblent les sorties:
+
+```python
+inputs = feature_extractor(sample["array"], sampling_rate=sample["sampling_rate"])
+
+print(f"inputs keys: {list(inputs.keys())}")
+
+print(
+    f"Mean: {np.mean(inputs['input_values']):.3}, Variance: {np.var(inputs['input_values']):.3}"
+)
+``` 
+
+**Sortie :**
+
+```out
+inputs keys: ['input_values', 'attention_mask']
+Mean: -4.53e-09, Variance: 1.0
+``` 
+
+Notre extracteur de caractéristiques renvoie un dictionnaire de deux tableaux : `input_values` et `attention_mask`. Les `input_values` sont les entrées audio prétraitées que nous passerons au modèle HuBERT. L’[`attention_mask`](https://huggingface.co/docs/transentraîners/glossary#attention-mask) est utilisé lorsque nous traitons un _batch_ d'entrées audio à la fois. Il est utilisé pour indiquer au modèle où nous avons des entrées rembourrées de différentes longueurs.
+Nous pouvons voir que la valeur moyenne est maintenant beaucoup plus proche de 0, et la variance est à 1 ! C'est exactement la forme sous laquelle nous voulons que nos échantillons audio soient avant de les passer dans notre HuBERT.
+
+<Tip warning={true}>
+Notez comment nous avons transmis le taux d'échantillonnage de nos données audio à notre extracteur de caractéristiques. Il s'agit d'une bonne pratique, car l'extracteur de caractéristiques effectue une vérification sous le capot pour s'assurer que le taux d'échantillonnage de nos données audio correspond au taux d'échantillonnage attendu par le modèle. Si le taux d'échantillonnage de nos données audio ne correspondait pas au taux d'échantillonnage de notre modèle, nous aurions besoin de suréchantillonner ou de sous-échantillonner les données audio au taux d'échantillonnage correct.
+</Tip>
+
+Alors maintenant que nous savons comment traiter nos fichiers audio rééchantillonnés, la dernière chose à faire est de définir une fonction que nous pouvons appliquer à tous les exemples du jeu de données. Étant donné que nous nous attendons à des échantillons de 30 secondes, nous tronquerons aussi les échantillons plus longs en utilisant les arguments `max_length` et `truncation` de l'extracteur de caractéristiques comme suit :
+
+```python
+max_duration = 30.0
+
+
+def preprocess_function(examples):
+    audio_arrays = [x["array"] for x in examples["audio"]]
+    inputs = feature_extractor(
+        audio_arrays,
+        sampling_rate=feature_extractor.sampling_rate,
+        max_length=int(feature_extractor.sampling_rate * max_duration),
+        truncation=True,
+        return_attention_mask=True,
+    )
+    return inputs
+```
+
+Une fois cette fonction définie, nous pouvons maintenant l'appliquer au jeu de données à l'aide de la méthode `map()`.
+
+```python
+gtzan_encoded = gtzan.map(
+    preprocess_function, remove_columns=["audio", "file"], batched=True, num_proc=1
+)
+gtzan_encoded
+```
+
+**Sortie :**
+
+```out
+DatasetDict({
+    train: Dataset({
+        features: ['genre', 'input_values'],
+        num_rows: 899
+    })
+    test: Dataset({
+        features: ['genre', 'input_values'],
+        num_rows: 100
+    })
+})
+```
+
+Pour simplifier l’entraînement, nous avons supprimé les colonnes `audio` et `file` du jeu de données. La colonne `input_values` contient les fichiers audio encodés, la colonne `attention_mask` est un masque binaire de valeurs 0/1 qui indique où nous avons rempli l'entrée audio, et la colonne `genre` contient les étiquettes (ou cibles) correspondantes. Pour permettre au `Trainer` de traiter les étiquettes de classe, nous devons renommer la colonne `genre` en `label` :
+
+```python
+gtzan_encoded = gtzan_encoded.rename_column("genre", "label")
+```
+
+Enfin, nous devons obtenir les associations d'étiquettes à partir du jeu de données. L’association nous mènera des identifiants entiers (par exemple `7`) aux étiquettes de classe lisibles par l'homme (par exemple `pop`) et inversement. Ce faisant, nous pouvons convertir la prédiction de notre modèle dans un format lisible par l'homme, ce qui nous permet d'utiliser le modèle dans n'importe quelle application en aval. Nous pouvons le faire en utilisant la méthode `int2str()` comme suit:
+
+```python
+id2label = {
+    str(i): id2label_fn(i)
+    for i in range(len(gtzan_encoded["train"].features["label"].names))
+}
+label2id = {v: k for k, v in id2label.items()}
+
+id2label["7"]
+```
+
+**Sortie :**
+
+```out
+'pop'
+```
+
+Nous avons maintenant un jeu de données prêt pour l’entraînement. Voyons comment nous pouvons entraîner un modèle sur ce jeu de données.
+
+## Finetuner le modèle
+
+Pour affiner le modèle, nous utiliserons la classe 'Trainer' de 🤗 *Transformers*. Comme nous l'avons vu dans d'autres chapitres, le « Trainer » est une API de haut niveau conçue pour gérer les scénarios de formation les plus courants. Dans ce cas, nous utiliserons le 'Trainer' pour affiner le modèle sur GTZAN. Pour ce faire, nous devons d'abord charger un modèle pour cette tâche. Nous pouvons le faire en utilisant la classe 'AutoModelForAudioClassification', qui ajoutera automatiquement la tête de classification appropriée à notre modèle DistilHuBERT préentraîné. Allons de l'avant et instancions le modèle :
+
+'''python
+from transformers import AutoModelForAudioClassification
+
+num_labels = len(id2label)
+
+modèle = AutoModelForAudioClassification.from_pretrained(
+    model_id,
+    num_labels=num_labels,
+    label2id=label2id,
+    id2label=id2label,
+)
+```
+
+Nous vous conseillons fortement de télécharger les *checkpoints* du modèle directement sur le [*Hub*](https://huggingface.co/) pendant l'entraînement.
+Le *Hub* fournit :
+- Un contrôle de version intégré : vous pouvez être sûr qu'aucun *checkpoint* du modèle n'est perdu pendant l’entraînement.
+- Tensorboard : suivez les métriques importantes au cours de l’entraînement.
+- La carte du modèle : documentant ce que fait un modèle et ses cas d'utilisation prévus.
+- Communauté : un moyen facile de partager et de collaborer avec la communauté ! 
+Lier le *notebook* au *Hub* est simple. Il suffit d'entrer votre *token* d'authentification au *Hub* lorsque vous y êtes invité.
+Vous pouvez trouver votre *token* d'authentification [ici](https://huggingface.co/settings/tokens) et le saisir dans
+
+```python
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+**Sortie :**
+
+```bash
+Login successful
+Your token has been saved to /root/.huggingface/token
+```
+
+L'étape suivante consiste à définir les arguments d'apprentissage, y compris la taille du batch, les étapes d'accumulation du gradient, le nombre d'époques d'apprentissage et le taux d'apprentissage :
+
+```python
+from transformers import TrainingArguments
+
+model_name = model_id.split("/")[-1]
+batch_size = 8
+gradient_accumulation_steps = 1
+num_train_epochs = 10
+
+training_args = TrainingArguments(
+    f"{model_name}-finetuned-gtzan",
+    evaluation_strategy="epoch",
+    save_strategy="epoch",
+    learning_rate=5e-5,
+    per_device_train_batch_size=batch_size,
+    gradient_accumulation_steps=gradient_accumulation_steps,
+    per_device_eval_batch_size=batch_size,
+    num_train_epochs=num_train_epochs,
+    warmup_ratio=0.1,
+    logging_steps=5,
+    load_best_model_at_end=True,
+    metric_for_best_model="accuracy",
+    fp16=True,
+    push_to_hub=True,
+)
+```
+
+<Tip warning={true}>
+Ici, nous avons défini `push_to_hub=True` pour activer le téléchargement automatique de nos *checkpoints* *finetunés* pendant l'entraînement. Si vous ne souhaitez pas que vos *checkpoints*  soient téléchargés sur le *Hub*, vous pouvez définir cette option sur `False`.
+</Tip>
+
+La dernière chose que nous devons faire est de définir les métriques. Étant donné que le jeu de données est équilibré, nous utiliserons la précision comme métrique et le chargerons à l'aide de la bibliothèque 🤗 *Evaluate* :
+
+```python
+import evaluate
+
+metric = evaluate.load("accuracy")
+
+
+def compute_metrics(eval_pred):
+    """Computes accuracy on a batch of predictions"""
+    predictions = np.argmax(eval_pred.predictions, axis=1)
+    return metric.compute(predictions=predictions, references=eval_pred.label_ids)
+``` 
+
+Nous avons maintenant toutes les pièces ! Instancions le `Trainer` et entraînons le modèle :
+
+```python
+from transformers import Trainer
+
+trainer = Trainer(
+    model,
+    training_args,
+    train_dataset=gtzan_encoded["train"],
+    eval_dataset=gtzan_encoded["test"],
+    tokenizer=feature_extractor,
+    compute_metrics=compute_metrics,
+)
+
+trainer.train()
+``` 
+
+<Tip warning={true}>
+Selon votre GPU, il est possible que vous rencontriez une erreur CUDA `"out-of-memory"` lorsque vous commencez à vous entraîner.
+Dans ce cas, vous pouvez réduire la taille du batch de manière incrémentielle par des facteurs de 2 et utiliser ['gradient_accumulation_steps'](https://huggingface.co/docs/transentraîners/main_classes/trainer#transentraîners.TrainingArguments.gradient_accumulation_steps) pour compenser.
+</Tip>
+
+**Sortie :**
+
+```out
+| Training Loss | Epoch | Step | Validation Loss | Accuracy |
+|:-------------:|:-----:|:----:|:---------------:|:--------:|
+| 1.7297        | 1.0   | 113  | 1.8011          | 0.44     |
+| 1.24          | 2.0   | 226  | 1.3045          | 0.64     |
+| 0.9805        | 3.0   | 339  | 0.9888          | 0.7      |
+| 0.6853        | 4.0   | 452  | 0.7508          | 0.79     |
+| 0.4502        | 5.0   | 565  | 0.6224          | 0.81     |
+| 0.3015        | 6.0   | 678  | 0.5411          | 0.83     |
+| 0.2244        | 7.0   | 791  | 0.6293          | 0.78     |
+| 0.3108        | 8.0   | 904  | 0.5857          | 0.81     |
+| 0.1644        | 9.0   | 1017 | 0.5355          | 0.83     |
+| 0.1198        | 10.0  | 1130 | 0.5716          | 0.82     |
+``` 
+
+L’entraînement durera environ 1 heure en fonction de votre GPU ou de celui alloué par Google Colab. Notre meilleure précision d'évaluation est de 83%. Pas mal pour seulement 10 époques avec 899 exemples d'entraînement ! Nous pourrions certainement améliorer ce résultat en entraînant sur plus d'époques, en utilisant des techniques de régularisation telles que le *dropout*, ou en découpant chaque segment d’audio de 30s en segments de 15s pour utiliser une stratégie de prétraitement de données plus efficace.
+La grande question est de savoir comment ce système se compare à d'autres systèmes de classification de musique 🤔
+Pour cela, nous pouvons afficher le [classement *autoevaluate*](https://huggingface.co/spaces/autoevaluate/leaderboards?dataset=marsyas%2Fgtzan&only_verified=0&task=audio-classification&config=all&split=train&metric=accuracy), un classement qui catégorise les modèles par langue et jeu de données, puis les classe en fonction de leur précision.
+Nous pouvons automatiquement soumettre notre *checkpoint* au classement lorsque nous transmettons les résultats de l'entraînement au *Hub*. Nous devons simplement définir les arguments appropriés (kwargs). Vous pouvez modifier ces valeurs pour qu'elles correspondent à votre jeu de données, à votre langue et au nom de votre modèle en conséquence :
+
+```python
+kwargs = {
+    "dataset_tags": "marsyas/gtzan",
+    "dataset": "GTZAN",
+    "model_name": f"{model_name}-finetuned-gtzan",
+    "finetuned_from": model_id,
+    "tasks": "audio-classification",
+}
+``` 
+
+Les résultats de l’entraînement peuvent maintenant être téléchargés sur le *Hub*. Pour ce faire, exécutez la commande `.push_to_hub` :
+
+```python
+trainer.push_to_hub(**kwargs)
+```
+
+Cela enregistrera les logs d'entraînement et les poids du modèle sous `"your-username/distilhubert-finetuned-gtzan"`. Pour cet exemple, consultez [`"sanchit-gandhi/distilhubert-finetuned-gtzan"`](https://huggingface.co/sanchit-gandhi/distilhubert-finetuned-gtzan).
+
+## Partager le modèle
+
+Vous pouvez désormais partager votre modèle avec n'importe qui en utilisant le lien sur le *Hub*. Il sera utilisable avec l'identifiant `"your-username/distilhubert-finetuned-gtzan"` directement dans la classe `pipeline()`. Par exemple, pour charger le *checkpoint* *finetuné* ['"sanchit-gandhi/distilhubert-finetuned-gtzan"'](https://huggingface.co/sanchit-gandhi/distilhubert-finetuned-gtzan):
+
+```python
+from transformers import pipeline
+
+pipe = pipeline(
+    "audio-classification", model="sanchit-gandhi/distilhubert-finetuned-gtzan"
+)
+```
+
+## Conclusion
+
+Dans cette section, nous avons couvert un guide étape par étape pour *finetuner* le modèle DistilHuBERT pour la tâche de classification de la musique. Bien que nous nous soyons concentrés sur cette tâche et le jeu de données GTZAN, les étapes présentées ici s'appliquent plus généralement à toute tâche de classification audio. Le même script peut être utilisé pour les tâches de détection de mots-clés ou l'identification de la langue. Il vous suffit de changer le jeu de données avec celui de votre tâche d'intérêt ! Si vous souhaitez *finetuner* d'autres modèles du *Hub* pour la classification d’audio, nous vous encourageons à consulter les [exemples](https://github.com/huggingface/transformers/tree/main/examples/pytorch/audio-classification) trouvables sur le dépôt 🤗 *Transformers*.
+Dans la section suivante, nous prendrons le modèle que nous venons de *finetuner* et construirons une démo avec *Gradio* que nous pourrons partager sur le Hub.
