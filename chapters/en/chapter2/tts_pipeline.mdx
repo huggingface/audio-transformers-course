@@ -41,6 +41,7 @@ In a notebook, we can use the following code snippet to listen to the result:
 
 ```python
 from IPython.display import Audio
+
 Audio(output["audio"], rate=output["sampling_rate"])
 ```
 
@@ -88,11 +89,7 @@ not pipeline-specific.
 - higher `guidance_scale` encourages the model to generate samples more closely linked to the text prompt (at the expense of the audio quality). Guidance scale of 3 is a recommended default.  
 
 ```python
-forward_params = {
-    "do_sample": True,  
-    "max_new_tokens": 512,
-    "guidance_scale": 3
-}
+forward_params = {"do_sample": True, "max_new_tokens": 512, "guidance_scale": 3}
 
 output = music_pipe(text, forward_params=forward_params)
 Audio(output["audio"][0], rate=32000)
