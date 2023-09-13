@@ -80,15 +80,10 @@ Let's create a text description of the music we'd like to generate:
 text = "90s rock song with electric guitar and heavy drums"
 ```
 
-For best results, we'll specify some additional music generation parameters to pass to `musicgen`. These are model-, and 
-not pipeline-specific. 
-
-- `do_sample` introduces some variability and a bit of randomness to improve the "creativeness" of the output
-- `max_new_tokens` controls the length of the generated output
-- higher `guidance_scale` encourages the model to generate samples more closely linked to the text prompt (at the expense of the audio quality). Guidance scale of 3 is a recommended default.  
+We can control the length of the generated output by passing an additional `max_new_tokens` parameter to the model. 
 
 ```python
-forward_params = {"do_sample": True, "max_new_tokens": 512, "guidance_scale": 3}
+forward_params = {"max_new_tokens": 512}
 
 output = music_pipe(text, forward_params=forward_params)
 Audio(output["audio"][0], rate=32000)
