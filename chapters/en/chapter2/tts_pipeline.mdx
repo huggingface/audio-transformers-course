@@ -86,7 +86,5 @@ We can control the length of the generated output by passing an additional `max_
 forward_params = {"max_new_tokens": 512}
 
 output = music_pipe(text, forward_params=forward_params)
-Audio(output["audio"][0], rate=32000)
+Audio(output["audio"][0], rate=output["sampling_rate"])
 ```
-
-Note: the sampling rate value for music generation comes from the configuration of the model.
