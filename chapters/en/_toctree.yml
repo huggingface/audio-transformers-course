@@ -33,6 +33,8 @@
     title: Audio classification with a pipeline
   - local: chapter2/asr_pipeline
     title: Automatic speech recognition with a pipeline
+  - local: chapter2/tts_pipeline
+    title: Audio generation with a pipeline
   - local: chapter2/hands_on
     title: Hands-on exercise
 
