@@ -1,0 +1,80 @@
+# Uçtan uca ses üretimi
+
+
+Ses üretimi, bir ses çıktısı üretmeyi içeren çok yönlü bir dizi görevi kapsar. Burada inceleyeceğimiz görevler, konuşma üretimi (yani "metinden sese" dönüşüm) ve müzik üretimi olarak özetlenebilir. Metinden sese dönüşümde, bir model metin bir parçasını gerçekçi konuşulan dil sesine dönüştürür, bu da sanal asistanlar, görme engelli kullanıcılar için erişilebilirlik araçları ve kişiselleştirilmiş sesli kitaplar gibi uygulamaların kapısını açar. Öte yandan, müzik üretimi yaratıcı ifadeyi mümkün kılabilir ve genellikle eğlence ve oyun geliştirme endüstrilerinde kullanılır.
+
+🤗 Transformers içinde, bu görevleri kapsayan bir iş akışı bulacaksınız. Bu iş akışına "text-to-audio" adı verilir, ancak kullanım kolaylığı için "text-to-speech" takma adı da bulunur. Burada her ikisini de kullanacağız ve göreviniz için daha uygun olanı seçebilirsiniz.
+
+Sadece birkaç satır kodla metinler ve müzik için sesli anlatım oluşturmaya başlamak için bu hattı nasıl kullanabileceğinizi keşfedelim.
+
+Bu işlem hattı 🤗 Transformers'ta yenidir ve 4.32 sürümünün bir parçası olarak gelir. Bu nedenle, özelliği edinmek için kitaplığı en son sürüme yükseltmeniz gerekir:
+
+```bash
+pip install --upgrade transformers
+```
+
+## Konuşma oluşturmak
+
+Metinden konuşmaya oluşturmayı keşfederek başlayalım. İlk olarak, ses sınıflandırması ve otomatik konuşma tanımada olduğu gibi, boru hattını tanımlamamız gerekecek. Görevimizi en iyi şekilde tanımladığı için bir metinden konuşmaya ardışık düzen tanımlayacağız ve [`suno/bark-small`](https://huggingface.co/suno/bark-small) kontrol noktasını kullanacağız:
+
+```python
+from transformers import pipeline
+
+pipe = pipeline("text-to-speech", model="suno/bark-small")
+```
+
+Bir sonraki adım, bir metni boru hattından geçirmek kadar basittir. Tüm ön işlemler bizim için başlık altında yapılacaktır:
+
+```python
+text = "Ladybugs have had important roles in culture and religion, being associated with luck, love, fertility and prophecy. "
+output = pipe(text)
+```
+
+Bir not defterinde sonucu dinlemek için aşağıdaki kod parçacığını kullanabiliriz:
+
+```python
+from IPython.display import Audio
+
+Audio(output["audio"], rate=output["sampling_rate"])
+```
+
+Pipeline ile kullandığımız model Bark aslında çok dillidir, dolayısıyla ilk metni kolayca örneğin Fransızca bir metinle değiştirebiliriz ve boru hattını tamamen aynı şekilde kullanabiliriz. Dili tek başına anlayacaktır:
+
+```python
+fr_text = "Contrairement à une idée répandue, le nombre de points sur les élytres d'une coccinelle ne correspond pas à son âge, ni en nombre d'années, ni en nombre de mois. "
+output = pipe(fr_text)
+Audio(output["audio"], rate=output["sampling_rate"])
+```
+
+Bu model sadece çok dilli olmakla kalmıyor, aynı zamanda sözsüz iletişim ve şarkı söyleme yoluyla da ses üretebiliyor. Şarkı söylemesini şu şekilde sağlayabilirsiniz:
+
+```python
+song = "♪ In the jungle, the mighty jungle, the ladybug was seen. ♪ "
+output = pipe(song)
+Audio(output["audio"], rate=output["sampling_rate"])
+```
+
+Metinden konuşmaya ayrılan sonraki ünitede Bark'ın ayrıntılarına daha derinlemesine gireceğiz ve ayrıca bu görev için diğer modelleri nasıl kullanabileceğinizi de göstereceğiz. Şimdi biraz müzik üretelim!
+
+## Müzik oluşturma
+
+Daha önce olduğu gibi, bir işlem hattı oluşturarak başlayacağız. Müzik üretimi için metinden sese bir ardışık düzen tanımlayacağız ve bunu önceden eğitilmiş kontrol noktasıyla [`facebook/musicgen-small`](https://huggingface.co/facebook/musicgen-small) başlatacağız.
+
+```python
+music_pipe = pipeline("text-to-audio", model="facebook/musicgen-small")
+```
+
+Oluşturmak istediğimiz müziğin metin açıklamasını oluşturalım:
+
+```python
+text = "90s rock song with electric guitar and heavy drums"
+```
+
+Modele ek bir 'max_new_tokens' parametresi ileterek oluşturulan çıktının uzunluğunu kontrol edebiliriz.
+
+```python
+forward_params = {"max_new_tokens": 512}
+
+output = music_pipe(text, forward_params=forward_params)
+Audio(output["audio"][0], rate=output["sampling_rate"])
+```

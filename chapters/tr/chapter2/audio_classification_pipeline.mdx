@@ -1,0 +1,69 @@
+# Uçtan uca ses sınıflandırması
+
+
+Ses sınıflandırması, içeriğine göre bir ses kaydına bir veya daha fazla etiket atamayı içerir. Etiketler müzik, konuşma veya gürültü gibi farklı ses kategorilerine veya kuş şarkısı veya araba motoru sesleri gibi daha spesifik kategorilere karşılık gelebilir.
+
+En popüler ses transformatörlerinin nasıl çalıştığına dair ayrıntılara dalmadan ve özel bir modele ince ayar yapmadan önce, yalnızca birkaç satır kodla ses sınıflandırması için kullanıma hazır, önceden eğitilmiş bir modeli nasıl kullanabileceğinizi görelim. Transformatörler.
+
+
+
+Hadi devam edelim ve önceki ünitede keşfettiğiniz aynı [MINDS-14](https://huggingface.co/datasets/PolyAI/minds14) veri kümesini kullanalım. Hatırlarsanız MINDS-14, e-bankacılık sistemine soru soran kişilerin çeşitli dil ve lehçelerdeki kayıtlarını içeriyor ve her kayıt için bir “intent_class”a sahip. Kayıtları çağrının amacına göre sınıflandırabiliriz.
+
+Daha önce olduğu gibi, boru hattını denemek için verinin "en-AU" alt kümesini yükleyerek başlayalım ve bunu çoğu konuşma modelinin gerektirdiği 16kHz örnekleme hızına örnekleyelim.
+
+```py
+from datasets import load_dataset
+from datasets import Audio
+
+minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
+```
+
+
+Bir ses kaydını bir dizi sınıfa sınıflandırmak için 🤗 Transformers'ın audio-classification (ses sınıflandırma) iş akışını kullanabiliriz. Bizim durumumuzda, amaç sınıflandırması için ince ayar yapılmış bir modele ihtiyacımız var ve özellikle MINDS-14 veri kümesinde ince ayar yapılmış bir modele ihtiyacımız var. Neyse ki, Hub'da tam olarak bu işi yapan bir model bulunuyor! Onu pipeline() işlevini kullanarak yükleyelim:
+
+```py
+from transformers import pipeline
+
+classifier = pipeline(
+    "audio-classification",
+    model="anton-l/xtreme_s_xlsr_300m_minds14",
+)
+```
+
+Bu ardışık düzen, ses verilerinin bir NumPy dizisi olmasını bekler. Ham ses verilerinin tüm ön işlemleri bizim için boru hattı tarafından uygun bir şekilde gerçekleştirilecektir. Denemek için bir örnek seçelim:
+
+```py
+example = minds[0]
+```
+
+Veri kümesinin yapısını hatırlarsanız, ham ses verileri `["audio"]["array"]` altında bir NumPy dizisinde saklanır, hadi bunu doğrudan `sınıflandırıcıya' aktaralım:
+
+```py
+classifier(example["audio"]["array"])
+```
+
+**Çıktı:**
+```out
+[
+    {"score": 0.9631525278091431, "label": "pay_bill"},
+    {"score": 0.02819698303937912, "label": "freeze"},
+    {"score": 0.0032787492964416742, "label": "card_issues"},
+    {"score": 0.0019414445850998163, "label": "abroad"},
+    {"score": 0.0008378693601116538, "label": "high_value_payment"},
+]
+```
+
+Model, arayan kişinin faturasını ödemeyi öğrenmek istediğinden oldukça emin. Bu örnek için gerçek etiketin ne olduğunu görelim:
+
+```py
+id2label = minds.features["intent_class"].int2str
+id2label(example["intent_class"])
+```
+
+**Çıktı:**
+```out
+"pay_bill"
+```
+
+Harika! Tahmin edilen etiket doğruydu! Burada, ihtiyacımız olan kesin etiketleri sınıflandırabilen bir model bulmak şanslıydık. Sınıflandırma görevi ile uğraşırken, bir önceden eğitilmiş modelin sınıf kümesinin tam olarak modelin ayırt etmesini istediğiniz sınıflarla aynı olmadığı birçok durum vardır. Bu durumda, bir önceden eğitilmiş modeli tam olarak sınıf etiketleriniz kümesine "ayarlamak" için ince ayar yapabilirsiniz. Bu işlemi gelecek ünitelerde nasıl yapacağımızı öğreneceğiz. Şimdi, konuşma işleme alanında yaygın bir başka görev olan otomatik konuşma tanıma görevine bir göz atalım.
