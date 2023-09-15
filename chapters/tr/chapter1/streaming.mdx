@@ -1,0 +1,145 @@
+# Ses verileri akışı
+
+Ses veri kümelerinde karşılaşılan en büyük zorluklardan biri boyutlarıdır. Tek bir dakikalık sıkıştırılmamış CD kalitesinde ses (44,1 kHz, 16 bit)
+5 MB'tan biraz daha fazla depolama alanı kaplıyor. Tipik olarak bir ses veri kümesi saatlerce kayıt içerir.
+
+Önceki bölümlerde MINDS-14 ses veri kümesinin çok küçük bir alt kümesini kullandık, ancak tipik ses veri kümeleri çok daha büyüktür.
+Örneğin, [SpeechColab'dan GigaSpeech](https://huggingface.co/datasets/speechcolab/gigaspeech)'in "xs" (en küçük) yapılandırması
+yalnızca 10 saatlik eğitim verisi içerir ancak indirme ve hazırlık için 13 GB'ın üzerinde depolama alanı kaplar. Ne olmuş
+Daha büyük bir split üzerinde antrenman yapmak istediğimizde ne olur? Aynı veri kümesinin tam 'xl' yapılandırması 10.000 saatlik veri içerir.
+1 TB'tan fazla depolama alanı gerektiren eğitim verileri. Çoğumuz için bu, tipik bir cihazın özelliklerini fazlasıyla aşıyor.
+sabit sürücü diski. Ek depolama alanı ayırmamız ve satın almamız gerekiyor mu? Veya bu veri kümeleri üzerinde disk alanı kısıtlaması olmadan eğitim almamızın bir yolu var mı?
+
+🤗 Veri kümeleri, [akış modunu](https://huggingface.co/docs/datasets/stream) sunarak imdada yetişiyor. Akış, verileri aşamalı olarak yüklememize olanak tanır
+ veri kümesi üzerinde yineleme yapıyoruz. Veri setinin tamamını bir kerede indirmek yerine, veri setini tek seferde bir örnek olarak yüklüyoruz.
+ Veri kümesi üzerinde yinelemeler yapıyoruz, gerektiğinde örnekleri anında yüklüyor ve hazırlıyoruz. Bu şekilde, biz sadece
+ Kullandığımız örnekleri yükleyin, kullanmadıklarımızı değil!
+Örnek bir örnekle işimiz bittiğinde, veri kümesi üzerinde yinelemeye devam ediyoruz ve bir sonrakini yüklüyoruz.
+
+Akış modunun tüm veri kümesini aynı anda indirmeye kıyasla üç temel avantajı vardır:
+
+* Disk alanı: Biz veri kümesi üzerinde yineledikçe örnekler belleğe tek tek yüklenir. Veriler indirilmediğinden
+yerel olarak herhangi bir disk alanı gereksinimi yoktur, dolayısıyla isteğe bağlı boyuttaki veri kümelerini kullanabilirsiniz.
+* İndirme ve işleme süresi: Ses veri kümeleri büyüktür ve indirilip işlenmesi önemli miktarda zaman gerektirir.
+Akış ile yükleme ve işleme anında yapılır; bu, veri kümesini ilk kez kullanmaya başlayabileceğiniz anlamına gelir
+örnek hazır.
+* Kolay deneme: Komut dosyanızın çalışıp çalışmadığını kontrol etmek için birkaç örnek üzerinde denemeler yapabilirsiniz.
+tüm veri kümesini indir.
+
+Streaming modunun bir kısıtlaması bulunmaktadır. Akış olmadan tam bir veri kümesi indirildiğinde, hem ham veri hem de işlenmiş veri yerel diskte kaydedilir. Bu veri kümesini yeniden kullanmak istediğimizde, işlenmiş veriyi doğrudan diskin üzerinden yükleyebiliriz, indirme ve işleme adımlarını atlayarak. Sonuç olarak, indirme ve işleme işlemlerini yalnızca bir kez yapmamız yeterlidir, ardından hazırlanan veriyi yeniden kullanabiliriz.
+
+Akış modunda veriler diske indirilmez. Böylece ne indirilen ne de önceden işlenmiş veriler önbelleğe alınmaz.
+Veri kümesini yeniden kullanmak istiyorsak, ses dosyaları yüklenip işlenerek akış adımlarının tekrarlanması gerekir.
+yine sinek. Bu nedenle birden çok kez kullanmanız muhtemel veri setlerini indirmeniz tavsiye edilir.
+
+Akış modunu nasıl etkinleştirebilirsiniz? Çok kolay! Veri kümenizi yüklerken streaming=True olarak ayarlayın. Gerisi sizin için otomatik olarak halledilecektir:
+
+```py
+gigaspeech = load_dataset("speechcolab/gigaspeech", "xs", streaming=True)
+```
+
+Tıpkı MINDS-14'ün indirilen bir alt kümesine ön işleme adımlarını uyguladığımız gibi, aynı ön işlemeyi bir alt kümeyle de yapabilirsiniz.
+veri kümesini tam olarak aynı şekilde aktarır.
+
+
+Tek fark, Python indeksi kullanarak artık bireysel örneklerine erişemeyeceğinizdir (örneğin gigaspeech["train"][örnek_idx]). Bunun yerine, veri kümesi üzerinde döngü kullanmanız gerekecektir. Bir veri kümesine akış yaparken bir örneğe nasıl erişebileceğinizi aşağıda gösteriliyor:
+
+```py
+next(iter(gigaspeech["train"]))
+```
+
+**Çıktı:**
+```out
+{
+    "segment_id": "YOU0000000315_S0000660",
+    "speaker": "N/A",
+    "text": "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+    "audio": {
+        "path": "xs_chunks_0000/YOU0000000315_S0000660.wav",
+        "array": array(
+            [0.0005188, 0.00085449, 0.00012207, ..., 0.00125122, 0.00076294, 0.00036621]
+        ),
+        "sampling_rate": 16000,
+    },
+    "begin_time": 2941.89,
+    "end_time": 2945.07,
+    "audio_id": "YOU0000000315",
+    "title": "Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43",
+    "url": "https://www.youtube.com/watch?v=zr2n1fLVasU",
+    "source": 2,
+    "category": 24,
+    "original_full_path": "audio/youtube/P0004/YOU0000000315.opus",
+}
+```
+
+Büyük bir veri kümesinden birkaç örneği önizlemek isterseniz, ilk n öğeyi almak için take() işlevini kullanabilirsiniz. Şimdi, gigaspeech veri kümesinden ilk iki örneği alalım:
+
+```py
+gigaspeech_head = gigaspeech["train"].take(2)
+list(gigaspeech_head)
+```
+
+**Çıktı:**
+```out
+[
+    {
+        "segment_id": "YOU0000000315_S0000660",
+        "speaker": "N/A",
+        "text": "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+        "audio": {
+            "path": "xs_chunks_0000/YOU0000000315_S0000660.wav",
+            "array": array(
+                [
+                    0.0005188,
+                    0.00085449,
+                    0.00012207,
+                    ...,
+                    0.00125122,
+                    0.00076294,
+                    0.00036621,
+                ]
+            ),
+            "sampling_rate": 16000,
+        },
+        "begin_time": 2941.89,
+        "end_time": 2945.07,
+        "audio_id": "YOU0000000315",
+        "title": "Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43",
+        "url": "https://www.youtube.com/watch?v=zr2n1fLVasU",
+        "source": 2,
+        "category": 24,
+        "original_full_path": "audio/youtube/P0004/YOU0000000315.opus",
+    },
+    {
+        "segment_id": "AUD0000001043_S0000775",
+        "speaker": "N/A",
+        "text": "SIX TOMATOES <PERIOD>",
+        "audio": {
+            "path": "xs_chunks_0000/AUD0000001043_S0000775.wav",
+            "array": array(
+                [
+                    1.43432617e-03,
+                    1.37329102e-03,
+                    1.31225586e-03,
+                    ...,
+                    -6.10351562e-05,
+                    -1.22070312e-04,
+                    -1.83105469e-04,
+                ]
+            ),
+            "sampling_rate": 16000,
+        },
+        "begin_time": 3673.96,
+        "end_time": 3675.26,
+        "audio_id": "AUD0000001043",
+        "title": "Asteroid of Fear",
+        "url": "http//www.archive.org/download/asteroid_of_fear_1012_librivox/asteroid_of_fear_1012_librivox_64kb_mp3.zip",
+        "source": 0,
+        "category": 28,
+        "original_full_path": "audio/audiobook/P0011/AUD0000001043.opus",
+    },
+]
+```
+
+Akış modu, araştırmanızı bir üst seviyeye taşıyabilir: Sadece en büyük veri kümelerine erişim sağlamakla kalmaz, aynı zamanda disk alanınızı düşünmeden birden fazla veri kümesi üzerinde sistemleri kolayca değerlendirebilirsiniz. Tek bir veri kümesinde değerlendirmekle karşılaştırıldığında, çoklu veri kümesi değerlendirmesi, bir konuşma tanıma sisteminin genelleme yetenekleri için daha iyi bir ölçüm sağlar (bkz. End-to-end Speech Benchmark - ESB).
+

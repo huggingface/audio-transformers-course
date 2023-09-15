@@ -1,0 +1,152 @@
+# Bir ses veri kümesini yükleyin ve keşfedin
+
+Bu kurs boyunca ses veri kümeleriyle çalışmak için 🤗 Datasets kütüphanesini kullanacağız. 🤗 Datasets, ses dahil tüm modalitelerden veri kümelerini indirmek ve hazırlamak için kullanılan açık kaynaklı bir kütüphanedir. Bu kütüphane, Hugging Face Hub üzerinde kamuya açık olarak kullanılabilir durumda olan benzersiz bir makine öğrenimi veri kümesine kolay erişim sunar. Ayrıca, 🤗 Datasets, araştırmacılar ve uygulamacılar için ses veri kümeleriyle çalışmayı basitleştiren çeşitli ses veri kümesi özellikleri içerir.
+
+Ses veri kümeleriyle çalışmaya başlamak için 🤗 Veri Kümeleri kitaplığının kurulu olduğundan emin olun:
+
+```bash
+pip install datasets[audio]
+```
+
+🤗 Veri Kümelerinin en önemli tanımlayıcı özelliklerinden biri, tek bir satırda veri kümesini indirip hazırlayabilme yeteneğidir.
+'load_dataset()' işlevini kullanan Python kodu.
+
+Haydi yükleyip keşfedelim ve aşağıdakileri içeren [MINDS-14](https://huggingface.co/datasets/PolyAI/minds14) adlı ses veri kümesini yükleyelim
+e-bankacılık sistemine çeşitli dil ve lehçelerde sorular soran kişilerin kayıtları.
+
+MINDS-14 veri kümesini yüklemek için veri kümesinin tanımlayıcısını Hub'a kopyalayıp ("PolyAI/minds14") aktarmamız gerekir.
+'load_dataset' işlevine. Ayrıca yalnızca Avustralya alt kümesiyle (`en-AU`) ilgilendiğimizi de belirteceğiz.
+verileri kullanın ve bunu eğitim bölümüyle sınırlandırın:
+
+```py
+from datasets import load_dataset
+
+minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+minds
+```
+
+**Çıktı:**
+```out
+Dataset(
+    {
+        features: [
+            "path",
+            "audio",
+            "transcription",
+            "english_transcription",
+            "intent_class",
+            "lang_id",
+        ],
+        num_rows: 654,
+    }
+)
+```
+
+
+Veri kümesi, her biri bir transkript, bir İngilizce çeviri ve kişinin sorgusu arkasındaki niyeti gösteren bir etiket ile eşlenmiş 654 ses dosyasını içerir. "audio" sütunu ham ses verisini içerir. Bir örneğe daha yakından bakalım:
+
+```py
+example = minds[0]
+example
+```
+
+**Çıktı:**
+```out
+{
+    "path": "/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav",
+    "audio": {
+        "path": "/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-AU~PAY_BILL/response_4.wav",
+        "array": array(
+            [0.0, 0.00024414, -0.00024414, ..., -0.00024414, 0.00024414, 0.0012207],
+            dtype=float32,
+        ),
+        "sampling_rate": 8000,
+    },
+    "transcription": "I would like to pay my electricity bill using my card can you please assist",
+    "english_transcription": "I would like to pay my electricity bill using my card can you please assist",
+    "intent_class": 13,
+    "lang_id": 2,
+}
+```
+
+Ses sütununun çeşitli özellikler içerdiğini fark edebilirsiniz. İşte bunlar:
+* `path`: ses dosyasının yolu (bu durumda `*.wav`).
+* `array`: 1 boyutlu NumPy dizisi olarak temsil edilen kodu çözülmüş ses verileri.
+* `sampling_rate`. Ses dosyasının örnekleme hızı (bu örnekte 8.000 Hz).
+
+'Intent_class' ses kaydının bir sınıflandırma kategorisidir. Bu sayıyı anlamlı bir dizeye dönüştürmek için,
+'int2str()' yöntemini kullanabiliriz:
+
+```py
+id2label = minds.features["intent_class"].int2str
+id2label(example["intent_class"])
+```
+
+**Çıktı:**
+```out
+"pay_bill"
+```
+
+Transkripsiyon özelliğine bakarsanız ses dosyasının gerçekten de soru soran bir kişiyi kaydettiğini görebilirsiniz.
+Bir faturanın ödenmesiyle ilgili.
+
+Bu veri alt kümesinde bir ses sınıflandırıcısı eğitmeyi planlıyorsanız, tüm özelliklere kesinlikle ihtiyacınız olmayabilir. Örneğin, "lang_id" tüm örnekler için aynı değere sahip olacak ve faydalı olmayacaktır. "english_transcription" büyük olasılıkla bu alt kümedeki "transcription" ile aynı bilgileri içerdiğinden, bunları güvenli bir şekilde kaldırabiliriz.
+
+🤗 Datasets'in `remove_columns` yöntemini kullanarak alakasız özellikleri kolayca kaldırabilirsiniz:
+
+```py
+columns_to_remove = ["lang_id", "english_transcription"]
+minds = minds.remove_columns(columns_to_remove)
+minds
+```
+
+**Çıktı:**
+```out
+Dataset({features: ["path", "audio", "transcription", "intent_class"], num_rows: 654})
+```
+
+Artık veri setinin ham içeriğini yükleyip incelediğimize göre birkaç örnek dinleyelim! 'Bloklar'ı kullanacağız
+ve veri kümesinden rastgele birkaç örneğin kodunu çözmek için "Gradio"daki "Ses" özellikleri:
+
+```py
+import gradio as gr
+
+
+def generate_audio():
+    example = minds.shuffle()[0]
+    audio = example["audio"]
+    return (
+        audio["sampling_rate"],
+        audio["array"],
+    ), id2label(example["intent_class"])
+
+
+with gr.Blocks() as demo:
+    with gr.Column():
+        for _ in range(4):
+            audio, label = generate_audio()
+            output = gr.Audio(audio, label=label)
+
+demo.launch(debug=True)
+```
+
+İsterseniz bazı örnekleri de görselleştirebilirsiniz. İlk örnek için dalga formunu çizelim.
+
+```py
+import librosa
+import matplotlib.pyplot as plt
+import librosa.display
+
+array = example["audio"]["array"]
+sampling_rate = example["audio"]["sampling_rate"]
+
+plt.figure().set_figwidth(12)
+librosa.display.waveshow(array, sr=sampling_rate)
+```
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/waveform_unit1.png" alt="Waveform plot">
+</div>
+
+Deneyin! MINDS-14 veri kümesinin başka bir lehçesini veya dilini indirin, bir fikir edinmek için bazı örnekleri dinleyin ve görselleştirin
+tüm veri kümesindeki varyasyon. Mevcut dillerin tam listesini [burada](https://huggingface.co/datasets/PolyAI/minds14) bulabilirsiniz.
