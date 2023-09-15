@@ -1,0 +1,87 @@
+# Hugging Face Ses Kursuna hoş geldiniz!
+
+Sayın öğrenci,
+
+Bu ses için transformer kullanımı kursuna hoş geldiniz. Zaman zaman transformer'ların kendilerini en güçlü ve çok yönlü derin öğrenme mimarilerinden biri olarak kanıtladığını gördük. Doğal dil işleme, bilgisayarlı görü ve daha yakın zamanda ses işleme dahil olmak üzere geniş bir yelpazede görevde son teknoloji sonuçları elde etme yeteneğine sahiptirler.
+
+Bu kursda, transformer'ların ses verilerine nasıl uygulanabileceğini keşfedeceğiz. Onları çeşitli sesle ilgili görevleri ele almak için nasıl kullanacağınızı öğreneceksiniz. Konuşma tanıma, ses sınıflandırma veya metinden konuşma üretme gibi ilginizi çeken bir alan olsun, transformer'lar ve bu kurs sizi kapsamaktadır.
+
+Bu modellerin neler yapabileceğini size göstermek için, aşağıdaki demo içinde birkaç kelime söyleyin ve modelin gerçek zamanlı olarak bunları yazıya döktüğünü izleyin!
+
+<iframe
+	src="https://openai-whisper.hf.space"
+	frameborder="0"
+	width="850"
+	height="450">
+</iframe>
+
+Kurs boyunca, ses verileriyle çalışmanın özelliklerini anlayacak, farklı transformer mimarilerini öğrenecek ve güçlü önceden eğitilmiş modelleri kullanarak kendi ses transformer'larınızı eğiteceksiniz.
+
+Bu kurs, derin öğrenme alanında bir geçmişi olan ve transformer'lar hakkında genel bir aşinalığa sahip öğrenciler için tasarlanmıştır.
+Ses verilerinin işlenmesinde herhangi bir uzmanlık gerekmemektedir. Transformer'lar konusundaki anlayışınızı tazelemeye ihtiyacınız varsa, temel transformer konularına daha fazla detay veren [NLP Kursuna](https://huggingface.co/course/chapter1/1) göz atabilirsiniz.
+
+## Kurs takımıyla tanış
+
+**Sanchit Gandhi, Hugging Face'de Makine Öğrenimi Araştırma Mühendisi**
+
+Merhaba, Sanchit! Hugging Face'in açık kaynak ekibinde ses için makine öğrenimi araştırma mühendisi olarak çalışıyorsunuz, harika! Başlıca odak noktanız otomatik konuşma tanıma ve çeviri ve şu anki hedefiniz ses modellerini daha hızlı, daha hafif ve kullanımı daha kolay hale getirmek. Çok ilginç bir çalışma alanı gibi görünüyor! Size başarılar dilerim. 🤗
+
+**Matthijs Hollemans, Hugging Face'de Makine Öğrenimi Araştırma Mühendisi**
+
+Merhaba, Matthijs! Hugging Face'in açık kaynak ekibinde ses için makine öğrenimi mühendisi olarak çalışıyorsunuz, harika! Aynı zamanda ses sentezleyicileri nasıl yazılacağına dair bir kitabın yazarısınız ve boş zamanlarınızda ses eklentileri oluşturuyorsunuz, bu çok etkileyici bir çalışma alanı gibi görünüyor. Hugging Face ekibine ve projelerinize başarılar dilerim! 
+
+**Maria Khalusova, Hugging Face'de Doküman & Kurs Hazırlayıcı**
+
+Merhaba Maria! Transformers ve diğer açık kaynak araçlarını daha erişilebilir hale getirmek için eğitim içeriği ve belgeleme oluşturuyorsunuz, harika! Karmaşık teknik kavramları basitleştiriyor ve insanların son teknolojilerle nasıl başlayacaklarını anlamalarına yardımcı oluyorsunuz. Bu, teknolojiye ilgi duyan insanlar için çok önemli bir katkıdır.
+
+**Vaibhav Srivastav, Hugging Face'de Makine Öğrenimi Geliştirici Destek Mühendisi**
+
+Ben Vaibhav (VB) ve Hugging Face Açık Kaynak ekibinde Ses için Geliştirici Destek Mühendisiyim. Düşük kaynaklı Metinden Sese (Text to Speech) araştırmaları yapıyor ve en son ses araştırmalarını geniş kitlelere ulaştırmaya yardımcı oluyorum.
+
+## Kurs Yapısı
+
+Kurs, derinlemesine çeşitli konuları kapsayan birkaç üniteye ayrılmıştır:
+
+* [1.Ünite](https://huggingface.co/learn/audio-course/chapter1): Ses verileriyle çalışmanın özel detaylarını öğrenin, bunlar arasında ses işleme teknikleri ve veri hazırlama bulunur.
+* [2.Ünite](https://huggingface.co/learn/audio-course/chapter2): Ses uygulamalarını tanıyın ve farklı görevler için 🤗 Transformers borularını kullanmayı öğrenin, bunlar arasında ses sınıflandırma ve konuşma tanıma bulunur.
+* [3.Ünite](https://huggingface.co/learn/audio-course/chapter3): Ses transformer mimarilerini keşfedin, nasıl farklılaştıklarını öğrenin ve en iyi uydukları görevleri öğrenin.
+* [4.Ünite](https://huggingface.co/learn/audio-course/chapter4): Kendi müzik türü sınıflandırıcınızı nasıl oluşturacağınızı öğrenin.
+* [5.Ünite](https://huggingface.co/learn/audio-course/chapter5): Konuşma tanımaya derinlemesine inin ve toplantı kayıtlarını transkript etmek için bir model oluşturun.
+* [6.Ünite](https://huggingface.co/learn/audio-course/chapter6): Metinden konuşma üretmeyi öğrenin.
+* [7.Ünite](https://huggingface.co/learn/audio-course/chapter7): Transformer'larla gerçek dünya ses uygulamaları nasıl oluşturulduğunu öğrenin.
+
+Her ünite, temel kavramları ve teknikleri derinlemesine anlayacağınız teorik bir bileşen içerir. Kurs boyunca bilginizi test etmenize ve öğrenmeyi pekiştirmenize yardımcı olmak için bazı bölümlerde sınavlar sunuyoruz. Bazı bölümler ayrıca uygulamalı eğitim deneylerini içerir, burada öğrendiklerinizi uygulama fırsatına sahip olacaksınız.
+
+Kursun sonunda, ses verileri için transformer kullanımında güçlü bir temeliniz olacak ve bu teknikleri çeşitli sesle ilgili görevlere başarıyla uygulayabileceksiniz.
+
+Kurs birimleri, aşağıdaki yayın programıyla ardışık bloklar halinde yayımlanacaktır:
+
+| Üniteler   | Yayınlanma Tarihi |
+|---|-----------------|
+| 0.Ünite, 1.Ünite ve 2.Ünite  | 14 Haziran 2023   |
+| 3.Ünite, Unit 4  | 21 Haziran 2023   |
+| 5.Ünite  | 28 Haziran 2023   |
+| 6.Ünite  | 5 Temmuz 2023    |
+| 7.Ünite, 8.Ünite  | 12 Temmuz 2023   |
+
+## Öğrenme yolları ve sertifikasyon
+
+
+Bu kursu almanın doğru veya yanlış bir yolu yoktur. Bu kursun tüm materyalleri %100 ücretsiz, kamuya açık ve açık kaynaktır. Kursu kendi hızınıza göre alabilirsiniz, ancak birimleri sıralı bir şekilde geçmenizi öneririz.
+
+Kursu tamamladıktan sonra sertifika almak isterseniz, iki seçeneğimiz bulunmaktadır:
+
+| Sertifika türü   | Gereklilikler                                          |
+|---|--------------------------------------------------------------------|
+| Tamamlama Sertifikası  | Talimatlar doğrultusunda uygulamalı eğitim egzersizlerin %80'ini tamamlayın.  |
+| Onur Sertifikası  | Talimatlar doğrultusunda uygulamalı eğitim egzersizlerin %100'ünü tamamlayın. |
+
+Her uygulamalı eğitim egzersiz, tamamlama kriterlerini belirtir. Sertifikalardan herhangi biri için yeterli sayıda uygulamalı eğitim egzersizi tamamladığınızda, sertifikanızı nasıl alabileceğinizi öğrenmek için kursun son birimine başvurun. İyi şanslar!
+
+## Kursa kayıt ol
+
+Bu kursun birimleri birkaç hafta boyunca aşamalı olarak yayınlanacaktır. Yeni birimler yayınlandığında bunları kaçırmamak için kurs güncellemelerine kaydolmanızı öneriyoruz. Kurs güncellemelerine kaydolan öğrenciler, düzenlemeyi planladığımız özel sosyal etkinlikler hakkında da ilk bilgi sahibi olacaklardır.
+
+[KAYIT OL](http://eepurl.com/insvcI)
+
+Kursun keyfini çıkarın!
