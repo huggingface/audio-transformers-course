@@ -87,7 +87,7 @@ Nous allons charger un *checkpoint* d’un [*transformer* d’audio sous la form
 classifier = pipeline(
     "audio-classification", model="MIT/ast-finetuned-speech-commands-v2"
 )
-classifier(sample["audio"])
+classifier(sample["audio"].copy())
 ``` 
 
 **Sortie :**

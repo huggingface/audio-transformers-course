@@ -129,7 +129,7 @@ sample = next(iter(speech_commands))
 classifier = pipeline(
     "audio-classification", model="MIT/ast-finetuned-speech-commands-v2"
 )
-classifier(sample["audio"])
+classifier(sample["audio"].copy())
 ```
 **Output:**
 ```
@@ -144,7 +144,6 @@ classifier(sample["audio"])
 ```
 from IPython.display import Audio
 
-classifier(sample["audio"].copy())
 Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
 ```
 
