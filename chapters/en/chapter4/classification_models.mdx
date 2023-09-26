@@ -131,7 +131,7 @@ checkpoint fine-tuned on the Speech Commands dataset, under the namespace [`"MIT
 classifier = pipeline(
     "audio-classification", model="MIT/ast-finetuned-speech-commands-v2"
 )
-classifier(sample["audio"])
+classifier(sample["audio"].copy())
 ```
 **Output:**
 ```
@@ -147,7 +147,6 @@ and verify this is correct:
 ```
 from IPython.display import Audio
 
-classifier(sample["audio"].copy())
 Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
 ```
 
