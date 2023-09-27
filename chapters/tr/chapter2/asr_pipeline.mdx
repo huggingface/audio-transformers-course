@@ -1,0 +1,96 @@
+# İşlem hattıyla otomatik konuşma tanıma
+
+Otomatik Konuşma Tanıma (ASR), konuşma sesi kaydının metne dönüştürülmesini içeren bir görevdir.
+Bu görevin, videolar için altyazı oluşturmaktan sesli komutları etkinleştirmeye kadar çok sayıda pratik uygulaması vardır.
+Siri ve Alexa gibi sanal asistanlar için.
+
+Bu bölümde, bir kişinin ses kaydını metne dönüştürmek için "otomatik konuşma tanıma" hattını kullanacağız
+Daha önce olduğu gibi aynı MINDS-14 veri setini kullanarak fatura ödemeyle ilgili bir soru sormak.
+
+Başlamak için veri kümesini yükleyin ve [Bir boru hattıyla ses sınıflandırması](audio_classification_pipeline) bölümünde açıklandığı gibi 16 kHz'e örnekleyin.
+eğer bunu henüz yapmadıysanız.
+
+Bir ses kaydını transkript etmek için 🤗 Transformers'ın automatic-speech-recognition (otomatik konuşma tanıma) iş akışını kullanabiliriz. İşte bu iş akışını oluşturalım:
+
+```py
+from transformers import pipeline
+
+asr = pipeline("automatic-speech-recognition")
+```
+
+Daha sonra veri kümesinden bir örnek alıp ham verilerini ardışık düzene aktaracağız:
+
+```py
+example = minds[0]
+asr(example["audio"]["array"])
+```
+
+**Çıktı:**
+```out
+{"text": "ELEKTRİK FATURAMI KODUMLA ÖDEMEK İSTİYORUM LÜTFEN YARDIMCI OLABİLİR MİSİNİZ?"}
+```
+
+Bu çıktıyı, bu örneğin gerçek transkripsiyonuyla karşılaştıralım:
+
+```py
+example["english_transcription"]
+```
+
+**Çıktı:**
+```out
+"Elektrik faturamı kartımla ödemek istiyorum lütfen yardımcı olur musunuz?"
+```
+
+Model, sesi transkribe etmede oldukça iyi bir iş çıkarmış gibi görünüyor! Orijinal transkriptle karşılaştırıldığında sadece bir kelimeyi ("card") yanlış almış, bu da konuşmacının sıklıkla "r" harfini sessiz olarak söylediği Avustralya aksanını düşünürsek oldukça iyi bir sonuç. Bununla birlikte, bir sonraki elektrik faturanızı bir balıkla ödemeyi denemenizi tavsiye etmem!
+
+Varsayılan olarak, bu işlem hattı İngilizce için otomatik konuşma tanıma için eğitilmiş bir model kullanır;
+bu örnek. MINDS-14'ün diğer alt kümelerini farklı dillerde yazmayı denemek isterseniz, önceden eğitilmiş bir kaynak bulabilirsiniz.
+ASR modeli [🤗 Hub'da](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&language=fr&sort=downloads).
+Model listesini önce göreve, ardından dile göre filtreleyebilirsiniz. Beğendiğiniz modeli bulduğunuzda adını şu şekilde iletin:
+boru hattına yönelik "model" argümanı.
+
+Bunu MINDS-14'ün Almanya'daki bölünmesi için deneyelim. "de-DE" alt kümesini yükleyin:
+
+```py
+from datasets import load_dataset
+from datasets import Audio
+
+minds = load_dataset("PolyAI/minds14", name="de-DE", split="train")
+minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
+```
+
+Bir örnek alın ve transkripsiyonun ne olması gerektiğini görün:
+
+```py
+example = minds[0]
+example["transcription"]
+```
+
+**Çıktı:**
+```out
+"ich möchte gerne Geld auf mein Konto einzahlen"
+```
+
+🤗 Hub'da Almanca için önceden eğitilmiş bir ASR modeli bulun, bir işlem hattı oluşturun ve örneği yazıya dökün:
+
+```py
+from transformers import pipeline
+
+asr = pipeline("automatic-speech-recognition", model="maxidl/wav2vec2-large-xlsr-german")
+asr(example["audio"]["array"])
+```
+
+**Çıktı:**
+```out
+{"text": "ich möchte gerne geld auf mein konto einzallen"}
+```
+
+Also, stimmt's!
+
+Kendi görevinizi çözmeye çalışırken, bu ünitede gösterdiğimiz gibi basit bir işlem hattıyla başlamak değerli bir adımdır.
+çeşitli avantajlar sunan araç:
+- Görevinizi zaten gerçekten iyi çözen, size bolca zaman kazandıran, önceden eğitilmiş bir model mevcut olabilir.
+- pipeline() sizin için tüm ön/son işlemleri halleder, böylece verileri bir model için doğru formata getirme konusunda endişelenmenize gerek kalmaz
+- Sonuç ideal değilse bile bu size gelecekte yapacağınız ince ayarlar için hızlı bir temel sağlar.
+- Özel verileriniz üzerinde bir modele ince ayar yaptığınızda ve bunu Hub'da paylaştığınızda, yapay zekayı daha erişilebilir hale getiren "pipeline()" yöntemi aracılığıyla tüm topluluk onu hızlı ve zahmetsizce kullanabilecektir.
+
