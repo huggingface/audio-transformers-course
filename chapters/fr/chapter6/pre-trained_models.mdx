@@ -157,8 +157,8 @@ Tout d'abord, nous allons charger le *checkpoint* du modèle et le *tokenizer* p
 ```python
 from transformers import VitsModel, VitsTokenizer
 
-model = VitsModel.from_pretrained("Matthijs/mms-tts-deu")
-tokenizer = VitsTokenizer.from_pretrained("Matthijs/mms-tts-deu")
+model = VitsModel.from_pretrained("facebook/mms-tts-deu")
+tokenizer = VitsTokenizer.from_pretrained("facebook/mms-tts-deu")
 ```
 
 Vous pouvez remarquer que pour charger le MMS, vous devez utiliser `VitsModel` et `VitsTokenizer`. C'est parce que le MMS pour la synthèse vocale est basé sur le modèle VITS comme mentionné précédemment. 
