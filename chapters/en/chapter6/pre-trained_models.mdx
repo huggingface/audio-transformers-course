@@ -371,8 +371,8 @@ First, we'll load the model checkpoint and the tokenizer for the correct languag
 ```python
 from transformers import VitsModel, VitsTokenizer
 
-model = VitsModel.from_pretrained("Matthijs/mms-tts-deu")
-tokenizer = VitsTokenizer.from_pretrained("Matthijs/mms-tts-deu")
+model = VitsModel.from_pretrained("facebook/mms-tts-deu")
+tokenizer = VitsTokenizer.from_pretrained("facebook/mms-tts-deu")
 ```
 
 You may notice that to load the MMS model you need to use `VitsModel` and `VitsTokenizer`. This is because MMS for text-to-speech 

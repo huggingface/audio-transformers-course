@@ -370,8 +370,8 @@ pip install git+https://github.com/hollance/transformers.git@6900e8ba6532162a861
 ```python
 from transformers import VitsModel, VitsTokenizer
 
-model = VitsModel.from_pretrained("Matthijs/mms-tts-deu")
-tokenizer = VitsTokenizer.from_pretrained("Matthijs/mms-tts-deu")
+model = VitsModel.from_pretrained("facebook/mms-tts-deu")
+tokenizer = VitsTokenizer.from_pretrained("facebook/mms-tts-deu")
 ```
 
 Вы можете заметить, что для загрузки модели MMS необходимо использовать `VitsModel` и `VitsTokenizer`. Это связано с тем, что MMS для преобразования текста в речь
