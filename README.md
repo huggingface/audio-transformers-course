@@ -3,6 +3,18 @@
 This repo contains the content that's used to create [Hugging Face's Audio Transformers Course](https://huggingface.co/learn/audio-course/). 
 The course teaches you about applying Transformers to various tasks in audio and speech processing.It's completely free and open-source!
 
+## 🌎 Languages and translations
+
+| Language                                                                      | Source                                                                             | Authors                                                                                                                                                                                                                                                                                                                                                  |
+|:------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Bengali](https://huggingface.co/learn/audio-course/bn/chapter0/introduction)                     | [`chapters/bn`](https://github.com/huggingface/audio-transformers-course/tree/main/chapters/bn)       |                                                                               |
+| [English](https://huggingface.co/learn/audio-course/chapter0/introduction)                        | [`chapters/en`](https://github.com/huggingface/audio-transformers-course/tree/main/chapters/en)       |                                                                               |
+| [Spanish](https://huggingface.co/learn/audio-course/es/chapter0/introduction)                     | [`chapters/es`](https://github.com/huggingface/audio-transformers-course/tree/main/chapters/es)       |                                                                               |
+| [French](https://huggingface.co/learn/audio-course/fr/chapter0/introduction)                      | [`chapters/fr`](https://github.com/huggingface/audio-transformers-course/tree/main/chapters/fr)       |                                                                               |
+| [Korean](https://huggingface.co/learn/audio-course/ko/chapter0/introduction)                      | [`chapters/ko`](https://github.com/huggingface/audio-transformers-course/tree/main/chapters/ko)       |                                                                               |
+| [Russian](https://huggingface.co/learn/audio-course/ru/chapter0/introduction)                     | [`chapters/ru`](https://github.com/huggingface/audio-transformers-course/tree/main/chapters/ru)       |                                                                               |
+| [Turkish](https://huggingface.co/learn/audio-course/tr/chapter0/introduction)                     | [`chapters/tr`](https://github.com/huggingface/audio-transformers-course/tree/main/chapters/tr)       |                                                                               |
+| [Chinese (simplified)](https://huggingface.co/learn/audio-course/zh-CN/chapter0/introduction)     | [`chapters/zh-CN`](https://github.com/huggingface/audio-transformers-course/tree/main/chapters/zh-CN) |                                                                               |
 
 ### Translating the course into your language
 
