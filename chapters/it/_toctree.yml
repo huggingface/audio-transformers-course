@@ -3,127 +3,127 @@
   - local: chapter0/introduction
     title: Cosa aspettarsi dal corso
   - local: chapter0/get_ready
-    title: Preparativi
+    title: Preparati
   - local: chapter0/community
     title: Entra nella community
 
-- title: Capitolo 1. Lavorare con dati audio
-  sections:
-  - local: chapter1/introduction
-    title: Cosa imparerai
-  - local: chapter1/audio_data
-    title: Introduzione ai dati audio
-  - local: chapter1/load_and_explore
-    title: Carica ed esplora un dataset audio
-  - local: chapter1/preprocessing
-    title: Preelaborazione di dati audio
-  - local: chapter1/streaming
-    title: Streaming di dati audio
-  - local: chapter1/quiz
-    title: Quiz
-    quiz: 1
-  - local: chapter1/supplemental_reading
-    title: Letture e risorse supplementari
+# - title: Capitolo 1. Lavorare con dati audio
+#   sections:
+#   - local: chapter1/introduction
+#     title: Cosa imparerai
+#   - local: chapter1/audio_data
+#     title: Introduzione ai dati audio
+#   - local: chapter1/load_and_explore
+#     title: Carica ed esplora un dataset audio
+#   - local: chapter1/preprocessing
+#     title: Preelaborazione di dati audio
+#   - local: chapter1/streaming
+#     title: Streaming di dati audio
+#   - local: chapter1/quiz
+#     title: Quiz
+#     quiz: 1
+#   - local: chapter1/supplemental_reading
+#     title: Letture e risorse supplementari
 
-- title: Capitolo 2. Una introduzione gentile agli applicativi audio
-  sections:
-  - local: chapter2/introduction
-    title: Tour degli applicativi audio
-  - local: chapter2/audio_classification_pipeline
-    title: Classificazione audio con una pipeline
-  - local: chapter2/asr_pipeline
-    title: Riconoscimento vocale automatico con una pipeline
-  - local: chapter2/tts_pipeline
-    title: Generazione audio con una pipeline
-  - local: chapter2/hands_on
-    title: Esercitazione pratica
+# - title: Capitolo 2. Una introduzione gentile agli applicativi audio
+#   sections:
+#   - local: chapter2/introduction
+#     title: Tour degli applicativi audio
+#   - local: chapter2/audio_classification_pipeline
+#     title: Classificazione audio con una pipeline
+#   - local: chapter2/asr_pipeline
+#     title: Riconoscimento vocale automatico con una pipeline
+#   - local: chapter2/tts_pipeline
+#     title: Generazione audio con una pipeline
+#   - local: chapter2/hands_on
+#     title: Esercitazione pratica
 
-- title: Capitolo 3. Transformer architectures for audio
-  sections:
-  - local: chapter3/introduction
-    title: Refresher on transformer models
-  - local: chapter3/ctc
-    title: CTC architectures
-  - local: chapter3/seq2seq
-    title: Seq2Seq architectures
-  - local: chapter3/classification
-    title: Audio classification architectures
-  - local: chapter3/quiz
-    title: Quiz
-    quiz: 3
-  - local: chapter3/supplemental_reading
-    title: Letture e risorse supplementari
+# - title: Capitolo 3. Transformer architectures for audio
+#   sections:
+#   - local: chapter3/introduction
+#     title: Refresher on transformer models
+#   - local: chapter3/ctc
+#     title: CTC architectures
+#   - local: chapter3/seq2seq
+#     title: Seq2Seq architectures
+#   - local: chapter3/classification
+#     title: Audio classification architectures
+#   - local: chapter3/quiz
+#     title: Quiz
+#     quiz: 3
+#   - local: chapter3/supplemental_reading
+#     title: Letture e risorse supplementari
 
-- title: Capitolo 4. Build a music genre classifier
-  sections:
-  - local: chapter4/introduction
-    title: What you'll learn and what you'll build
-  - local: chapter4/classification_models
-    title: Pre-trained models for audio classification
-  - local: chapter4/fine-tuning
-    title: Fine-tuning a model for music classification
-  - local: chapter4/demo
-    title: Build a demo with Gradio
-  - local: chapter4/hands_on
-    title: Esercitazione pratica
+# - title: Capitolo 4. Build a music genre classifier
+#   sections:
+#   - local: chapter4/introduction
+#     title: What you'll learn and what you'll build
+#   - local: chapter4/classification_models
+#     title: Pre-trained models for audio classification
+#   - local: chapter4/fine-tuning
+#     title: Fine-tuning a model for music classification
+#   - local: chapter4/demo
+#     title: Build a demo with Gradio
+#   - local: chapter4/hands_on
+#     title: Esercitazione pratica
 
-- title: Capitolo 5. Automatic Speech Recognition
-  sections:
-  - local: chapter5/introduction
-    title: What you'll learn and what you'll build
-  - local: chapter5/asr_models
-    title: Pre-trained models for speech recognition
-  - local: chapter5/choosing_dataset
-    title: Choosing a dataset
-  - local: chapter5/evaluation
-    title: Evaluation and metrics for speech recognition
-  - local: chapter5/fine-tuning
-    title: How to fine-tune an ASR system with the Trainer API
-  - local: chapter5/demo
-    title: Building a demo
-  - local: chapter5/hands_on
-    title: Esercitazione pratica
-  - local: chapter5/supplemental_reading
-    title: Letture e risorse supplementari
-#
-- title: Capitolo 6. From text to speech
-  sections:
-  - local: chapter6/introduction
-    title: What you'll learn and what you'll build
-  - local: chapter6/tts_datasets
-    title: Text-to-speech datasets
-  - local: chapter6/pre-trained_models
-    title: Pre-trained models for text-to-speech
-  - local: chapter6/fine-tuning
-    title: Fine-tuning SpeechT5
-  - local: chapter6/evaluation
-    title: Evaluating text-to-speech models
-  - local: chapter6/hands_on
-    title: Esercitazione pratica
-  - local: chapter6/supplemental_reading
-    title: Letture e risorse supplementari
+# - title: Capitolo 5. Automatic Speech Recognition
+#   sections:
+#   - local: chapter5/introduction
+#     title: What you'll learn and what you'll build
+#   - local: chapter5/asr_models
+#     title: Pre-trained models for speech recognition
+#   - local: chapter5/choosing_dataset
+#     title: Choosing a dataset
+#   - local: chapter5/evaluation
+#     title: Evaluation and metrics for speech recognition
+#   - local: chapter5/fine-tuning
+#     title: How to fine-tune an ASR system with the Trainer API
+#   - local: chapter5/demo
+#     title: Building a demo
+#   - local: chapter5/hands_on
+#     title: Esercitazione pratica
+#   - local: chapter5/supplemental_reading
+#     title: Letture e risorse supplementari
+# #
+# - title: Capitolo 6. From text to speech
+#   sections:
+#   - local: chapter6/introduction
+#     title: What you'll learn and what you'll build
+#   - local: chapter6/tts_datasets
+#     title: Text-to-speech datasets
+#   - local: chapter6/pre-trained_models
+#     title: Pre-trained models for text-to-speech
+#   - local: chapter6/fine-tuning
+#     title: Fine-tuning SpeechT5
+#   - local: chapter6/evaluation
+#     title: Evaluating text-to-speech models
+#   - local: chapter6/hands_on
+#     title: Esercitazione pratica
+#   - local: chapter6/supplemental_reading
+#     title: Letture e risorse supplementari
 
-- title: Capitolo 7. Putting it all together
-  sections:
-  - local: chapter7/introduction
-    title: What you'll learn and what you'll build
-  - local: chapter7/speech-to-speech
-    title: Speech-to-speech translation
-  - local: chapter7/voice-assistant
-    title: Creating a voice assistant
-  - local: chapter7/transcribe-meeting
-    title: Transcribe a meeting
-  - local: chapter7/hands_on
-    title: Esercitazione pratica
-  - local: chapter7/supplemental_reading
-    title: Letture e risorse supplementari
+# - title: Capitolo 7. Putting it all together
+#   sections:
+#   - local: chapter7/introduction
+#     title: What you'll learn and what you'll build
+#   - local: chapter7/speech-to-speech
+#     title: Speech-to-speech translation
+#   - local: chapter7/voice-assistant
+#     title: Creating a voice assistant
+#   - local: chapter7/transcribe-meeting
+#     title: Transcribe a meeting
+#   - local: chapter7/hands_on
+#     title: Esercitazione pratica
+#   - local: chapter7/supplemental_reading
+#     title: Letture e risorse supplementari
 
-- title: Capitolo 8. Traguardo
-  sections:
-  - local: chapter8/introduction
-    title: Congratulazioni!
-  - local: chapter8/certification
-    title: Ottieni il tuo certificato di completamento
+# - title: Capitolo 8. Traguardo
+#   sections:
+#   - local: chapter8/introduction
+#     title: Congratulazioni!
+#   - local: chapter8/certification
+#     title: Ottieni il tuo certificato di completamento
 
 - title: Eventi del corso 
   sections:
