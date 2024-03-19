@@ -1,0 +1,513 @@
+# 微调语音识别模型
+
+在本节中，我们将手把手指导如何在 Common Voice 13 数据集上微调 Whisper 以进行语音识别。
+我们将使用模型的“small”版本和一个相对轻量级的数据集，使您能够在任何 16GB 以上的 GPU 上用少量磁盘空间相对快速地微调，
+例如 Google Colab 免费提供的 16GB T4 GPU。
+
+如果您的 GPU 太小，或在训练过程中遇到内存问题，可以遵循我们之后提供的建议来减少内存使用量。
+相反，如果您可以访问更大的 GPU，您可以修改训练参数以最大化您的吞吐量。因此，无论您的 GPU 规格如何，都可以参考本指南！
+
+同样，本指南简要介绍了如何针对迪维希语微调 Whisper 模型。然而，这里介绍的步骤可以推广到 Common Voice 数据集中的任何语言，
+更一般地，可以推广到 Hugging Face Hub 上的任何 ASR 数据集。您可以更改代码以快速切换到您选择的语言，并在您的母语上微调 Whisper 模型 🌍
+
+好了，废话少说，让我们开始我们的微调流程吧！
+
+## 配置环境
+
+我们强烈建议您在训练时直接将模型检查点上传至 [Hugging Face Hub](https://huggingface.co/)。Hub 提供：
+
+- 集成的版本控制：您可以确保训练过程中不会丢失任何模型检查点。
+- Tensorboard 日志：跟踪训练过程中的重要指标。
+- 模型卡片：记录模型的功能及其预期用例。
+- 社区：与社区共享和协作的简便方式！🤗
+
+将 notebook 链接到 Hub 非常简单——只需要输入您的 Hub 认证令牌。在 [这里](https://huggingface.co/settings/tokens) 找到您的 Hub 认证令牌并根据提示输入它：
+
+```python
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+**输出：**
+
+```bash
+Login successful
+Your token has been saved to /root/.huggingface/token
+```
+
+## 加载数据集
+
+[Common Voice 13](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0) 包含大约十小时的标注过的迪维希语数据，
+这对于微调来说是极少量的数据，因此我们将依赖在预训练期间 Whisper 获得的广泛的多语言 ASR 知识来弥补迪维希语的低资源量。
+
+使用 🤗 Datasets 下载和准备数据非常简单。我们可以用一行代码下载并准备好 Common Voice 13 的数据。由于迪维希语资源非常少，
+我们将结合 `train` 和 `validation` 子集，提供大约七小时的训练数据，并使用三小时的 `test` 数据作为我们保留的测试集：
+
+```python
+from datasets import load_dataset, DatasetDict
+
+common_voice = DatasetDict()
+
+common_voice["train"] = load_dataset(
+    "mozilla-foundation/common_voice_13_0", "dv", split="train+validation"
+)
+common_voice["test"] = load_dataset(
+    "mozilla-foundation/common_voice_13_0", "dv", split="test"
+)
+
+print(common_voice)
+```
+
+**输出：**
+
+```
+DatasetDict({
+    train: Dataset({
+        features: ['client_id', 'path', 'audio', 'sentence', 'up_votes', 'down_votes', 'age', 'gender', 'accent', 'locale', 'segment', 'variant'],
+        num_rows: 4904
+    })
+    test: Dataset({
+        features: ['client_id', 'path', 'audio', 'sentence', 'up_votes', 'down_votes', 'age', 'gender', 'accent', 'locale', 'segment', 'variant'],
+        num_rows: 2212
+    })
+})
+```
+
+<Tip>
+    您可以将语言标识符从 `"dv"` 更改为您选择的语言标识符。要查看 Common Voice 13 中所有可选的语言，
+    请查看 Hugging Face Hub 上的数据集卡片：https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
+</Tip>
+
+大多数 ASR 数据集只提供输入音频样本（`audio`）和相应的转写文本（`sentence`）。Common Voice 包含额外的元数据，如 `accent` 和 `locale`，
+我们做 ASR 时可以忽略这些信息。为了让代码尽可能通用，我们只用输入音频和转写文本来进行微调，丢弃额外的元数据信息：
+
+```python
+common_voice = common_voice.select_columns(["audio", "sentence"])
+```
+
+## 特征提取器、分词器和处理器
+
+ASR 流程可以分解为三个阶段：
+
+1. 特征提取器将原始音频输入预处理为 log-mel 频谱图
+2. 模型执行序列到序列的映射
+3. 分词器将预测的词元后处理为文本
+
+在 🤗 Transformers 中，Whisper 模型有一个关联的特征提取器和分词器，分别称为 [WhisperFeatureExtractor](https://huggingface.co/docs/transformers/main/model_doc/whisper#transformers.WhisperFeatureExtractor) 和 [WhisperTokenizer](https://huggingface.co/docs/transformers/main/model_doc/whisper#transformers.WhisperTokenizer)。
+为了简化我们的工作，这两个类的对象又可以被封装在一个类中，称为 [WhisperProcessor](https://huggingface.co/docs/transformers/model_doc/whisper#transformers.WhisperProcessor)。
+我们可以调用 WhisperProcessor 来执行音频预处理和文本词元后处理。这样我们在训练期间只需要跟踪两个对象：处理器和模型。
+
+当执行多语言微调时，我们需要在实例化处理器时设置 `"language"` 和 `"task"`。`"language"` 应设置为源音频语言，
+任务设置为 `"transcribe"` 以进行语音识别或 `"translate"` 以进行语音翻译。这些参数会影响分词器的行为，应正确设置以确保目标标签被正确编码。
+
+我们可以通过导入语言列表来查看 Whisper 支持的所有可能语言：
+
+```python
+from transformers.models.whisper.tokenization_whisper import TO_LANGUAGE_CODE
+
+TO_LANGUAGE_CODE
+```
+
+如果您浏览此列表，您会注意到许多语言都存在，但迪维希语是少数不存在的之一！这意味着 Whisper 没有在迪维希语上进行预训练。
+然而，这并不意味着我们不能在其上微调 Whisper。这样做，我们将教会 Whisper 一种新的语言，一种预训练检查点不支持的语言。这很酷，对吧！
+
+当您在一种新语言上微调时，Whisper 可以利用它在其他 96 种语言上的预训练知识。总的来说，所有现代语言在语言学上至少与 Whisper 已经
+知道的 96 种语言中的一种类似，所以我们可以利用起这种跨语言的知识。
+
+我们需要做的是找到 Whisper 在预训练期间学习过**最相似**的语言。维基百科的迪维希语词条指出，迪维希语与斯里兰卡的僧伽罗语密切相关。
+如果我们再次检查语言代码，我们可以看到僧伽罗语存在于 Whisper 语言集中，因此我们可以安全地将我们的语言参数设置为 `"sinhalese"`。
+
+好！我们将从预训练检查点加载我们的处理器，将语言设置为 `"sinhalese"`，任务设置为 `"transcribe"`，如上所述：
+
+```python
+from transformers import WhisperProcessor
+
+processor = WhisperProcessor.from_pretrained(
+    "openai/whisper-small", language="sinhalese", task="transcribe"
+)
+```
+
+值得重申的是，在大多数情况下，您会发现您想要微调的语言在预训练语言集中，这种情况下，您可以直接将语言设置为您的源音频语言！
+请注意，对于仅英语的微调，这两个参数应省略，这种情况下语言（`"English"`）和任务（`"transcribe"`）都是唯一默认的选项。
+
+## 预处理数据
+
+让我们看看数据集特征。特别注意 `"audio"` 列——这详细说明了我们输入音频的采样率：
+
+```python
+common_voice["train"].features
+```
+
+**输出：**
+
+```
+{'audio': Audio(sampling_rate=48000, mono=True, decode=True, id=None),
+ 'sentence': Value(dtype='string', id=None)}
+```
+
+由于我们的输入音频采样率为 48kHz，我们需要在将其传递给 Whisper 特征提取器之前将其 _下采样_ 到 16kHz，16kHz 是 Whisper 模型期望的采样率。
+
+我们将使用数据集的 [`cast_column`](https://huggingface.co/docs/datasets/main/en/package_reference/main_classes#datasets.Dataset.cast_column) 方法
+将音频输入设置为正确的采样率。此操作不会就地更改音频，而是指示数据集在加载音频样本时即时地重采样：
+
+```python
+from datasets import Audio
+
+sampling_rate = processor.feature_extractor.sampling_rate
+common_voice = common_voice.cast_column("audio", Audio(sampling_rate=sampling_rate))
+```
+
+现在我们可以编写一个函数来准备我们的数据以供模型使用：
+
+1. 调用 `sample["audio"]` 在逐个样本上加载和重采样音频数据。如上所述，🤗 Datasets 在加载时即时执行任何必要的重采样操作。
+2. 用特征提取器从我们的一维音频数组计算 log-mel 频谱图输入特征。
+3. 用分词器将转写文本编码为标签 id。
+
+```python
+def prepare_dataset(example):
+    audio = example["audio"]
+
+    example = processor(
+        audio=audio["array"],
+        sampling_rate=audio["sampling_rate"],
+        text=example["sentence"],
+    )
+
+    # 计算输入音频样本的长度，以秒计
+    example["input_length"] = len(audio["array"]) / audio["sampling_rate"]
+
+    return example
+```
+
+我们可以使用 🤗 Datasets 的 `.map` 方法将数据预处理函数应用于我们所有的训练样本。
+我们将从原始训练数据中移除原有的列（音频和文本），只留下 `prepare_dataset` 函数返回的列：
+
+```python
+common_voice = common_voice.map(
+    prepare_dataset, remove_columns=common_voice.column_names["train"], num_proc=1
+)
+```
+最后，我们定义一个函数来过滤掉音频样本长度超过 30s 的训练数据。这些样本否则会被 Whisper 特征提取器截断，这可能影响训练的稳定性。
+我们定义一个函数，对于小于 30s 的样本返回 `True`，对于更长的样本返回 `False`：
+
+```python
+max_input_length = 30.0
+
+
+def is_audio_in_length_range(length):
+    return length < max_input_length
+```
+
+我们通过 🤗 Datasets 的 `.filter` 方法将我们的过滤函数应用于我们的训练数据集的所有样本：
+
+```python
+common_voice["train"] = common_voice["train"].filter(
+    is_audio_in_length_range,
+    input_columns=["input_length"],
+)
+```
+
+让我们检查一下通过这个过滤步骤我们移除了多少训练数据：
+
+```python
+common_voice["train"]
+```
+
+**输出：**
+
+```
+Dataset({
+    features: ['input_features', 'labels', 'input_length'],
+    num_rows: 4904
+})
+```
+
+好的！在过滤前后我们有相同数量的样本，所以原数据集中没有超过 30s 的样本。如果您切换语言，情况可能不同，因此为了稳健性最好保留这个过滤步骤。
+有了这些，我们的数据已经完全准备好进行训练了！让我们继续看看如何使用这些数据来微调 Whisper。
+
+## 训练和评估
+
+现在我们已经准备好了我们的数据，我们准备好深入训练流程了。
+[🤗 Trainer](https://huggingface.co/transformers/master/main_classes/trainer.html?highlight=trainer) 将为我们完成大部分繁重的工作。我们所要做的就是：
+
+- 定义一个数据整理器：数据整理器接受我们预处理的数据并准备好 PyTorch 张量以供模型使用。
+- 评估指标：我们希望使用词错误率（WER）指标来评估模型，需要定义一个处理这种计算的 `compute_metrics` 函数。
+- 加载预训练检查点：我们需要加载一个预训练检查点并为训练正确配置它。
+- 定义训练参数：这将被 🤗 Trainer 用来构建训练计划。
+
+一旦我们完成了模型的微调，我们将在测试数据上评估它，以验证我们是否正确地训练了它转写迪维希语语音。
+
+### 定义数据整理器
+
+序列到序列语音模型的数据整理器很独特，它能独立地处理 `input_features` 和 `labels`：`input_features` 必须由特征提取器处理，而 `labels` 由分词器处理。
+
+`input_features` 已经填充到 30s 并转换为固定维度的 log-Mel 频谱图，所以我们所要做的就是使用特征提取器的 `.pad` 方法，
+并设置参数 `return_tensors=pt`，将它们转换为批量的 PyTorch 张量。请注意，这里没有应用额外的填充，因为输入是固定维度的，
+`input_features` 仅被转换为 PyTorch 张量。
+
+另一方面，`labels` 是未填充的。我们首先使用分词器的 `.pad` 方法将序列填充到批次中的最大长度。然后用 `-100` 替换填充词元，
+以便在计算损失函数时**不**考虑这些词元。我们还要去掉标签序列开头的转写起始（start of transcript）词元，因为我们稍后在训练期间会添加它。
+
+我们可以利用我们之前定义的 `WhisperProcessor` 来执行特征提取器和分词器操作：
+
+```python
+import torch
+
+from dataclasses import dataclass
+from typing import Any, Dict, List, Union
+
+
+@dataclass
+class DataCollatorSpeechSeq2SeqWithPadding:
+    processor: Any
+
+    def __call__(
+        self, features: List[Dict[str, Union[List[int], torch.Tensor]]]
+    ) -> Dict[str, torch.Tensor]:
+        # 分离输入特征和标签，它们长度不同，填充方式也不同
+        # 首先以 PyTorch 张量格式返回音频
+        input_features = [
+            {"input_features": feature["input_features"][0]} for feature in features
+        ]
+        batch = self.processor.feature_extractor.pad(input_features, return_tensors="pt")
+
+        # 获取分词后得到的标签序列
+        label_features = [{"input_ids": feature["labels"]} for feature in features]
+        # 把标签序列填充到最大长度
+        labels_batch = self.processor.tokenizer.pad(label_features, return_tensors="pt")
+
+        # 用 -100 来代替填充进的标签，从而不影响损失函数的计算
+        labels = labels_batch["input_ids"].masked_fill(
+            labels_batch.attention_mask.ne(1), -100
+        )
+
+        # 如果在之前分词时添加了 bos 词元，那就剪切掉，因为之后还会加上的
+        if (labels[:, 0] == self.processor.tokenizer.bos_token_id).all().cpu().item():
+            labels = labels[:, 1:]
+
+        batch["labels"] = labels
+
+        return batch
+```
+
+我们现在可以初始化我们刚刚定义的数据整理器：
+
+```python
+data_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor)
+```
+
+继续！
+
+### 评估指标
+
+接下来，我们定义我们在测试集上将使用的评估指标。我们将使用 [评价指标](evaluation) 章节中介绍的词错误率（WER）指标，这是评估 ASR 系统的“事实上”的指标。
+
+我们从 🤗 Evaluate 加载 WER 指标：
+
+```python
+import evaluate
+
+metric = evaluate.load("wer")
+```
+
+然后我们只需定义一个函数，它接受我们模型的预测并返回 WER 指标。这个函数称为 `compute_metrics`，首先用 `pad_token_id` 替换 `label_ids` 中的 `-100`
+（撤销我们在数据整理器中为了在损失函数中正确忽略填充词元做的步骤）。然后，它将预测的标签 id 解码为字符串。最后，它计算预测结果和参考标签之间的 WER。
+在这里，我们可以选择评估“标准化”的转录和预测，这些转录和预测都移除了标点和大小写。我们建议您遵循这个步骤，通过标准化转录改进 WER。
+
+```python
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer
+
+normalizer = BasicTextNormalizer()
+
+
+def compute_metrics(pred):
+    pred_ids = pred.predictions
+    label_ids = pred.label_ids
+
+    # 用 pad_token_id 替换 -100
+    label_ids[label_ids == -100] = processor.tokenizer.pad_token_id
+
+    # 我们希望在计算指标时不要组合起词元
+    pred_str = processor.batch_decode(pred_ids, skip_special_tokens=True)
+    label_str = processor.batch_decode(label_ids, skip_special_tokens=True)
+
+    # 计算普通的 WER
+    wer_ortho = 100 * metric.compute(predictions=pred_str, references=label_str)
+
+    # 计算标准化的 WER
+    pred_str_norm = [normalizer(pred) for pred in pred_str]
+    label_str_norm = [normalizer(label) for label in label_str]
+    # 过滤，从而在评估时只计算 reference 非空的样本
+    pred_str_norm = [
+        pred_str_norm[i] for i in range(len(pred_str_norm)) if len(label_str_norm[i]) > 0
+    ]
+    label_str_norm = [
+        label_str_norm[i]
+        for i in range(len(label_str_norm))
+        if len(label_str_norm[i]) > 0
+    ]
+
+    wer = 100 * metric.compute(predictions=pred_str_norm, references=label_str_norm)
+
+    return {"wer_ortho": wer_ortho, "wer": wer}
+```
+
+### 加载预训练检查点
+
+现在让我们加载预训练的 Whisper small 检查点。用 🤗 Transformers 这是小菜一碟！
+
+```python
+from transformers import WhisperForConditionalGeneration
+
+model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-small")
+```
+
+我们将 `use_cache` 设置为 `False` 以进行训练，因为我们正在使用 [梯度检查点](https://huggingface.co/docs/transformers/v4.18.0/en/performance#gradient-checkpointing)，
+两者不兼容。我们还将覆盖两个生成参数以控制模型在推理期间的行为：我们将通过设置 `language` 和 `task` 参数在生成期间强制规定语言和任务标签，
+并重新启用缓存以加速推理：
+
+```python
+from functools import partial
+
+# 在训练期间不使用缓存，因为它和梯度检查点不兼容
+model.config.use_cache = False
+
+# 为生成设置语言和任务，并重新启用缓存
+model.generate = partial(
+    model.generate, language="sinhalese", task="transcribe", use_cache=True
+)
+```
+
+## 定义训练配置
+
+在最后一步，我们定义了所有与训练相关的参数。在这里，我们将训练步骤数设置为 500。这足以看到与预训练 Whisper 模型相比 WER 大幅提升，
+同时确保微调可以在大约 45 分钟内在 Google Colab 免费版上运行完。有关训练参数的更多详情，请参阅 Seq2SeqTrainingArguments [文档](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.Seq2SeqTrainingArguments)。
+
+```python
+from transformers import Seq2SeqTrainingArguments
+
+training_args = Seq2SeqTrainingArguments(
+    output_dir="./whisper-small-dv",  # 在 HF Hub 上的输出目录的名字
+    per_device_train_batch_size=16,
+    gradient_accumulation_steps=1,  # 每次 batch size 下调到一半就把这个参数上调到两倍
+    learning_rate=1e-5,
+    lr_scheduler_type="constant_with_warmup",
+    warmup_steps=50,
+    max_steps=500,  # 如果您有自己的 GPU 或者 Colab 付费计划，上调到 4000
+    gradient_checkpointing=True,
+    fp16=True,
+    fp16_full_eval=True,
+    evaluation_strategy="steps",
+    per_device_eval_batch_size=16,
+    predict_with_generate=True,
+    generation_max_length=225,
+    save_steps=500,
+    eval_steps=500,
+    logging_steps=25,
+    report_to=["tensorboard"],
+    load_best_model_at_end=True,
+    metric_for_best_model="wer",
+    greater_is_better=False,
+    push_to_hub=True,
+)
+```
+
+<Tip>
+    如果您不想将模型检查点上传到 Hub，请设置 `push_to_hub=False`。
+</Tip>
+
+我们可以将训练参数传递给 🤗 Trainer，连同我们的模型、数据集、数据整理器和 `compute_metrics` 函数一起：
+
+```python
+from transformers import Seq2SeqTrainer
+
+trainer = Seq2SeqTrainer(
+    args=training_args,
+    model=model,
+    train_dataset=common_voice["train"],
+    eval_dataset=common_voice["test"],
+    data_collator=data_collator,
+    compute_metrics=compute_metrics,
+    tokenizer=processor,
+)
+```
+
+有了这个，我们就准备好开始训练了！
+
+### 训练
+
+要启动训练，只需执行：
+
+```python
+trainer.train()
+```
+
+训练大约需要 45 分钟，取决于您的 GPU 或 Google Colab 给分配的 GPU 。由于 GPU 不同，当您开始训练时，可能会遇到 CUDA `"out-of-memory"` 错误。
+在这种情况下，您可以两倍两倍地逐渐减少 `per_device_train_batch_size` 并使用 [`gradient_accumulation_steps`](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.Seq2SeqTrainingArguments.gradient_accumulation_steps) 来补偿。
+
+**输出：**
+
+| Training Loss | Epoch | Step | Validation Loss | Wer Ortho | Wer     |
+|:-------------:|:-----:|:----:|:---------------:|:---------:|:-------:|
+| 0.136         | 1.63  | 500  | 0.1727          | 63.8972   | 14.0661 |
+
+我们最终的 WER 是 14.1%——对于七小时的训练数据和仅 500 训练步骤来说不错，这相当于与预训练模型相比提高了 112%！
+这意味着我们已经将一个之前不了解迪维希语的模型微调为在不到一小时内以足够的准确性识别迪维希语语音 🤯
+
+最重要的是，这与其他 ASR 系统相比如何。为此，我们可以查看 autoevaluate [排行榜](https://huggingface.co/spaces/autoevaluate/leaderboards?dataset=mozilla-foundation%2Fcommon_voice_13_0&only_verified=0&task=automatic-speech-recognition&config=dv&split=test&metric=wer)，
+一个根据语言和数据集分类模型并根据它们的 WER 排名的排行榜。
+
+查看排行榜，我们看到我们训练了 500 步的模型令人信服地击败了我们在前一节评估的预训练 [Whisper Small](https://huggingface.co/openai/whisper-small) 检查点。干得好 👏
+
+我们看到有一些检查点比我们训练的表现更好。Hugging Face Hub 的美妙之处在于它是一个*协作*平台——如果我们没有时间或资源自己进行更长时间的训练运行，
+我们可以加载社区中其他人已经训练并慷慨分享的检查点（记得对他们心怀感谢！）。您将能够以与预训练检查点相同的方式使用 `pipeline` 类加载这些检查点，
+正如我们之前所做的！所以没有什么能阻止您挑选排行榜上最佳模型来用于您的任务！
+
+我们可以在将训练结果推送到 Hub 时自动将我们的检查点提交到排行榜——我们只需设置适当的关键字参数 (kwargs)。您可以根据您的数据集、语言和模型名称相应地更改这些值：
+
+```python
+kwargs = {
+    "dataset_tags": "mozilla-foundation/common_voice_13_0",
+    "dataset": "Common Voice 13",  # 训练数据集
+    "language": "dv",
+    "model_name": "Whisper Small Dv - Sanchit Gandhi",  # 给模型起个“漂亮”的名字
+    "finetuned_from": "openai/whisper-small",
+    "tasks": "automatic-speech-recognition",
+}
+```
+
+现在可以将训练结果上传到 Hub，请执行 `push_to_hub` 命令：
+
+```python
+trainer.push_to_hub(**kwargs)
+```
+
+这将在 `"您的用户名/您给模型起的名字"` 下保存训练日志和模型权重。作为示例，请查看 `sanchit-gandhi/whisper-small-dv` 上的上传文件。
+
+虽然在 Common Voice 13 迪维希语测试数据上微调的模型提供了令人满意的结果，但这绝非最佳。本指南的目的是演示如何使用 🤗 Trainer 微调 ASR 模型以进行多语言语音识别。
+
+如果您有自己的 GPU 或订阅了 Google Colab 付费计划，您可以将 `max_steps` 增加到 4000 步，通过更多步骤的训练进一步降低大约 3% 的 WER。
+如果您决定进行 4000 步的训练，我们还建议将学习率调度器更改为*线性*计划（设置 `lr_scheduler_type="linear"`），因为这将在长时间的训练中提升更多性能。
+
+通过优化训练超参数，如 _学习率_ 和 _dropout_，并使用更大的预训练检查点（`medium` 或 `large`），可能进一步改善结果。我们将这留作读者的练习。
+
+## 分享您的模型
+
+您现在可以使用 Hub 上的链接与任何人共享此模型。大家可以直接将标识符 `"您的用户名/您给模型起的名字"` 加载到 `pipeline()` 对象中。
+例如，要加载微调的检查点 ["sanchit-gandhi/whisper-small-dv"](https://huggingface.co/sanchit-gandhi/whisper-small-dv)：
+
+```python
+from transformers import pipeline
+
+pipe = pipeline("automatic-speech-recognition", model="sanchit-gandhi/whisper-small-dv")
+```
+
+## 结论
+
+在本节中，我们逐步介绍了如何使用 🤗 Datasets、Transformers 和 Hugging Face Hub 微调 Whisper 模型以进行语音识别。
+我们首先加载了 Common Voice 13 数据集的迪维希语子集，并通过计算 log-mel 频谱图和分词文本对其进行了预处理。然后我们定义了数据整理器、评估指标和训练参数，
+使用 🤗 Trainer 来训练和评估我们的模型。我们将微调的模型上传到 Hugging Face Hub，并展示了如何使用 `pipeline()` 类共享和使用它。
+
+如果您一直学到了这里，您现在应该有了一个用于语音识别的微调检查点，干得好！🥳 更重要的是，您现在掌握了所有必要的工具，可以在任何语音识别数据集或领域上微调 Whisper 模型。
+那么，您还在等什么呢！从 [选择数据集](choosing_dataset) 章节中介绍的数据集里挑一个，或选择您自己的数据集，看看您是否可以获得 SOTA！排行榜在等着您……
