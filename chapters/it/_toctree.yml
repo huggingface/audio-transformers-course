@@ -118,12 +118,12 @@
 #   - local: chapter7/supplemental_reading
 #     title: Letture e risorse supplementari
 
-# - title: Capitolo 8. Traguardo
-#   sections:
-#   - local: chapter8/introduction
-#     title: Congratulazioni!
-#   - local: chapter8/certification
-#     title: Ottieni il tuo certificato di completamento
+- title: Capitolo 8. Traguardo
+  sections:
+  - local: chapter8/introduction
+    title: Congratulazioni!
+  - local: chapter8/certification
+    title: Ottieni il tuo certificato di completamento
 
 - title: Eventi del corso 
   sections:
