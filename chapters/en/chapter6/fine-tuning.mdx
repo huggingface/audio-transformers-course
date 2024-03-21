@@ -260,6 +260,12 @@ model from SpeechBrain.
 Create a function `create_speaker_embedding()` that takes an input audio waveform and outputs a 512-element vector 
 containing the corresponding speaker embedding.
 
+<Tip warning={true}>
+
+If you are using a recent version of speechbrain, replace the EncoderClassifier import with this: from speechbrain.inference.speaker import EncoderClassifier
+
+</Tip>
+
 ```py
 import os
 import torch
