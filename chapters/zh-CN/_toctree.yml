@@ -65,30 +65,25 @@
 #  - local: chapter4/hands_on
 #    title: 实战练习
 #
-#- title: 第5单元：自动语音识别(ASR)
-#  sections:
-#  - local: chapter5/introduction
-#    title: 单元简介
-#  - local: chapter5/choosing_dataset
-#    title: 选择数据集
-#  - local: chapter5/asr_models
-#    title: 自动语音识别的与训练模型
-#  - local: chapter5/preprocessing_data
-#    title: 数据加载和预处理
-#  - local: chapter5/evaluation
-#    title: 自动语音识别的评价指标
-#  - local: chapter5/fine-tuning
-#    title: 自动语音识别模型的微调
-#  - local: chapter5/speaker_diarization
-#    title: 说话人识别
-#  - local: chapter5/quiz
-#    title: 习题
-#    quiz: 5
-#  - local: chapter5/hands_on
-#    title: 实战练习
-#  - local: chapter5/supplemental_reading
-#    title: 补充阅读
-#
+- title: 第5单元：自动语音识别 (ASR)
+  sections:
+  - local: chapter5/introduction
+    title: 单元简介
+  - local: chapter5/asr_models
+    title: 语音识别的预训练模型
+  - local: chapter5/choosing_dataset
+    title: 选择数据集
+  - local: chapter5/evaluation
+    title: 语音识别的评价指标
+  - local: chapter5/fine-tuning
+    title: 微调语音识别模型
+  - local: chapter5/demo
+    title: 创建 demo
+  - local: chapter5/hands_on
+    title: 实战练习
+  - local: chapter5/supplemental_reading
+    title: 补充阅读
+
 #- title: 第6单元：由文字合成语音(TTS)
 #  sections:
 #  - local: chapter6/introduction

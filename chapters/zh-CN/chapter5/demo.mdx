@@ -1,0 +1,81 @@
+# 用 Gradio 创建 demo
+
+现在我们已经对迪维希语语音识别微调了 Whisper 模型，让我们继续前进，构建一个 [Gradio](https://gradio.app) demo 来向社区展示它！
+
+首先，我们需要使用 `pipeline()` 类加载微调后的检查点——这一点我们从 [预训练模型](asr_models) 章节开始就非常熟悉了。
+您可以更改 `model_id` 为您在 Hugging Face Hub 上微调模型的命名空间，或者使用预训练的 [Whisper 模型](https://huggingface.co/models?sort=downloads&search=openai%2Fwhisper-) 来进行零样本语音识别：
+
+```python
+from transformers import pipeline
+
+model_id = "sanchit-gandhi/whisper-small-dv"  # 改为您的模型 id
+pipe = pipeline("automatic-speech-recognition", model=model_id)
+```
+
+其次，我们将定义一个函数，该函数接收输入音频的文件路径并将其输入 pipeline。在这里，pipeline 会自动加载音频文件，
+将其重采样到正确的采样率，并使用模型运行推理。然后我们可以简单地返回转写文本作为函数的输出。
+为了确保我们的模型可以处理任意长度的音频输入，我们将启用 *分块*，正如 [预训练模型](asr_models) 章节所描述的：
+
+```python
+def transcribe_speech(filepath):
+    output = pipe(
+        filepath,
+        max_new_tokens=256,
+        generate_kwargs={
+            "task": "transcribe",
+            "language": "sinhalese",
+        },  # 修改成您微调过的语言
+        chunk_length_s=30,
+        batch_size=8,
+    )
+    return output["text"]
+```
+
+我们将使用 Gradio 的 [blocks](https://gradio.app/docs/#blocks) 功能在我们的 demo 中启动两个标签页：一个用于麦克风转写，另一个用于文件上传。
+
+```python
+import gradio as gr
+
+demo = gr.Blocks()
+
+mic_transcribe = gr.Interface(
+    fn=transcribe_speech,
+    inputs=gr.Audio(sources="microphone", type="filepath"),
+    outputs=gr.outputs.Textbox(),
+)
+
+file_transcribe = gr.Interface(
+    fn=transcribe_speech,
+    inputs=gr.Audio(sources="upload", type="filepath"),
+    outputs=gr.outputs.Textbox(),
+)
+```
+
+最后，我们使用刚刚定义的两个 blocks 启动 Gradio demo：
+
+```python
+with demo:
+    gr.TabbedInterface(
+        [mic_transcribe, file_transcribe],
+        ["Transcribe Microphone", "Transcribe Audio File"],
+    )
+
+demo.launch(debug=True)
+```
+
+这将启动一个类似于在 Hugging Face Space 上运行的 Gradio demo：
+
+<iframe src="https://course-demos-whisper-small.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
+如果您希望在 Hugging Face Hub 上托管您的 demo，您可以使用这个 Space 作为您微调的模型的模板。
+
+点击链接将模板 demo 复制到您的账户：https://huggingface.co/spaces/course-demos/whisper-small?duplicate=true
+
+我们建议将您的 Space 命名为与您的微调模型类似的名称（例如 whisper-small-dv-demo）并将可见性设置为“公开”。
+
+将 Space 复制到您的账户后，请点击“Files and versions”->“app.py”->“edit”，然后更改模型标识符为您的微调模型（第6行）。滚动到页面底部并点击
+“Commit changes to main”，demo 将重启，这次使用的是您的微调模型。您可以与您的朋友和家人分享这个 demo，以便他们可以使用您训练的模型！
+
+查看我们的视频教程，以更好地了解如何复制 Space 👉️ [YouTube 视频](https://www.youtube.com/watch?v=VQYuvl6-9VE)
+
+我们期待在 Hub 上看到您的 demos！

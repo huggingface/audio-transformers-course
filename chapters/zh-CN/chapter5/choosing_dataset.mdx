@@ -1,0 +1,100 @@
+# 选择数据集
+
+就像在其他机器学习问题中一样，我们的模型最多只能表现得与我们用来训练它的数据一样好。
+语音识别数据集在组织方式和覆盖的领域方面有很大的不同，我们需要查看它们提供的特征，选出最符合我们标准的数据集。
+
+所以在选择数据集之前，我们首先需要了解特征的定义。
+
+## 语音数据集的特征
+
+### 1. 小时数
+
+简单来说，训练小时数体现了数据集的大小，类似 NLP 数据集中的训练样例数量。然而，更大的数据集不一定更好。
+如果我们想要一个泛化能力强的模型，就需要一个具有许多不同发言者、领域和发言风格的**多样化**数据集。
+
+### 2. 领域
+
+领域（domain）包括数据的来源，比如有声读物、播客、YouTube 还是金融会议。每个领域的数据分布都不同，
+例如有声读物在高质量的录音室条件下录制（没有背景噪音），并且文本取自书面文学。而对于 YouTube，音频可能包含更多背景噪音和更非正式的语音风格。
+
+我们需要保证选择的领域与推理时的条件相匹配。例如，如果我们在有声读物上训练我们的模型，就不能期望它在嘈杂的环境中表现良好。
+
+### 3. 说话风格
+
+说话风格（speaking style）分为两类：
+
+* 叙述性（Narrated）：按照给定的文本朗读
+* 自发性（Spontaneous）：没有固定剧本的对话
+
+音频和文本数据反映了说话的风格。由于叙述文本是有剧本的，它表达得会比较清晰，没有任何错误：
+
+```
+“Consider the task of training a model on a speech recognition dataset”
+```
+
+而自发性言语使用更口语化的说话风格，包括重复、犹豫和错误：
+
+```
+“Let's uhh let's take a look at how you'd go about training a model on uhm a sp- speech recognition dataset”
+```
+
+### 4. 转写风格
+
+转写风格指的是目标文本是否有标点、区分大小写等。如果我们希望系统生成可用于出版物或会议转写的完全格式化文本，我们需要带有标点和大小写的训练数据。
+如果我们只需要未格式化结构的口头言语，那么标点和大小写都不是必需的。在这种情况下，我们可以选择一个没有标点或大小写的数据集，或者选择一个有标点和大小写的数据集，然后通过预处理从目标文本中去除它们。
+
+## Hub 上数据集的汇总
+
+以下是 Hugging Face Hub 上最受欢迎的英语语音识别数据集，作为您根据自己的标准选择数据集的参考：
+
+| 数据集                                                                                    | 训练小时数 | 领域                        | 说话风格      | 大小写 | 标点 | 许可证            | 推荐用途              |
+|---------------------------------------------------------------------------------------------|---------|--------------------------|----------------|--------|------|------------------|----------------------|
+| [LibriSpeech](https://huggingface.co/datasets/librispeech_asr)                              | 960     | 有声读物                    | 叙述性           | ❌    | ❌   | CC-BY-4.0       | 学术基准测试        |
+| [Common Voice 11](https://huggingface.co/datasets/mozilla-foundation/common_voice_11_0)     | 3000    | 维基百科                    | 叙述性           | ✅    | ✅   | CC0-1.0         | 非母语发言者        |
+| [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli)                             | 540     | 欧洲议会                    | 演讲式           | ❌    | ✅   | CC0             | 非母语发言者        |
+| [TED-LIUM](https://huggingface.co/datasets/LIUM/tedlium)                                    | 450     | TED 演讲                    | 演讲式           | ❌    | ❌   | CC-BY-NC-ND 3.0 | 技术主题           |
+| [GigaSpeech](https://huggingface.co/datasets/speechcolab/gigaspeech)                        | 10000   | 有声读物、播客、YouTube      | 叙述性、自发性    | ❌    | ✅   | apache-2.0      | 多领域鲁棒性       |
+| [SPGISpeech](https://huggingface.co/datasets/kensho/spgispeech)                             | 5000    | 金融会议                    | 演讲式、自发性    | ✅    | ✅   | User Agreement  | 完全格式化的转写    |
+| [Earnings-22](https://huggingface.co/datasets/revdotcom/earnings22)                         | 119     | 金融会议                    | 演讲式、自发性    | ✅    | ✅   | CC-BY-SA-4.0    | 口音多样性         |
+| [AMI](https://huggingface.co/datasets/edinburghcstr/ami)                                    | 100     | 会议                        | 自发性           | ✅    | ✅   | CC-BY-4.0       | 嘈杂语音环境        |
+
+以下是多语言语音识别数据集的表格，请注意，我们省略了训练小时数列（因为这取决于每个数据集有哪些语言，占比多少），改成了每个数据集的语言数量：
+
+| 数据集                                                                                         | 语言数量 | 领域                      | 说话风格 | 大小写 | 标点  | 许可证    | 推荐用途         |
+|------------------------------------------------------------------------------------------------|--------|---------------------------|---------|-------|-------|-----------|------------------|
+| [Multilingual LibriSpeech](https://huggingface.co/datasets/facebook/multilingual_librispeech)  | 6      | 有声读物                   | 叙述性   | ❌    | ❌   | CC-BY-4.0 | 学术基准测试      |
+| [Common Voice 13](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0)        | 108    | 维基百科文本和众筹的言语    | 叙述性   | ✅    | ✅   | CC0-1.0   | 多样化的发言者集合 |
+| [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli)                                | 15     | 欧洲议会                   | 自发性   | ❌    | ✅   | CC0       | 欧洲语言          |
+| [FLEURS](https://huggingface.co/datasets/google/fleurs)                                        | 101    | 欧洲议会                   | 自发性   | ❌    | ❌   | CC-BY-4.0 | 多语言评估        |
+
+有关两个表中涵盖的音频数据集的详细分析，请参阅博文 [音频数据集完全指南](https://huggingface.co/blog/audio-datasets#a-tour-of-audio-datasets-on-the-hub)。
+虽然 Hub 上有超过 180 个语音识别数据集，但可能没有一个数据集符合您的需求。在这种情况下，也可以通过 🤗 Datasets 库来使用您自己的音频数据。要创建自定义音频数据集，请参考指南 [创建音频数据集](https://huggingface.co/docs/datasets/audio_dataset)。
+自定义音频数据集时，请考虑在 Hub 上分享最终构建出的数据集，以便社区中的其他人可以从您的成果中受益——音频社区包容且广大，您感谢其他人的贡献，其他人会像一样感谢您的贡献。
+
+好了！既然我们已经了解了选择 ASR 数据集的所有标准，那么我们为这个教程选择一个吧。我们知道 Whisper 已经在高资源语言（如英语和西班牙语）上做得很好了，
+所以我们将专注于低资源的多语言转写。我们想保留 Whisper 预测标点和大小写的能力，所以从第二张表来看，Common Voice 13 是一个很好的候选数据集！
+
+## Common Voice 13
+
+Common Voice 13 是一个众筹的数据集，发言者用不同语言朗读并录制维基百科的文本。它是由 Mozilla 基金会发布的一系列 Common Voice 数据集之一。
+在撰写本文时，Common Voice 13 是最新版的数据集，拥有迄今为止任何版本中最多的语言和每种语言最多的小时数。
+
+我们可以通过查看 Hub 上的数据集页面来获取 Common Voice 13 数据集的全部语言列表：[mozilla-foundation/common_voice_13_0](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0)。
+您第一次查看此页面时会被要求接受使用条款，之后您将获得完全访问数据集的权限。
+
+一旦我们提交了使用数据集的认证信息，我们将看到数据集预览。数据集预览向我们展示了每种语言数据集的前 100 个样本。更重要的是，它已加载了可播放的音频样本。
+对于这个单元，我们将选择 [_Dhivehi_](https://en.wikipedia.org/wiki/Maldivian_language)（或 _迪维希语_），一种在南亚岛国马尔代夫使用的印度-雅利安语。
+虽然我们在本教程中只示范了迪维希语，但这里介绍的步骤适用于 Common Voice 13 数据集中 108 种语言的任何一种，以及 Hugging Face Hub 上 180 多个音频数据集的任何一个，没有语言或方言的限制。
+
+我们可以通过使用下拉菜单将子集设置为 `dv` 来选择 Common Voice 13 的 Dhivehi 子集（`dv` 是迪维希语的语言代码）：
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/cv_13_dv_selection.png" alt="从数据集预览中选择 Dhivehi 集">
+</div>
+
+如果我们点击第一个样本上的播放按钮，我们可以听到音频并查看相应的文本。浏览训练和测试集的样本，以更好地了解我们正在处理的音频和文本数据。
+从语调和风格上可以看出，录音来自叙述性言语。您可能会注意到每条数据的发言者和录音质量的有很大不同，这是众筹数据的一个共同特征。
+
+数据集预览是在开始大规模使用之前感性认知音频数据集的绝佳方式。您可以选择 Hub 上的任何数据集，浏览样本并播放不同子集的音频，评估它是否适合您的需求。选择了一个数据集后，加载数据并开始使用就非常简单了。
+
+目前我个人不会说迪维希语，而且估计绝大多数读者也不会！为了知道我们微调后的模型是否有效，我们需要一种严格的方法来**评估**它对未见过的数据的转写准确性。我们将在下一节中详细介绍这一点！
