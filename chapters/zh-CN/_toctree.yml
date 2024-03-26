@@ -84,29 +84,22 @@
   - local: chapter5/supplemental_reading
     title: 补充阅读
 
-#- title: 第6单元：由文字合成语音(TTS)
-#  sections:
-#  - local: chapter6/introduction
-#    title: 单元简介
-#  - local: chapter6/overview
-#    title: 如何从文字合成语音
-#  - local: chapter6/choosing_dataset
-#    title: 数据集选择
-#  - local: chapter6/preprocessing
-#    title: 数据加载和预处理
-#  - local: chapter6/pre-trained_models
-#    title: 文字转语音（TTS）预训练模型
-#  - local: chapter6/evaluation
-#    title: 文字转语音（TTS）的评价指标
-#  - local: chapter6/fine-tuning
-#    title: SpeechT5模型的微调
-#  - local: chapter6/quiz
-#    title: 习题
-#    quiz: 6
-#  - local: chapter6/hands_on
-#    title: 实战练习
-#  - local: chapter6/supplemental_reading
-#    title: 补充材料
+- title: 第六单元：从文本到语音
+  sections:
+  - local: chapter6/introduction
+    title: 单元简介
+  - local: chapter6/tts_datasets
+    title: 语音合成数据集
+  - local: chapter6/pre-trained_models
+    title: 语音合成的预训练模型
+  - local: chapter6/fine-tuning
+    title: 微调 SpeechT5
+  - local: chapter6/evaluation
+    title: 评估语音合成模型
+  - local: chapter6/hands_on
+    title: 实战练习
+  - local: chapter6/supplemental_reading
+    title: 补充阅读
 #
 #- title: 第7单元：音频到音频合成(ATA)
 #  sections:
