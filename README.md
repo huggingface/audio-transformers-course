@@ -15,7 +15,7 @@ The course teaches you about applying Transformers to various tasks in audio and
 | [Russian](https://huggingface.co/learn/audio-course/ru/chapter0/introduction)                     | [`chapters/ru`](https://github.com/huggingface/audio-transformers-course/tree/main/chapters/ru)       | [@blademoon](https://github.com/blademoon), [@Lightmourne](https://github.com/Lightmourne)                                                                              |
 | [Turkish](https://huggingface.co/learn/audio-course/tr/chapter0/introduction)                     | [`chapters/tr`](https://github.com/huggingface/audio-transformers-course/tree/main/chapters/tr)       |                                                                               |
 | [Chinese (simplified)](https://huggingface.co/learn/audio-course/zh-CN/chapter0/introduction)     | [`chapters/zh-CN`](https://github.com/huggingface/audio-transformers-course/tree/main/chapters/zh-CN) |                                                                               |
-
+| [Italian](https://huggingface.co/learn/audio-course/it/chapter0/introduction)     | [`chapters/it`](https://github.com/huggingface/audio-transformers-course/tree/main/chapters/it) |    [@leofltt](https://github.com/leofltt)                                                                           |
 ### Translating the course into your language
 
 As part of our mission to democratise machine learning, we'd love to have the course available in many more languages! 
