@@ -1,0 +1,336 @@
+# 语音识别的评价指标
+
+如果您熟悉自然语言处理（NLP）中的[莱文斯坦距离（Levenshtein distance）](https://en.wikipedia.org/wiki/Levenshtein_distance)，
+那么您会发现评估语音识别系统的指标颇为相似！如果您不熟悉，也不用担心，我们会从头到尾解释这些指标，确保您了解它们的不同之处以及它们的含义。
+
+在评估语音识别系统时，我们将系统的预测与目标文本的转写进行比较，并标注出现的任何错误。我们将这些错误归类为以下三种类别：
+
+1. 替换错误（Substitution, S）：在预测中转写了**错误的词**（例如，将 "sat" 转写为 "sit"）
+2. 插入错误（Insertion, I）：在预测中**多加了一个词**
+3. 删除错误（Deletion, D）：在预测中**漏掉了一个词**
+
+这些错误类别在所有语音识别指标中都是相同的，不同的是我们计算这些错误的粒度：我们可以在 _词级别_ 或者 _字符级别_ 上进行计算。
+
+我们将使用一个示例来解释每个指标的定义。这里，我们有一个 _基准_ 或 _参考_ 文本序列：
+
+```python
+reference = "the cat sat on the mat"
+```
+
+以及一个来自我们尝试评估的语音识别系统的预测序列：
+
+```python
+prediction = "the cat sit on the"
+```
+
+我们可以看到，预测相当接近，但有些词不太对。我们将用三种最流行的语音识别指标评估此预测，看看会算出什么样的结果。
+
+## 词错误率
+
+*词错误率（WER）* 是语音识别的“事实上的”指标。它在*词级别*上计算替换、插入和删除错误，即错误是逐词标注的。以我们的示例为例：
+
+| 参考 | the | cat | sat     | on  | the | mat |
+|----- |-----|-----|---------|-----|-----|-----|
+| 预测 | the | cat | **sit** | on  | the |     |
+| 标签 | ✅ | ✅   | S      | ✅ | ✅  | D   |
+
+在这里，我们有：
+
+* 1 个替换错误（"sit" 而不是 "sat"）
+* 0 个插入错误
+* 1 个删除错误（缺少 "mat"）
+
+这样总共有 2 个错误。要得到错误率，我们将错误数除以参考文本中的总词数（N），在这个例子中为 6：
+
+$$
+\begin{aligned}
+WER &= \frac{S + I + D}{N} \\
+&= \frac{1 + 0 + 1}{6} \\
+&= 0.333
+\end{aligned}
+$$
+
+好的！所以我们得到的 WER 是 0.333，或 33.3%。注意，“sit”这个词只有一个字符是错误的，
+但整个词都被标记为不正确。这是 WER 的一个特点：无论错误多么轻微，拼写错误都会受到重罚。
+
+WER *越低越好*：较低的 WER 意味着我们的预测中错误较少，因此完美的语音识别系统的 WER 应为零（无错误）。
+
+我们来看看如何使用 🤗 Evaluate 来计算 WER。我们需要两个库来计算我们的 WER 指标：🤗 Evaluate 用于 API 接口，JIWER 用于执行计算：
+
+```
+pip install --upgrade evaluate jiwer
+```
+
+太好了！我们现在可以加载 WER 指标，并为我们的示例计算出结果：
+
+```python
+from evaluate import load
+
+wer_metric = load("wer")
+
+wer = wer_metric.compute(references=[reference], predictions=[prediction])
+
+print(wer)
+```
+
+**打印输出：**
+
+```
+0.3333333333333333
+```
+
+0.33，或 33.3%，与预期一致！我们现在知道了这个 WER 计算的幕后情况。
+
+现在，这里有一个坑……您认为 WER 的上限是多少？您可能会认为是 1 或 100% 对吧？并不是！由于 WER 是错误与单词数（N）的比率，因此 WER 没有上限！
+让我们以一个预测了 10 个词而目标只有 2 个词的示例为例。如果我们的所有预测都是错误的（10 个错误），我们将得到 WER 为 10 / 2 = 5，或 500%！
+这是在训练 ASR 系统并看到超过 100% 的 WER 时需要牢记的一点。如果您看到这种情况，可能意味着什么地方出了问题……😅
+
+## 词准确率
+
+我们可以将 WER 反过来，得到一个*越高越好*的指标。与其衡量词错误率，不如衡量我们系统的*词准确率（WAcc）*：
+
+$$
+\begin{equation}
+WAcc = 1 - WER \nonumber
+\end{equation}
+$$
+
+WAcc 也是在词级别上测量的，它只是将 WER 重新表述为准确率指标，而不是错误率指标。
+WAcc 在语音文献中很少被引用——我们倾向于以词错误为中心思考系统的预测，因此更喜欢与这些错误类型标注更相关的错误率指标。
+
+## 字符错误率
+
+我们将整个词 “sit” 标记为错误似乎有点不公平，事实上只有一个字母是不正确的。这是因为我们是在词的级别上评估我们的系统，只能逐词标注错误。
+*字符错误率（CER）* 则在*字符级别*上评估系统。这意味着我们将单词分解为它们的各个字符，并在字符级别上标注错误：
+
+| 参考 | t   | h   | e   |     | c   | a   | t   |     | s   | a     | t   |     | o   | n   |     | t   | h   | e   |     | m   | a   | t   |
+|------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+| 预测 | t   | h   | e   |     | c   | a   | t   |     | s   | **i** | t   |     | o   | n   |     | t   | h   | e   |     |     |     |     |
+| 标签 | ✅   | ✅   | ✅   |     | ✅   | ✅   | ✅   |     | ✅   | S     | ✅   |     | ✅   | ✅   |     | ✅   | ✅   | ✅   |     | D   | D   | D   |
+
+我们现在可以看到，对于词 “sit”，“s” 和 “t” 被标记为正确。只有 “i” 被标记为替换错误（S）。因此，我们奖励了我们的系统部分正确的预测 🤝
+
+在我们的例子中，我们有 1 个字符替换，0 个插入和 3 个删除。总共有 14 个字符。所以，我们的 CER 是：
+
+$$
+\begin{aligned}
+CER &= \frac{S + I + D}{N} \\
+&= \frac{1 + 0 + 3}{14} \\
+&= 0.286
+\end{aligned}
+$$
+
+好的！我们得到了一个 CER 为 0.286，或 28.6%。注意这比我们的 WER 低——现在我们对拼写错误的惩罚要少得多了。
+
+## 我应该使用哪个指标？
+
+一般来说，WER 比 CER 更多地用于评估语音系统。这是因为 WER 要求系统对预测的上下文有更深入的理解。在我们的例子中，“sit” 使用了错误的时态。
+一个理解句子中动词和时态关系的系统会预测出正确的动词时态 “sat”。我们希望训练我们的语音系统达到这种理解水平。
+所以，尽管 WER 比 CER 更不宽容，但它也更有助于我们开发出我们想要的智能系统。因此，我们通常使用 WER，并鼓励您也这样做！
+然而，在某些情况下，使用 WER 是不可能的。某些语言，如汉语和日语，没有“词”的概念，因此 WER 没有意义。在这里，我们转而使用 CER。
+
+在我们的例子中，我们只在计算 WER 时使用了一句话。但真正在评估一个系统时，我们通常会使用包含几千句话的整个测试集。
+在评估多个句子时，我们会将所有句子的 S、I、D 和 N 求和，然后根据上面定义的公式计算 WER。这样可以更好地估计未见数据的 WER。
+
+## 规范化
+
+如果我们在带有标点和大小写的数据上训练 ASR 模型，它将学会在其转写中预测大小写和标点。当我们想将我们的模型用于实际的语音识别应用，
+如记录会议或口述时，这很有用，因为预测的转写将完全格式化，带有大小写和标点，这种风格被称为*正字法*（orthographic）。
+
+然而，我们可以选择*规范化*（normalise）数据集以消除任何大小写和标点。规范化数据集使语音识别任务变得更容易：模型不再需要区分大写和小写字符，
+也不需要单独从音频数据中预测标点（例如，分号发出什么声音？）。因此，词错误率自然更低（结果更好）。Whisper 论文演示了规范化转写对 WER 结果的巨大影响（参见 [Whisper 论文](https://cdn.openai.com/papers/whisper.pdf) 的第 4.4 节）。
+虽然我们获得了更低的 WER，但模型并不一定更适合生产。缺乏大小写和标点使模型预测的文本难以阅读。以 [前一节](asr_models) 中的示例为例，
+我们在 LibriSpeech 数据集的同一音频样本上运行了 Wav2Vec2 和 Whisper。Wav2Vec2 模型既不预测标点也不预测大小写，而 Whisper 则预测了这两者。
+对比两种转写，我们看到 Whisper 的转写更易于阅读：
+
+```
+Wav2Vec2:  HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAUS AND ROSE BEEF LOOMING BEFORE US SIMALYIS DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
+Whisper:   He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similarly is drawn from eating and its results occur most readily to the mind.
+```
+
+Whisper 的转写是符合正字法的，因此可以直接使用——它写成了我们期望的会议记录或口述记录的格式，带有标点和大小写。
+相反，如果我们想将 Wav2Vec2 的预测用于下游应用，我们需要使用额外的后处理来恢复标点和大小写。
+
+在规范化和不规范化之间有一个折中方案：我们可以在正字法转写上训练我们的系统，然后在计算 WER 之前对预测和目标进行规范化。
+这样，我们既能够训练系统预测带有完整格式的文本，又通过规范化转写提高了 WER。
+
+Whisper 模型发布时带有一个能有效处理大小写、标点和数字格式化等规范化任务的规范器（normaliser）。让我们将规范器应用于 Whisper 转写，以演示如何对它们进行规范化：
+
+```python
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer
+
+normalizer = BasicTextNormalizer()
+
+prediction = " He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similarly is drawn from eating and its results occur most readily to the mind."
+normalized_prediction = normalizer(prediction)
+
+normalized_prediction
+```
+
+**输出：**
+
+```
+' he tells us that at this festive season of the year with christmas and roast beef looming before us similarly is drawn from eating and its results occur most readily to the mind '
+```
+
+太好了！我们可以看到文本全部小写，并且没有标点。现在让我们定义参考转写，然后计算参考和预测之间的规范化 WER：
+
+```python
+reference = "HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND"
+normalized_referece = normalizer(reference)
+
+wer = wer_metric.compute(
+    references=[normalized_referece], predictions=[normalized_prediction]
+)
+wer
+```
+
+**输出：**
+
+```
+0.0625
+```
+
+6.25%——这大概就是我们能预期 Whisper 基础模型在 LibriSpeech 验证集上达到的效果。正如我们在这里看到的，我们预测了一个符合正字法的转写，但通过在计算 WER 之前规范化参考和预测提升了 WER。
+
+您如何规范化转写最终取决于您的需求。我们建议在正字法文本上进行训练，并在规范化文本上进行评估，以获得两全其美的效果。
+
+## 汇总
+
+好的！到目前为止，我们在本单元已经介绍了三个主题：预训练模型、数据集选择和评估。让我们来做点有趣的，将它们结合在一起做一个端到端的样例 🚀 
+我们将评估预训练的 Whisper 模型在 Common Voice 13 Dhivehi 测试集上的表现，为下一节关于微调的内容做铺垫。我们会将算出的 WER 作为微调的 _基准_，并尝试超越这个目标 🥊
+
+首先，我们将使用 `pipeline()` 类加载预训练的 Whisper 模型。我们现在对这个过程应该非常熟悉了！我们唯一的新步骤是在 GPU 上使用半精度（float16）加载模型——这样会加速推理且几乎不影响 WER。
+
+```python
+from transformers import pipeline
+import torch
+
+if torch.cuda.is_available():
+    device = "cuda:0"
+    torch_dtype = torch.float16
+else:
+    device = "cpu"
+    torch_dtype = torch.float32
+
+pipe = pipeline(
+    "automatic-speech-recognition",
+    model="openai/whisper-small",
+    torch_dtype=torch_dtype,
+    device=device,
+)
+```
+
+接下来，我们将加载 Common Voice 13 的迪维希语测试子集。您可能还记得，从上一节中我们了解到 Common Voice 13 是*受限的*，
+这意味着我们必须同意数据集的使用条款才能访问数据集。我们现在可以将我们的 Hugging Face 账户链接到我们的笔记本，以便我们可以从当前使用的机器访问数据集。
+
+将笔记本链接到 Hub 非常简单——只需要依照提示输入您的 Hub 身份验证令牌即可。在 [这里](https://huggingface.co/settings/tokens) 找到您的 Hub 身份验证令牌：
+
+```python
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+太好了！我们将笔记本链接到我们的 Hugging Face 账户之后，就可以下载 Common Voice 数据集了。
+下载和预处理需要几分钟，以下代码会从 Hugging Face Hub 获取数据并在您的笔记本上自动准备：
+
+```python
+from datasets import load_dataset
+
+common_voice_test = load_dataset(
+    "mozilla-foundation/common_voice_13_0", "dv", split="test"
+)
+```
+
+<Tip>
+    如果在加载数据集时遇到身份验证问题，请确保您已经通过以下链接在 Hugging Face Hub 上接受了数据集的使用条款：https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
+</Tip>
+
+用与推理单个样本相同的方式评估整个数据集——我们所要做的就是**循环**处理输入的所有音频，而不是仅推理单个样本。为此，我们首先将我们的数据集转换为 `KeyDataset`。
+我们要做的只是挑选出我们要传递给模型的特定的数据列（在我们的案例中，那是 `"audio"` 列），忽略其余的（如目标转写，在推理时用不上）。
+然后我们遍历这个转换后的数据集，将模型输出的预测结果保存到列表中。以下代码单元将在 GPU 上以半精度运行时大约需要五分钟，内存峰值为 12GB：
+
+```python
+from tqdm import tqdm
+from transformers.pipelines.pt_utils import KeyDataset
+
+all_predictions = []
+
+# 运行流式推理
+for prediction in tqdm(
+    pipe(
+        KeyDataset(common_voice_test, "audio"),
+        max_new_tokens=128,
+        generate_kwargs={"task": "transcribe"},
+        batch_size=32,
+    ),
+    total=len(common_voice_test),
+):
+    all_predictions.append(prediction["text"])
+```
+
+<Tip>
+    如果在运行上述单元时遇到 CUDA 内存不足（out-of-memory, OOM）问题，请将 `batch_size` 逐渐减小 2 的倍数，直到找到适合您设备的批次大小。
+</Tip>
+
+最后，我们可以计算 WER。让我们首先计算正字法 WER，即没有任何后处理时的 WER：
+
+```python
+from evaluate import load
+
+wer_metric = load("wer")
+
+wer_ortho = 100 * wer_metric.compute(
+    references=common_voice_test["sentence"], predictions=all_predictions
+)
+wer_ortho
+```
+
+**输出：**
+
+```
+167.29577268612022
+```
+
+好吧……167% 意味着我们的模型输出的是垃圾 😜 别担心，我们的目标是通过在迪维希语训练集上微调模型来改善这一点！
+
+接下来，我们将评估规范化 WER，即规范化后处理过再得到的 WER。我们必须过滤掉规范化后为空的样本，否则我们参考中的总词数（N）将为零，这将导致我们的计算中出现除以零的错误：
+
+```python
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer
+
+normalizer = BasicTextNormalizer()
+
+# 计算规范化 WER
+all_predictions_norm = [normalizer(pred) for pred in all_predictions]
+all_references_norm = [normalizer(label) for label in common_voice_test["sentence"]]
+
+# 过滤掉参考文本被规范化后为零值的样本
+all_predictions_norm = [
+    all_predictions_norm[i]
+    for i in range(len(all_predictions_norm))
+    if len(all_references_norm[i]) > 0
+]
+all_references_norm = [
+    all_references_norm[i]
+    for i in range(len(all_references_norm))
+    if len(all_references_norm[i]) > 0
+]
+
+wer = 100 * wer_metric.compute(
+    references=all_references_norm, predictions=all_predictions_norm
+)
+
+wer
+```
+
+**输出：**
+
+```
+125.69809089960707
+```
+
+我们再次看到通过规范化我们的参考和预测，我们显著降低了 WER：基线模型在正字法的测试中的 WER 为 168%，而规范化 WER 为 126%。
+
+好了！这些是我们在通过微调提高 Whisper 模型语音识别迪维希语的能力时需要超越的目标。继续阅读，开始动手尝试微调示例吧 🚀

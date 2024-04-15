@@ -105,7 +105,7 @@ pip install -r requirements.txt
 make style
 ```
 
-Once that's run, commit any changes, open a pull request, and tag [@MKhalusova](https://github.com/MKhalusova) for a review. Congratulations, you've now completed your first translation 🥳!
+Once that's run, commit any changes, open a pull request, and wait for a review. Congratulations, you've now completed your first translation 🥳!
 
 > 🚨 To build the course on the website, double-check your language code exists in `languages` field of the `build_documentation.yml` and `build_pr_documentation.yml` files in the `.github` folder. If not, just add them in their alphabetical order.
 
@@ -137,7 +137,7 @@ Adding a new chapter to the course is quite simple:
 
 If you get stuck, check out one of the existing chapters -- this will often show you the expected syntax.
 
-Once you are happy with the content, open a pull request and tag [@MKhalusova](https://github.com/MKhalusova) for a review. We recommend adding the first chapter draft as a single pull request -- the team will then provide feedback internally to iterate on the content 🤗!
+Once you are happy with the content, open a pull request and wait for a review. We recommend adding the first chapter draft as a single pull request -- the team will then provide feedback internally to iterate on the content 🤗!
 
 ## 🙌 Acknowledgements
 
