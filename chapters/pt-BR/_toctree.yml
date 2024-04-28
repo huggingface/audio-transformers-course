@@ -1,0 +1,26 @@
+- title: Unidade 0. Bem vindo ao Curso!
+  sections:
+  - local: chapter0/introduction
+    title: O que esperar deste curso
+  - local: chapter0/get_ready
+    title: Prepare-se
+  - local: chapter0/community
+    title: Junte-se à comunidade
+
+- title: Unidade 1. Trabalhando com dados de áudio
+  sections:
+  - local: chapter1/introduction
+    title: O que você vai aprender
+  - local: chapter1/audio_data
+    title: Introdução aos dados de áudio
+  - local: chapter1/load_and_explore
+    title: Carregue e explore um dataset de áudio
+  - local: chapter1/preprocessing
+    title: Pré-processamento do dados de áudio
+  - local: chapter1/streaming
+    title: Streaming de dados de áudio
+  - local: chapter1/quiz
+    title: Quiz
+    quiz: 1
+  - local: chapter1/supplemental_reading
+    title: Leitura e material adicional
