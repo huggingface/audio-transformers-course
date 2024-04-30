@@ -1,0 +1,126 @@
+# Streaming de dados de áudio
+
+Um dos maiores desafios enfrentados com datasets de áudio é o seu tamanho imenso. Um único minuto de áudio de qualidade de CD não comprimido (44,1kHz, 16-bit) ocupa um pouco mais de 5 MB de armazenamento. Normalmente, um dataset de áudio contém horas de gravações.
+
+Nas seções anteriores, usamos um subconjunto muito pequeno do dataset de áudio MINDS-14, no entanto, datasets de áudio típicos são muito maiores. Por exemplo, a configuração `xs` (a menor) do [GigaSpeech do SpeechColab](https://huggingface.co/datasets/speechcolab/gigaspeech) contém apenas 10 horas de dados de treinamento, mas ocupa mais de 13GB de espaço de armazenamento para download e preparação. Então, o que acontece quando queremos treinar em um conjunto maior? A configuração completa `xl` do mesmo dataset contém 10.000 horas de dados de treinamento, exigindo mais de 1TB de espaço de armazenamento. Para a maioria de nós, isso excede em muito as especificações de um disco comum. Precisamos gastar e comprar armazenamento adicional? Ou existe uma maneira de treinarmos nesses datasets sem restrições de espaço em disco?
+
+🤗 Datasets nos salva oferecendo o [modo de streaming](https://huggingface.co/docs/datasets/stream). O Streaming nos permite carregar os dados progressivamente à medida que iteramos sobre o dataset. Em vez de baixar o dataset inteiro de uma vez, carregamos um exemplo de cada vez. Iteramos sobre o dataset, carregando e preparando exemplos na hora quando são necessários. Desta forma, só carregamos os exemplos que estamos usando, e não os que não estamos! Uma vez que terminamos com uma amostra de exemplo, continuamos iterando sobre o dataset e carregamos o próximo.
+
+O modo de streaming tem três vantagens principais sobre o download do dataset inteiro de uma vez:
+
+* Espaço em disco: os exemplos são carregados na memória um por um à medida que iteramos sobre o dataset. Como os dados não são baixados localmente, não há requisitos de espaço em disco, então você pode usar datasets de tamanho arbitrário.
+* Tempo de download e processamento: datasets de áudio são grandes e precisam de uma quantidade significativa de tempo para serem baixados e processados. Com streaming, o carregamento e processamento é feito na hora, o que significa que você pode começar a usar o dataset assim que o primeiro exemplo estiver pronto.
+* Experimentação fácil: você pode experimentar em um punhado de exemplos para verificar se o seu script funciona sem ter que baixar o dataset inteiro.
+
+Há uma ressalva para o modo de streaming. Ao baixar um dataset completo sem streaming, tanto os dados brutos quanto os dados processados são salvos localmente no disco. Se quisermos reutilizar este dataset, podemos carregar diretamente os dados processados do disco, pulando as etapas de download e processamento. Consequentemente, só temos que realizar as operações de download e processamento uma vez, após o que podemos reutilizar os dados preparados.
+
+Com o modo de streaming, os dados não são baixados para o disco. Assim, nem os dados baixados nem os pré-processados são armazenados em cache. Se quisermos reutilizar o dataset, as etapas de streaming devem ser repetidas, com os arquivos de áudio carregados e processados na hora novamente. Por essa razão, é aconselhável baixar datasets que você provavelmente usará várias vezes.
+
+Como você pode habilitar o modo de streaming? Fácil! Basta definir `streaming=True` quando você carregar seu dataset. O resto será cuidado para você:
+
+```py
+gigaspeech = load_dataset("speechcolab/gigaspeech", "xs", streaming=True)
+```
+
+Assim como aplicamos etapas de pré-processamento a um subconjunto baixado do MINDS-14, você pode fazer o mesmo pré-processamento com um dataset em streaming exatamente da mesma maneira.
+
+A única diferença é que você não pode mais acessar amostras individuais usando indexação do Python (ou seja, `gigaspeech["train"][sample_idx]`). Em vez disso, você tem que iterar sobre o dataset. Aqui está como você pode acessar um exemplo ao transmitir um dataset:
+
+```py
+next(iter(gigaspeech["train"]))
+```
+
+**Saída:**
+```out
+{
+    "segment_id": "YOU0000000315_S0000660",
+    "speaker": "N/A",
+    "text": "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+    "audio": {
+        "path": "xs_chunks_0000/YOU0000000315_S0000660.wav",
+        "array": array(
+            [0.0005188, 0.00085449, 0.00012207, ..., 0.00125122, 0.00076294, 0.00036621]
+        ),
+        "sampling_rate": 16000,
+    },
+    "begin_time": 2941.89,
+    "end_time": 2945.07,
+    "audio_id": "YOU0000000315",
+    "title": "Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43",
+    "url": "https://www.youtube.com/watch?v=zr2n1fLVasU",
+    "source": 2,
+    "category": 24,
+    "original_full_path": "audio/youtube/P0004/YOU0000000315.opus",
+}
+```
+
+Se você gostaria de visualizar vários exemplos de um grande dataset, use o `take()` para obter os primeiros n elementos. Vamos pegar os dois primeiros exemplos no dataset gigaspeech:
+
+```py
+gigaspeech_head = gigaspeech["train"].take(2)
+list(gigaspeech_head)
+```
+
+**Saída:**
+```out
+[
+    {
+        "segment_id": "YOU0000000315_S0000660",
+        "speaker": "N/A",
+        "text": "AS THEY'RE LEAVING <COMMA> CAN KASH PULL ZAHRA ASIDE REALLY QUICKLY <QUESTIONMARK>",
+        "audio": {
+            "path": "xs_chunks_0000/YOU0000000315_S0000660.wav",
+            "array": array(
+                [
+                    0.0005188,
+                    0.00085449,
+                    0.00012207,
+                    ...,
+                    0.00125122,
+                    0.00076294,
+                    0.00036621,
+                ]
+            ),
+            "sampling_rate": 16000,
+        },
+        "begin_time": 2941.89,
+        "end_time": 2945.07,
+        "audio_id": "YOU0000000315",
+        "title": "Return to Vasselheim | Critical Role: VOX MACHINA | Episode 43",
+        "url": "https://www.youtube.com/watch?v=zr2n1fLVasU",
+        "source": 2,
+        "category": 24,
+        "original_full_path": "audio/youtube/P0004/YOU0000000315.opus",
+    },
+    {
+        "segment_id": "AUD0000001043_S0000775",
+        "speaker": "N/A",
+        "text": "SIX TOMATOES <PERIOD>",
+        "audio": {
+            "path": "xs_chunks_0000/AUD0000001043_S0000775.wav",
+            "array": array(
+                [
+                    1.43432617e-03,
+                    1.37329102e-03,
+                    1.31225586e-03,
+                    ...,
+                    -6.10351562e-05,
+                    -1.22070312e-04,
+                    -1.83105469e-04,
+                ]
+            ),
+            "sampling_rate": 16000,
+        },
+        "begin_time": 3673.96,
+        "end_time": 3675.26,
+        "audio_id": "AUD0000001043",
+        "title": "Asteroid of Fear",
+        "url": "http//www.archive.org/download/asteroid_of_fear_1012_librivox/asteroid_of_fear_1012_librivox_64kb_mp3.zip",
+        "source": 0,
+        "category": 28,
+        "original_full_path": "audio/audiobook/P0011/AUD0000001043.opus",
+    },
+]
+```
+
+O modo de streaming pode levar sua pesquisa para o próximo nível: não apenas os maiores datasets estão acessíveis para você, mas você pode facilmente avaliar sistemas através de vários datasets de uma só vez sem se preocupar com o espaço em disco. Comparado à avaliação em um único dataset, a avaliação em vários datasets fornece uma métrica melhor para as habilidades de generalização de um sistema de reconhecimento de fala (c.f. End-to-end Speech Benchmark (ESB)).
