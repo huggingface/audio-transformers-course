@@ -4,6 +4,6 @@
 quality:
 	python utils/code_formatter.py --check_only
 
-# Format code samples automatically and check is there are any problems left that need manual fixing
+# Format code samples automatically and check if there are any problems left that need manual fixing
 style:
 	python utils/code_formatter.py
