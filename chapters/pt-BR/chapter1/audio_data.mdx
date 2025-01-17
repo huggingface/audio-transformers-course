@@ -153,7 +153,7 @@ O espectrograma é criado obtendo trechos curtos do sinal de áudio, geralmente 
 
 Como o espectrograma e a forma de onda são visualizações diferentes dos mesmos dados, é possível transformar o espectrograma de volta na forma de onda original usando a STFT inversa. No entanto, isso requer a informação de fase, além da amplitude. Se o espectograma foi gerado por um modelo de machine learning, geralmente ele contém só as amplitudes. Neste caso, nós podemos usar um algoritmo de reconstrução de fase como o clássico algoritmo de Griffin-Lim ou usar uma rede neural chamada vocoder, que reconstroi a forma de onda partir do espectograma.
 
-Os espectrogramas não são usados apenas para visualização. Muitos modelosmachine learning utilizam espectrogramas como entrada — ao invés de formas de onda — e produzem espectrogramas como saída.
+Os espectrogramas não são usados apenas para visualização. Muitos modelos de machine learning utilizam espectrogramas como entrada — ao invés de formas de onda — e produzem espectrogramas como saída.
 
 Agora que sabemos o que é um espectrograma e como é feito, vamos dar uma olhada em uma variante dele amplamente usada para o processamento de fala: o espectrograma mel.
 
