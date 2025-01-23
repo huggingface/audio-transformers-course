@@ -14,6 +14,6 @@ jobs:
       package_name: audio-course
       path_to_docs: audio-transformers-course/chapters/
       additional_args: --not_python_module
-      languages: en bn ko es zh-CN ru fr tr
+      languages: en bn ko es zh-CN ru fr tr pt-BR
     secrets:
       hf_token: ${{ secrets.HF_DOC_BUILD_PUSH }}
