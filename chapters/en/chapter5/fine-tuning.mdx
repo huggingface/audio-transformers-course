@@ -448,6 +448,8 @@ training_args = Seq2SeqTrainingArguments(
     metric_for_best_model="wer",
     greater_is_better=False,
     push_to_hub=True,
+    dataloader_num_workers=1,
+    dataloader_prefetch_factor=1,
 )
 ```
 

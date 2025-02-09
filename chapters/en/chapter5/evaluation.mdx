@@ -291,6 +291,10 @@ the `"audio"` column), ignoring the rest (like the target transcriptions, which 
 then iterate over this transformed datasets, appending the model outputs to a list to save the predictions. The
 following code cell will take approximately five minutes if running on a GPU with half-precision, peaking at 12GB memory:
 
+<Tip>
+  The Whisper model doesn't support Dhivehi, but we can use Sinhala instead as both are quite similar. We need to pass this in the generate_kwargs.
+</Tip>
+
 ```python
 from tqdm import tqdm
 from transformers.pipelines.pt_utils import KeyDataset
@@ -302,7 +306,7 @@ for prediction in tqdm(
     pipe(
         KeyDataset(common_voice_test, "audio"),
         max_new_tokens=128,
-        generate_kwargs={"task": "transcribe"},
+        generate_kwargs={"task": "transcribe", "language":"Sinhala"},
         batch_size=32,
     ),
     total=len(common_voice_test),
