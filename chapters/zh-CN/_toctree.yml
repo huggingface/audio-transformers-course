@@ -123,12 +123,12 @@
 #  - local: chapter7/supplemental_reading
 #    title: 补充阅读
 #
-#- title: 第8单元：终点线
-#  sections:
-#  - local: chapter8/introduction
-#    title: Congratulations!
-#  - local: chapter8/certification
-#    title: Get your certification of completion
+- title: 第8单元：结束线
+  sections:
+  - local: chapter8/introduction
+    title: 祝贺!
+  - local: chapter8/certification
+    title: 获取您的完成证书
 #  - local: chapter8/stay_in_touch
 #    title: Stay in touch
 #
