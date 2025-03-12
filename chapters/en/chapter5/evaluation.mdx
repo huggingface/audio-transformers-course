@@ -348,17 +348,15 @@ normalizer = BasicTextNormalizer()
 all_predictions_norm = [normalizer(pred) for pred in all_predictions]
 all_references_norm = [normalizer(label) for label in common_voice_test["sentence"]]
 
-# filtering step to only evaluate the samples that correspond to non-zero references
-all_predictions_norm = [
-    all_predictions_norm[i]
-    for i in range(len(all_predictions_norm))
-    if len(all_references_norm[i]) > 0
-]
-all_references_norm = [
-    all_references_norm[i]
+# Filtering step to only evaluate the samples that correspond to non-zero references
+filtered_pairs = [
+    (all_predictions_norm[i], all_references_norm[i])
     for i in range(len(all_references_norm))
     if len(all_references_norm[i]) > 0
 ]
+
+# Unpack filtered lists
+all_predictions_norm, all_references_norm = zip(*filtered_pairs) if filtered_pairs else ([], [])
 
 wer = 100 * wer_metric.compute(
     references=all_references_norm, predictions=all_predictions_norm
