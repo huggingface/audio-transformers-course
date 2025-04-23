@@ -152,6 +152,15 @@ Next, you can write a function to pre-process a single audio example by passing 
 ```py
 def prepare_dataset(example):
     audio = example["audio"]
+    
+    if audio["sampling_rate"] != 16000:
+        audio_array = librosa.resample(
+            audio["array"], 
+            orig_sr=audio["sampling_rate"], 
+            target_sr=16000
+        )
+        audio = {"array": audio_array, "sampling_rate": 16000}
+    
     features = feature_extractor(
         audio["array"], sampling_rate=audio["sampling_rate"], padding=True
     )
