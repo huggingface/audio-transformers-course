@@ -116,22 +116,22 @@ individual characters, and annotate errors on a character-by-character basis:
 | Reference:  | t   | h   | e   |     | c   | a   | t   |     | s   | a     | t   |     | o   | n   |     | t   | h   | e   |     | m   | a   | t   |
 |-------------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
 | Prediction: | t   | h   | e   |     | c   | a   | t   |     | s   | **i** | t   |     | o   | n   |     | t   | h   | e   |     |     |     |     |
-| Label:      | ✅   | ✅   | ✅   |     | ✅   | ✅   | ✅   |     | ✅   | S     | ✅   |     | ✅   | ✅   |     | ✅   | ✅   | ✅   |     | D   | D   | D   |
+| Label:      | ✅   | ✅   | ✅   |   ✅  | ✅   | ✅   | ✅   | ✅   | ✅   | S     | ✅   | ✅   | ✅   | ✅   | ✅    | ✅   | ✅   | ✅   |  D   | D   | D   | D   |
 
 We can see now that for the word "sit", the "s" and "t" are marked as correct. It's only the "i" which is labelled as a
 substitution error (S). Thus, we reward our system for the partially correct prediction 🤝
 
-In our example, we have 1 character substitution, 0 insertions, and 3 deletions. In total, we have 14 characters. So, our CER is:
+In our example, we have 1 character substitution, 0 insertions, and 4 deletions. In total, we have 22 characters. So, our CER is:
 
 $$
 \begin{aligned}
 CER &= \frac{S + I + D}{N} \\
-&= \frac{1 + 0 + 3}{17} \\
-&= 0.235
+&= \frac{1 + 0 + 4}{22} \\
+&= 0.227
 \end{aligned}
 $$
 
-Right! We have a CER of 0.235, or 23.5%. Notice how this is lower than our WER - we penalised the spelling error much less.
+Right! We have a CER of 0.227, or 22.7%. Notice how this is lower than our WER - we penalised the spelling error much less.
 
 ## Which metric should I use?
 
