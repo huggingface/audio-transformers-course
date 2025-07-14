@@ -121,6 +121,37 @@ dataset on the Hub, scroll through the samples and listen to the audio for the d
 it's the right dataset for your needs. Once you've selected a dataset, it's trivial to load the data so that you can
 start using it.
 
+## Model-Specific Dataset Considerations
+
+When selecting a dataset for fine-tuning, it's important to consider the specific requirements and characteristics of your chosen ASR model:
+
+### For Whisper Models
+- **Multilingual datasets** work best due to Whisper's multilingual training
+- **Longer audio segments** (up to 30 seconds) are processed efficiently
+- **Diverse domains** benefit from Whisper's robust pre-training
+- **Punctuation and casing** are recommended as Whisper handles them well
+
+### For Moonshine Models
+- **English-only datasets** are required (currently)
+- **Shorter audio segments** (under 10 seconds) leverage Moonshine's efficiency advantages
+- **Clean, high-quality audio** maximizes the model's edge computing benefits
+- **Domain-specific data** can be particularly effective due to the model's focused training
+
+### For Kyutai STT Models
+- **English and French datasets** are supported
+- **Streaming-compatible data** with natural speech patterns work best
+- **Longer audio files** (up to 2 hours) are handled efficiently
+- **Noisy or challenging audio** conditions are well-supported
+
+### Dataset Selection Strategy
+
+1. **Match your model's language support** to your target languages
+2. **Consider audio length characteristics** for optimal performance
+3. **Evaluate computational constraints** when choosing between models
+4. **Test on representative samples** from your target domain
+
+The Common Voice 17 dataset we selected works well for all three model types, though you might see different performance characteristics depending on your choice of model architecture.
+
 Now, I personally don't speak Dhivehi, and expect the vast majority of readers not to either! To know if our fine-tuned model
 is any good, we'll need a rigorous way of _evaluating_ it on unseen data and measuring its transcription accuracy.
 We'll cover exactly this in the next section!
