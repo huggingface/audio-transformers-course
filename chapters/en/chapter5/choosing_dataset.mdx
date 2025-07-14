@@ -152,6 +152,8 @@ When selecting a dataset for fine-tuning, it's important to consider the specifi
 
 The Common Voice 17 dataset we selected works well for all three model types, though you might see different performance characteristics depending on your choice of model architecture.
 
+For production deployments, you might also consider [alternative ASR implementations](alternative_implementations) that offer different optimization trade-offs, such as whisper.cpp for edge devices, faster-whisper for server applications, or MLX-Whisper for Apple Silicon devices.
+
 Now, I personally don't speak Dhivehi, and expect the vast majority of readers not to either! To know if our fine-tuned model
 is any good, we'll need a rigorous way of _evaluating_ it on unseen data and measuring its transcription accuracy.
 We'll cover exactly this in the next section!

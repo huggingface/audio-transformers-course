@@ -73,6 +73,8 @@
     title: What you'll learn and what you'll build
   - local: chapter5/asr_models
     title: Pre-trained models for speech recognition
+  - local: chapter5/alternative_implementations
+    title: Alternative ASR implementations
   - local: chapter5/choosing_dataset
     title: Choosing a dataset
   - local: chapter5/evaluation

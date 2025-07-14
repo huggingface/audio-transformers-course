@@ -554,4 +554,8 @@ Each model represents different optimization trade-offs:
 
 The choice depends on your specific requirements: language support, computational constraints, latency requirements, and deployment environment. All three models support punctuation and casing, and are available through the 🤗 Transformers library with `pipeline()` support for easy inference.
 
-For applications requiring fine-tuning, the same principles apply across all models. In the next section, we'll explore dataset selection strategies that can be adapted for any of these ASR architectures.
+For applications requiring fine-tuning, the same principles apply across all models. 
+
+While transformers-based models offer excellent out-of-the-box performance, you might also want to explore [alternative ASR implementations](alternative_implementations) that provide different optimization trade-offs, including whisper.cpp for edge deployment, faster-whisper for server applications, and platform-specific optimizations like MLX-Whisper for Apple Silicon.
+
+In the next section, we'll explore dataset selection strategies that can be adapted for any of these ASR architectures.
