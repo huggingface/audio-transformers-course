@@ -426,11 +426,15 @@ processor = AutoProcessor.from_pretrained("UsefulSensors/moonshine-base")
 model = MoonshineForConditionalGeneration.from_pretrained("UsefulSensors/moonshine-base")
 
 # Load sample audio
-dataset = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+dataset = load_dataset(
+    "hf-internal-testing/librispeech_asr_dummy", "clean", split="validation"
+)
 sample = dataset[0]["audio"]
 
 # Process the audio
-inputs = processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="pt")
+inputs = processor(
+    sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="pt"
+)
 
 # Generate transcription
 with torch.no_grad():
@@ -481,11 +485,15 @@ processor = AutoProcessor.from_pretrained("kyutai/stt-2.6b-en")
 model = KyutaiSTTForConditionalGeneration.from_pretrained("kyutai/stt-2.6b-en")
 
 # Load sample audio
-dataset = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+dataset = load_dataset(
+    "hf-internal-testing/librispeech_asr_dummy", "clean", split="validation"
+)
 sample = dataset[0]["audio"]
 
 # Process the audio
-inputs = processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="pt")
+inputs = processor(
+    sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="pt"
+)
 
 # Generate transcription
 with torch.no_grad():

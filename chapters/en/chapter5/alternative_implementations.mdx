@@ -109,14 +109,12 @@ segments, info = model.transcribe(
     compression_ratio_threshold=2.4,
     log_prob_threshold=-1.0,
     no_speech_threshold=0.6,
-    word_timestamps=True
+    word_timestamps=True,
 )
 
 # Voice Activity Detection (VAD)
 segments, info = model.transcribe(
-    "audio.wav",
-    vad_filter=True,
-    vad_parameters=dict(min_silence_duration_ms=500)
+    "audio.wav", vad_filter=True, vad_parameters=dict(min_silence_duration_ms=500)
 )
 ```
 
@@ -153,7 +151,7 @@ pipe = pipeline(
     model="openai/whisper-large-v3",
     torch_dtype=torch.float16,
     device="cuda",
-    model_kwargs={"attn_implementation": "flash_attention_2"}
+    model_kwargs={"attn_implementation": "flash_attention_2"},
 )
 
 # Ultra-fast transcription
@@ -291,11 +289,12 @@ import pyaudio
 import threading
 import queue
 
+
 class StreamingWhisper:
     def __init__(self, model_name="small"):
         self.model = WhisperModel(model_name, device="cuda", compute_type="float16")
         self.audio_queue = queue.Queue()
-        
+
     def stream_transcribe(self):
         while True:
             if not self.audio_queue.empty():
@@ -304,9 +303,9 @@ class StreamingWhisper:
                     audio_data,
                     beam_size=5,
                     language="en",
-                    condition_on_previous_text=False
+                    condition_on_previous_text=False,
                 )
-                
+
                 for segment in segments:
                     print(f"[{segment.start:.2f}s -> {segment.end:.2f}s] {segment.text}")
 ```
@@ -337,6 +336,7 @@ for segment in segments:
 import time
 import numpy as np
 
+
 def benchmark_implementation(model_func, audio_path, num_runs=5):
     """Benchmark an ASR implementation"""
     times = []
@@ -345,19 +345,20 @@ def benchmark_implementation(model_func, audio_path, num_runs=5):
         result = model_func(audio_path)
         end_time = time.time()
         times.append(end_time - start_time)
-    
+
     return {
-        'mean_time': np.mean(times),
-        'std_time': np.std(times),
-        'transcription': result
+        "mean_time": np.mean(times),
+        "std_time": np.std(times),
+        "transcription": result,
     }
+
 
 # Compare implementations
 implementations = {
-    'whisper.cpp': lambda path: whisper_cpp_transcribe(path),
-    'faster-whisper': lambda path: faster_whisper_transcribe(path),
-    'insanely-fast-whisper': lambda path: insanely_fast_transcribe(path),
-    'mlx-whisper': lambda path: mlx_whisper_transcribe(path)
+    "whisper.cpp": lambda path: whisper_cpp_transcribe(path),
+    "faster-whisper": lambda path: faster_whisper_transcribe(path),
+    "insanely-fast-whisper": lambda path: insanely_fast_transcribe(path),
+    "mlx-whisper": lambda path: mlx_whisper_transcribe(path),
 }
 
 results = {}
@@ -393,9 +394,9 @@ def robust_transcribe(audio_path, fallback_implementations=None):
         fallback_implementations = [
             faster_whisper_transcribe,
             whisper_cpp_transcribe,
-            transformers_whisper_transcribe
+            transformers_whisper_transcribe,
         ]
-    
+
     for i, implementation in enumerate(fallback_implementations):
         try:
             result = implementation(audio_path)
@@ -404,7 +405,7 @@ def robust_transcribe(audio_path, fallback_implementations=None):
         except Exception as e:
             print(f"Implementation {i+1} failed: {e}")
             continue
-    
+
     raise RuntimeError("All implementations failed")
 ```
 
