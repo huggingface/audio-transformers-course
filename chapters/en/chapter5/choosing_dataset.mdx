@@ -56,7 +56,7 @@ Here is a summary of the most popular English speech recognition datasets on the
 | Dataset                                                                                 | Train Hours | Domain                      | Speaking Style        | Casing | Punctuation | License         | Recommended Use                  |
 |-----------------------------------------------------------------------------------------|-------------|-----------------------------|-----------------------|--------|-------------|-----------------|----------------------------------|
 | [LibriSpeech](https://huggingface.co/datasets/librispeech_asr)                          | 960         | Audiobook                   | Narrated              | ❌      | ❌           | CC-BY-4.0       | Academic benchmarks              |
-| [Common Voice 11](https://huggingface.co/datasets/mozilla-foundation/common_voice_11_0) | 3000        | Wikipedia                   | Narrated              | ✅      | ✅           | CC0-1.0         | Non-native speakers              |
+| [Common Voice 17](https://huggingface.co/datasets/mozilla-foundation/common_voice_17_0) | 3000        | Wikipedia                   | Narrated              | ✅      | ✅           | CC0-1.0         | Non-native speakers              |
 | [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli)                         | 540         | European Parliament         | Oratory               | ❌      | ✅           | CC0             | Non-native speakers              |
 | [TED-LIUM](https://huggingface.co/datasets/LIUM/tedlium)                                | 450         | TED talks                   | Oratory               | ❌      | ❌           | CC-BY-NC-ND 3.0 | Technical topics                 |
 | [GigaSpeech](https://huggingface.co/datasets/speechcolab/gigaspeech)                    | 10000       | Audiobook, podcast, YouTube | Narrated, spontaneous | ❌      | ✅           | apache-2.0      | Robustness over multiple domains |
@@ -71,7 +71,7 @@ for each dataset, and replace it with the number of languages per dataset:
 | Dataset                                                                                       | Languages | Domain                                | Speaking Style | Casing | Punctuation | License   | Recommended Usage       |
 |-----------------------------------------------------------------------------------------------|-----------|---------------------------------------|----------------|--------|-------------|-----------|-------------------------|
 | [Multilingual LibriSpeech](https://huggingface.co/datasets/facebook/multilingual_librispeech) | 6         | Audiobooks                            | Narrated       | ❌      | ❌           | CC-BY-4.0 | Academic benchmarks     |
-| [Common Voice 13](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0)       | 108       | Wikipedia text & crowd-sourced speech | Narrated       | ✅      | ✅           | CC0-1.0   | Diverse speaker set     |
+| [Common Voice 17](https://huggingface.co/datasets/mozilla-foundation/common_voice_17_0)       | 124       | Wikipedia text & crowd-sourced speech | Narrated       | ✅      | ✅           | CC0-1.0   | Diverse speaker set     |
 | [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli)                               | 15        | European Parliament recordings        | Spontaneous    | ❌      | ✅           | CC0       | European languages      |
 | [FLEURS](https://huggingface.co/datasets/google/fleurs)                                       | 101       | European Parliament recordings        | Spontaneous    | ❌      | ❌           | CC-BY-4.0 | Multilingual evaluation |
 
@@ -85,26 +85,26 @@ efforts - the audio community is inclusive and wide-ranging, and others will app
 Alright! Now that we've gone through all the criterion for selecting an ASR dataset, let's pick one for the purpose of this tutorial.
 We know that Whisper already does a pretty good job at transcribing data in high-resource languages (such as English and Spanish), so
 we'll focus ourselves on low-resource multilingual transcription. We want to retain Whisper's ability to predict punctuation and casing,
-so it seems from the second table that Common Voice 13 is a great candidate dataset!
+so it seems from the second table that Common Voice 17 is a great candidate dataset!
 
-## Common Voice 13
+## Common Voice 17
 
-Common Voice 13 is a crowd-sourced dataset where speakers record text from Wikipedia in various languages. It forms part of
+Common Voice 17 is a crowd-sourced dataset where speakers record text from Wikipedia in various languages. It forms part of
 the Common Voice series, a collection of Common Voice datasets released by Mozilla Foundation. At the time of writing,
-Common Voice 13 is the latest edition of the dataset, with the most languages and hours per language out of any release to date.
+Common Voice 17 is the latest edition of the dataset, with the most languages and hours per language out of any release to date.
 
-We can get the full list of languages for the Common Voice 13 dataset by checking-out the dataset page on the Hub:
-[mozilla-foundation/common_voice_13_0](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0).
+We can get the full list of languages for the Common Voice 17 dataset by checking-out the dataset page on the Hub:
+[mozilla-foundation/common_voice_17_0](https://huggingface.co/datasets/mozilla-foundation/common_voice_17_0).
 The first time you view this page, you'll be asked to accept the terms of use. After that, you'll be given full access to the dataset.
 
 Once we've provided authentication to use the dataset, we'll be presented with the dataset preview. The dataset preview
 shows us the first 100 samples of the dataset for each language. What's more, it's loaded up with audio samples ready for us
 to listen to in real time. For this Unit, we'll select [_Dhivehi_](https://en.wikipedia.org/wiki/Maldivian_language)
 (or _Maldivian_), an Indo-Aryan language spoken in the South Asian island country of the Maldives. While we're selecting
-Dhivehi for this tutorial, the steps covered here apply to any one of the 108 languages in the Common Voice 13 dataset, and
+Dhivehi for this tutorial, the steps covered here apply to any one of the 124 languages in the Common Voice 17 dataset, and
 more generally to any one of the 180+ audio datasets on the Hugging Face Hub, so there's no restriction on language or dialect.
 
-We can select the Dhivehi subset of Common Voice 13 by setting the subset to `dv` using the dropdown menu (`dv` being the language
+We can select the Dhivehi subset of Common Voice 17 by setting the subset to `dv` using the dropdown menu (`dv` being the language
 identifier code for Dhivehi):
 
 <div class="flex justify-center">
