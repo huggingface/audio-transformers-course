@@ -229,38 +229,6 @@ Conformer architectures offer competitive performance with significantly lower c
 - **Depthwise separable convolutions** reducing computational complexity from 32.8% to 4.0%
 - **Streaming capabilities** for real-time applications
 
-#### Example Implementation:
-
-```python
-# Conformer-based model for edge deployment
-import torch
-from transformers import ConformerModel, ConformerConfig
-
-config = ConformerConfig(
-    hidden_size=256,
-    num_hidden_layers=6,
-    num_attention_heads=8,
-    intermediate_size=1024,
-    conv_kernel_size=31,
-    conv_stride=2,
-    depthwise_conv_kernel_size=31,
-    use_group_norm=True,
-    do_stable_layer_norm=True,
-)
-
-model = ConformerModel(config)
-```
-
-### Squeezeformer: Memory-Efficient Conformer
-
-Squeezeformer reduces memory usage while maintaining performance through architectural optimizations.
-
-#### Key Features:
-- **50% less memory** than standard Conformer
-- **Temporal U-Net structure** for efficient processing
-- **Grouped attention** reducing computational complexity
-- **Swish activation** for better gradient flow
-
 ## Comprehensive Performance Comparison
 
 | Implementation | Speed vs Original | Memory Usage | Platform Focus | Accuracy vs Original | Use Case |
