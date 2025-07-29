@@ -1,22 +1,14 @@
-# Unit 4. Build a music genre classifier
+# 第4单元：构建音乐风格分类器
 
-## What you'll learn and what you'll build
+## 学习目标与项目构建
 
-Audio classification is one of the most common applications of transformers in audio and speech processing. Like other 
-classification tasks in machine learning, this task involves assigning one or more labels to an audio recording based on 
-its content. For example, in the case of speech, we might want to detect when wake words like "Hey Siri" are spoken, or
-infer a key word like "temperature" from a spoken query like "What is the weather today?". Environmental sounds
-provide another example, where we might want to automatically distinguish between sounds such as "car horn", "siren",
-"dog barking", etc.
+音频分类是Transformer在音频和语音处理中的常见应用之一。与机器学习中的其他分类任务类似，该任务的目标是根据音频内容为其分配一个或多个标签。例如，在语音场景中，我们可能希望检测唤醒词（如“Hey Siri”）何时被说出，或从诸如“今天天气怎么样？”的语句中识别出关键词“天气”。在环境声音的应用中，我们则可能希望自动区分诸如“汽车喇叭”、“警报声”或“狗叫声”等不同的声音类型。
 
-In this section, we'll look at how pre-trained audio transformers can be applied to a range of audio classification tasks.
-We'll then fine-tune a transformer model on the task of music classification, classifying songs into genres like "pop" and
-"rock". This is an important part of music streaming platforms like [Spotify](https://en.wikipedia.org/wiki/Spotify), which 
-recommend songs that are similar to the ones the user is listening to.
+在本节中，我们将了解如何使用预训练的音频Transformer来处理各种音频分类任务。随后，我们将把模型微调到音乐分类任务上，将歌曲分类为“流行”、“摇滚”等不同的音乐风格。这类功能在音乐流媒体平台（如[Spotify](https://en.wikipedia.org/wiki/Spotify)）中十分关键，可用于推荐与用户当前正在听的歌曲相似的内容。
 
-By the end of this section, you'll know how to:
+完成本节后，你将掌握以下内容：
 
-* Find suitable pre-trained models for audio classification tasks
-* Use the 🤗 Datasets library and the Hugging Face Hub to select audio classification datasets
-* Fine-tune a pretrained model to classify songs by genre
-* Build a Gradio demo that lets you classify your own songs
+* 如何寻找适用于音频分类任务的预训练模型
+* 如何使用🤗 Datasets库和Hugging Face Hub获取音频分类数据集
+* 如何微调预训练模型，实现按音乐风格对歌曲进行分类
+* 如何使用Gradio构建一个可以对你上传的歌曲进行分类的应用demo
