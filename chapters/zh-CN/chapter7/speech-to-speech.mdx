@@ -1,55 +1,30 @@
-# Speech-to-speech translation
+# 语音到语音翻译
 
-Speech-to-speech translation (STST or S2ST) is a relatively new spoken language processing task. It involves translating 
-speech from one langauge into speech in a **different** language:
+语音到语音翻译（Speech-to-speech translation，简称STST或S2ST）是一项相对较新的语音语言处理任务，其目标是将一种语言的语音翻译成**另一种**语言的语音：
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/s2st.png" alt="Diagram of speech to speech translation">
 </div>
 
-STST can be viewed as an extension of the traditional machine translation (MT) task: instead of translating **text** from one 
-language into another, we translate **speech** from one language into another. STST holds applications in the field of 
-multilingual communication, enabling speakers in different languages to communicate with one another through the medium 
-of speech.
+STST可以被视为传统机器翻译（MT）任务的扩展：不同之处在于，我们翻译的不再是**文本**，而是**语音**。STST在多语言交流领域具有广泛应用，它可以帮助不同语言的使用者通过语音自然沟通。
 
-Suppose you want to communicate with another individual across a langauge barrier. Rather 
-than writing the information that you want to convey and then translating it to text in the target language, you 
-can speak it directly and have a STST system convert your spoken speech into the target langauge. The recipient can then
-respond by speaking back at the STST system, and you can listen to their response. This is a more natural way of communicating 
-compared to text-based machine translation.
+想象一下，当你需要与讲不同语言的人沟通时，不必先将你想表达的内容写下来再翻译成目标语言，而是可以直接开口说话，然后由STST系统将你的语音翻译为目标语言的语音。对方也可以通过该系统以语音方式进行回应。这种交互方式相比基于文本的翻译更加自然流畅。
 
-In this chapter, we'll explore a *cascaded* approach to STST, piecing together the knowledge you've acquired in Units 
-5 and 6 of the course. We'll use a *speech translation (ST)* system to transcribe the source speech into text in the target 
-language, then *text-to-speech (TTS)* to generate speech in the target language from the translated text:
+在本节中，我们将探索一种**级联式（cascaded）**STST方法，整合你在第5单元（语音识别）和第6单元（语音合成）中学到的知识。我们将先使用一个**语音翻译（ST）**系统，将源语音直接翻译为目标语言的文本，然后使用**文本转语音（TTS）**系统，将翻译后的文本合成为语音：
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/s2st_cascaded.png" alt="Diagram of cascaded speech to speech translation">
 </div>
 
-We could also have used a three stage approach, where first we use an automatic speech recognition (ASR) system to 
-transcribe the source speech into text in the same language, then machine translation to translate the transcribed text 
-into the target language, and finally text-to-speech to generate speech in the target language. However, adding more 
-components to the pipeline lends itself to *error propagation*, where the errors introduced in one system are compounded 
-as they flow through the remaining systems, and also increases latency, since inference has to be conducted for more models.
+我们也可以采用三阶段的方法：首先使用自动语音识别（ASR）系统将源语音转写为相同语言的文本，然后通过机器翻译（MT）将该文本翻译为目标语言，最后再使用TTS将翻译后的文本合成为语音。不过，增加组件数量会导致**误差累积（error propagation）**问题——某个阶段出现的错误会影响到后续模型；同时也会增加推理时延，因为需要顺序调用多个模型。
 
-While this cascaded approach to STST is pretty straightforward, it results in very effective STST systems. The three-stage
-cascaded system of ASR + MT + TTS was previously used to power many commercial STST products, including [Google Translate](https://ai.googleblog.com/2019/05/introducing-translatotron-end-to-end.html).
-It's also a very data and compute efficient way of developing a STST system, since existing speech recognition and 
-text-to-speech systems can be coupled together to yield a new STST model without any additional training.
+虽然这种级联方法看起来较为简单，但却能构建出效果非常好的STST系统。实际上，早期许多商用STST产品（如[Google翻译](https://ai.googleblog.com/2019/05/introducing-translatotron-end-to-end.html)）就是基于ASR + MT + TTS的三阶段级联方案实现的。该方法还具有良好的数据效率和计算效率，因为可以直接组合已有的语音识别与语音合成系统，无需额外训练STST模型。
 
-In the remainder of this Unit, we'll focus on creating a STST system that translates speech from any language X to speech
-in English. The methods covered can be extended to STST systems that translate from any language X to any 
-langauge Y, but we leave this as an extension to the reader and provide pointers where applicable. We further divide up the 
-task of STST into its two constituent components: ST and TTS. We'll finish by piecing them together to build a Gradio 
-demo to showcase our system.
+在本单元接下来的内容中，我们将聚焦构建一个可将任意语言X的语音翻译为英语语音的STST系统。尽管我们聚焦X→英语的翻译方向，但你可以将相同方法扩展至任意X→Y的语言组合，我们在后文也会提供相应的提示。我们会将STST拆解为两个核心子任务：语音翻译（ST）与文本转语音（TTS），最后将两者整合，并通过Gradio构建一个演示界面来展示整个系统的效果。
 
-## Speech translation
+## 语音翻译（Speech Translation）
 
-We'll use the Whisper model for our speech translation system, since it's capable of translating from over 96 languages
-to English. Specifically, we'll load the [Whisper Base](https://huggingface.co/openai/whisper-base) checkpoint, which 
-clocks in at 74M parameters. It's by no means the most performant Whisper model, with the [largest Whisper checkpoint](https://huggingface.co/openai/whisper-large-v2)
-being over 20x larger, but since we're concatenating two auto-regressive systems together (ST + TTS), we want to ensure 
-each model can generate relatively quickly so that we get reasonable inference speed:
+我们将使用Whisper模型构建语音翻译系统，因为它支持将来自96种语言的语音翻译为英文。具体来说，我们会加载[Whisper Base](https://huggingface.co/openai/whisper-base)模型，该模型拥有7400万参数。虽然它并不是性能最强的版本（[Whisper Large](https://huggingface.co/openai/whisper-large-v2) 的参数量是它的20多倍），但考虑到我们需要级联两个自回归模型（ST + TTS），因此希望每个模型都能尽快完成推理，以保持整体响应速度合理：
 
 ```python
 import torch
@@ -61,8 +36,7 @@ pipe = pipeline(
 )
 ```
 
-Great! To test our STST system, we'll load an audio sample in a non-English language. Let's load the first example of the
-Italian (`it`) split of the [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli) dataset:
+太好了！接下来我们加载一段非英语的语音样本来测试STST系统。这里我们选用[VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli)数据集中意大利语（`it`）验证集的第一个样本：
 
 ```python
 from datasets import load_dataset
@@ -71,9 +45,9 @@ dataset = load_dataset("facebook/voxpopuli", "it", split="validation", streaming
 sample = next(iter(dataset))
 ```
 
-To listen to this sample, we can either play it using the dataset viewer on the Hub: [facebook/voxpopuli/viewer](https://huggingface.co/datasets/facebook/voxpopuli/viewer/it/validation?row=0)
+你可以在Hub的数据集页面试听该样本：[facebook/voxpopuli/viewer](https://huggingface.co/datasets/facebook/voxpopuli/viewer/it/validation?row=0)
 
-Or playback using the ipynb audio feature:
+也可以通过Jupyter Notebook的音频功能直接播放：
 
 ```python
 from IPython.display import Audio
@@ -81,9 +55,7 @@ from IPython.display import Audio
 Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
 ```
 
-Now let's define a function that takes this audio input and returns the translated text. You'll remember that we have to 
-pass the generation key-word argument for the `"task"`, setting it to `"translate"` to ensure that Whisper performs 
-speech translation and not speech recognition:
+现在我们定义一个函数，接收音频输入并返回翻译后的文本。请注意，我们需要通过参数设置任务为 `"translate"`，以确保Whisper执行语音翻译而非语音识别：
 
 ```python
 def translate(audio):
@@ -93,15 +65,13 @@ def translate(audio):
 
 <Tip>
 
-    Whisper can also be 'tricked' into translating from speech in any language X to any language Y. Simply set the task to
-    `"transcribe"` and the `"language"` to your target language in the generation key-word arguments, 
-    e.g. for Spanish, one would set:
+Whisper也可以通过一些技巧实现将语音从任意语言X翻译成任意语言Y。只需将任务设置为`"transcribe"`，并通过`"language"`参数指定目标语言，例如若要翻译成西班牙语，可设置为：
 
-	`generate_kwargs={"task": "transcribe", "language": "es"&rcub;`
+`generate_kwargs={"task": "transcribe", "language": "es"&rcub;`
 
 </Tip>
 
-Great! Let's quickly check that we get a sensible result from the model:
+太棒了！我们快速检查一下模型是否能输出合理的结果：
 
 ```python
 translate(sample["audio"].copy())
@@ -110,7 +80,7 @@ translate(sample["audio"].copy())
 ' psychological and social. I think that it is a very important step in the construction of a juridical space of freedom, circulation and protection of rights.'
 ```
 
-Alright! If we compare this to the source text:
+没问题！如果我们将其与原始文本进行对比：
 
 ```python
 sample["raw_text"]
@@ -119,21 +89,15 @@ sample["raw_text"]
 'Penso che questo sia un passo in avanti importante nella costruzione di uno spazio giuridico di libertà di circolazione e di protezione dei diritti per le persone in Europa.'
 ```
 
-We see that the translation more or less lines up (you can double check this using Google Translate), barring a small 
-extra few words at the start of the transcription where the speaker was finishing off their previous sentence.
+可以看到，翻译内容大致一致（你可以用 Google 翻译自行验证）。唯一的差别在于开头出现了一些额外的词汇，那是说话者上一句话的尾部。
 
-With that, we've completed the first half of our cascaded STST pipeline, putting into practice the skills we gained in Unit 5 
-when we learnt how to use the Whisper model for speech recognition and translation. If you want a refresher on any of the
-steps we covered, have a read through the section on [Pre-trained models for ASR](../chapter5/asr_models) from Unit 5.
+至此，我们已完成级联STST流水线的第一步，并实际运用了第5单元中学到的Whisper模型用于语音识别和翻译的技能。如果你想回顾相关内容，可以重新阅读[第5单元的预训练模型章节](../chapter5/asr_models)。
 
-## Text-to-speech
+## 文本转语音（Text-to-speech）
 
-The second half of our cascaded STST system involves mapping from English text to English speech. For this, we'll use 
-the pre-trained [SpeechT5 TTS](https://huggingface.co/microsoft/speecht5_tts) model for English TTS. 🤗 Transformers currently doesn't 
-have a TTS `pipeline`, so we'll have to use the model directly ourselves. This is no biggie, you're all experts on using 
-the model for inference following Unit 6!
+接下来是STST系统的第二部分：将英文文本转换为英文语音。我们将使用预训练的[SpeechT5 TTS](https://huggingface.co/microsoft/speecht5_tts)模型来进行语音合成。目前🤗 Transformers暂未提供用于TTS的 `pipeline`，所以我们需要手动使用模型。不过没关系，在第 6 单元中你已经掌握了推理方法，完全可以胜任！
 
-First, let's load the SpeechT5 processor, model and vocoder from the pre-trained checkpoint:
+首先，我们从预训练检查点中加载SpeechT5的处理器、模型和声码器（vocoder）：
 
 ```python
 from transformers import SpeechT5Processor, SpeechT5ForTextToSpeech, SpeechT5HifiGan
@@ -145,28 +109,26 @@ vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
 ```
 
 <Tip>
-    Here we're using SpeechT5 checkpoint trained specifically for English TTS. Should you wish to translate into a language 
-    other than English, either swap the checkpoint for a SpeechT5 TTS model fine-tuned on your language of choice, or 
-    use an MMS TTS checkpoint pre-trained in your target langauge.
+
+这里使用的是专门为英语TTS训练的SpeechT5检查点。如果你想翻译成其他语言的语音，可以更换为你目标语言上微调的SpeechT5模型，或者使用 MMSTTS项目的多语言模型。
+
 </Tip>
 
-As with the Whisper model, we'll place the SpeechT5 model and vocoder on our GPU accelerator device if we have one:
+和Whisper一样，我们可以将SpeechT5模型和vocoder部署到GPU加速设备上（如可用）：
+
 ```python
 model.to(device)
 vocoder.to(device)
 ```
 
-Great! Let's load up the speaker embeddings:
+太好了！现在加载说话人嵌入（speaker embeddings）：
 
 ```python
 embeddings_dataset = load_dataset("Matthijs/cmu-arctic-xvectors", split="validation")
 speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze(0)
 ```
 
-We can now write a function that takes a text prompt as input, and generates the corresponding speech. We'll first pre-process
-the text input using the SpeechT5 processor, tokenizing the text to get our input ids. We'll then pass the input ids and
-speaker embeddings to the SpeechT5 model, placing each on the accelerator device if available. Finally, we'll return the 
-generated speech, bringing it back to the CPU so that we can play it back in our ipynb notebook:
+然后我们可以编写一个函数，接收文本作为输入，并生成对应的语音。首先用处理器对文本进行预处理（标记化），获取输入ID；然后将输入ID和说话人嵌入传入SpeechT5模型，同时部署在加速器设备上；最后将生成的语音搬到CPU上，便于在Jupyter Notebook中播放：
 
 ```python
 def synthesise(text):
@@ -177,24 +139,19 @@ def synthesise(text):
     return speech.cpu()
 ```
 
-Let's check it works with a dummy text input:
+我们用一条示例文本测试一下效果：
+
 ```python
 speech = synthesise("Hey there! This is a test!")
 
 Audio(speech, rate=16000)
 ```
 
-Sounds good! Now for the exciting part - piecing it all together.
+听起来不错！接下来进入最激动人心的部分——将整个流程串联起来。
 
-## Creating a STST demo
+## 构建一个STST演示应用
 
-Before we create a [Gradio](https://gradio.app) demo to showcase our STST system, let's first do a quick sanity check 
-to make sure we can concatenate the two models, putting an audio sample in and getting an audio sample out. We'll do 
-this by concatenating the two functions we defined in the previous two sub-sections, such that we input the source audio 
-and retrieve the translated text, then synthesise the translated text to get the translated speech. Finally, we'll convert 
-the synthesised speech to an `int16` array, which is the output audio file format expected by Gradio. To do this, we
-first have to normalise the audio array by the dynamic range of the target dtype (`int16`), and then convert from the
-default NumPy dtype (`float64`) to the target dtype (`int16`):
+在使用[Gradio](https://gradio.app)构建我们的STST系统演示之前，我们先进行一个简单的健壮性检查，确保两个模型可以无缝衔接：输入一段音频，输出翻译后的音频。我们会将前两个小节中定义的函数组合在一起：首先输入源语音，获取翻译后的文本，然后将文本合成为语音。最后，我们将合成后的语音转换为`int16`数组，这是Gradio所期望的输出音频格式。具体步骤如下：我们先将音频数组归一化到`int16`类型的动态范围，再将默认的NumPy浮点类型（`float64`）转换为目标类型（`int16`）：
 
 ```python
 import numpy as np
@@ -210,7 +167,7 @@ def speech_to_speech_translation(audio):
     return 16000, synthesised_speech
 ```
 
-Let's check this concatenated function gives the expected result:
+我们检查一下这个组合函数是否能正常运行：
 
 ```python
 sampling_rate, synthesised_speech = speech_to_speech_translation(sample["audio"])
@@ -218,8 +175,7 @@ sampling_rate, synthesised_speech = speech_to_speech_translation(sample["audio"]
 Audio(synthesised_speech, rate=sampling_rate)
 ```
 
-Perfect! Now we'll wrap this up into a nice Gradio demo so that we can record our source speech using a microphone input
-or file input and playback the system's prediction:
+完美！接下来我们将这个函数封装成一个Gradio应用，可以使用麦克风输入或上传音频文件进行测试，并播放模型输出：
 
 ```python
 import gradio as gr
@@ -244,19 +200,12 @@ with demo:
 demo.launch(debug=True)
 ```
 
-This will launch a Gradio demo similar to the one running on the Hugging Face Space:
+这将启动一个Gradio演示程序，效果类似于Hugging Face Space上运行的版本：
 
 <iframe src="https://course-demos-speech-to-speech-translation.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-You can [duplicate](https://huggingface.co/spaces/course-demos/speech-to-speech-translation?duplicate=true) this demo and adapt
-it to use a different Whisper checkpoint, a different TTS checkpoint, or relax the constraint of outputting English 
-speech and follow the tips provide for translating into a langauge of your choice!
+你可以[复制](https://huggingface.co/spaces/course-demos/speech-to-speech-translation?duplicate=true)这个演示，并对其进行修改，例如使用不同的Whisper模型检查点、不同的TTS模型，或放宽“输出为英语语音”的限制，按照提示将其翻译成你选择的目标语言！
 
-## Going forwards
+## 展望未来
 
-While the cascaded system is a compute and data efficient way of building a STST system, it suffers from the issues of 
-error propagation and additive latency described above. Recent works have explored a *direct* approach to STST, one that 
-does not predict an intermediate text output and instead maps directly from source speech to target speech. These systems
-are also capable of retaining the speaking characteristics of the source speaker in the target speech (such a prosody, 
-pitch and intonation). If you're interested in finding out more about these systems, check-out the resources listed in 
-the section on [supplemental reading](supplemental_reading).
+尽管级联系统是一种高效的数据与计算方法来构建STST系统，但它存在前文提到的错误传播和延迟累积问题。近年来的研究探索了一种**直接**（direct）的STST方法，它不再预测中间文本表示，而是直接从源语音映射到目标语音。这类系统还能够保留源说话人的发音特征（例如语调、音高和节奏），使输出更自然。如果你对此类系统感兴趣，可以参考[补充阅读](supplemental_reading)章节中的相关资料。
