@@ -59,7 +59,7 @@
   - local: chapter4/classification_models
     title: 音频分类的预训练模型
   - local: chapter4/fine-tuning
-    title: 针对音乐分类进行微调
+    title: 微调音乐分类模型
   - local: chapter4/demo
     title: 使用Gradio构建demo
   - local: chapter4/hands_on
