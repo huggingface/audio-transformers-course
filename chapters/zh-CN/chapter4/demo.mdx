@@ -1,10 +1,6 @@
-# Build a demo with Gradio
+# 使用Gradio构建demo
 
-In this final section on audio classification, we'll build a [Gradio](https://gradio.app) demo to showcase the music
-classification model that we just trained on the [GTZAN](https://huggingface.co/datasets/marsyas/gtzan) dataset. The first
-thing to do is load up the fine-tuned checkpoint using the `pipeline()` class - this is very familiar now from the section
-on [pre-trained models](classification_models). You can change the `model_id` to the namespace of your fine-tuned model
-on the Hugging Face Hub:
+在音频分类的最后一节中，我们将使用[Gradio](https://gradio.app)构建一个演示应用，来展示我们刚刚在[GTZAN](https://huggingface.co/datasets/marsyas/gtzan)数据集上训练出的音乐分类模型。首先，使用`pipeline()`类加载微调后的模型权重——这一步在[预训练模型](classification_models)一节中我们已经非常熟悉了。你可以将`model_id`替换为你自己上传到Hugging Face Hub的模型命名空间：
 
 ```python
 from transformers import pipeline
@@ -13,10 +9,7 @@ model_id = "sanchit-gandhi/distilhubert-finetuned-gtzan"
 pipe = pipeline("audio-classification", model=model_id)
 ```
 
-Secondly, we'll define a function that takes the filepath for an audio input and passes it through the pipeline. Here,
-the pipeline automatically takes care of loading the audio file, resampling it to the correct sampling rate, and running
-inference with the model. We take the models predictions of `preds` and format them as a dictionary object to be displayed on the
-output:
+接下来，定义一个函数，接收音频文件路径作为输入，并将其传入`pipeline`。`pipeline`会自动完成音频文件的加载、重采样以及模型推理。我们将模型的预测结果`preds`格式化为一个字典对象，便于在输出界面展示：
 
 ```python
 def classify_audio(filepath):
@@ -27,7 +20,7 @@ def classify_audio(filepath):
     return outputs
 ```
 
-Finally, we launch the Gradio demo using the function we've just defined:
+最后，使用我们定义的函数来启动Gradio演示应用：
 
 ```python
 import gradio as gr
@@ -38,7 +31,6 @@ demo = gr.Interface(
 demo.launch(debug=True)
 ```
 
-This will launch a Gradio demo similar to the one running on the Hugging Face Space:
+这将启动一个Gradio界面，效果类似于Hugging Face Space上运行的版本：
 
 <iframe src="https://course-demos-song-classifier.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
-

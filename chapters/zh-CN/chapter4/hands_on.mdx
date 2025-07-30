@@ -1,20 +1,14 @@
-# Hands-on exercise
+# 实战练习
 
-It's time to get your hands on some Audio models and apply what you have learned so far. 
-This exercise is one of the four hands-on exercises required to qualify for a course completion certificate.
+是时候亲手操作一些音频模型，应用你迄今为止所学的内容了。本练习是完成本课程并获得结业证书所需的四个实践任务之一。
 
-Here are the instructions.
-In this unit, we demonstrated how to fine-tune a Hubert model on `marsyas/gtzan` dataset for music classification. Our example achieved 83% accuracy. 
-Your task is to improve upon this accuracy metric. 
+以下是练习说明：在本单元中，我们演示了如何在`marsyas/gtzan`数据集上微调一个HuBERT模型以进行音乐分类，示例中达到了83%的准确率。你的任务是进一步提升该模型的准确率。
 
-Feel free to choose any model on the [🤗 Hub](https://huggingface.co/models) that you think is suitable for audio classification, 
-and use the exact same dataset [`marsyas/gtzan`](https://huggingface.co/datasets/marsyas/gtzan) to build your own classifier.
+你可以自由选择任何你认为适合音频分类的模型（可在[🤗 Hub](https://huggingface.co/models)上查找），并继续使用相同的数据集[`marsyas/gtzan`](https://huggingface.co/datasets/marsyas/gtzan)来构建你自己的分类器。
 
-Your goal is to achieve 87% accuracy on this dataset with your classifier. You can choose the exact same model, and play with the training hyperparameters, 
-or pick an entirely different model - it's up to you!   
+目标是使用你的分类器在该数据集上达到87%的准确率。你可以继续使用相同的模型并调整训练超参数，或者选择完全不同的模型，由你决定！
 
-For your result to count towards your certificate, don't forget to push your model to Hub as was shown in this unit with 
-the following `**kwargs` at the end of the training:
+为了确保该结果计入结业证书评估，请务必像本单元所示将模型上传到Hub，并在训练结束时添加如下`**kwargs`参数：
 
 ```python
 kwargs = {
@@ -28,11 +22,12 @@ kwargs = {
 trainer.push_to_hub(**kwargs)
 ```
 
-Here are some additional resources that you may find helpful when working on this exercise:
-* [Audio classification task guide in Transformers documentation](https://huggingface.co/docs/transformers/tasks/audio_classification)
-* [Hubert model documentation](https://huggingface.co/docs/transformers/model_doc/hubert)
-* [M-CTC-T model documentation](https://huggingface.co/docs/transformers/model_doc/mctct)
-* [Audio Spectrogram Transformer documentation](https://huggingface.co/docs/transformers/model_doc/audio-spectrogram-transformer)
-* [Wav2Vec2 documentation](https://huggingface.co/docs/transformers/model_doc/wav2vec2)
+以下是一些可能对你完成本练习有帮助的资源：
 
-Feel free to build a demo of your model, and share it on Discord! If you have questions, post them in the #audio-study-group channel.
+* [Transformers文档中的音频分类任务指南](https://huggingface.co/docs/transformers/tasks/audio_classification)
+* [HuBERT模型文档](https://huggingface.co/docs/transformers/model_doc/hubert)
+* [M-CTC-T模型文档](https://huggingface.co/docs/transformers/model_doc/mctct)
+* [Audio Spectrogram Transformer文档](https://huggingface.co/docs/transformers/model_doc/audio-spectrogram-transformer)
+* [Wav2Vec2模型文档](https://huggingface.co/docs/transformers/model_doc/wav2vec2)
+
+你也可以为自己的模型构建一个演示应用，并分享到 Discord。如果有任何问题，欢迎在#audio-study-group频道发帖讨论。
