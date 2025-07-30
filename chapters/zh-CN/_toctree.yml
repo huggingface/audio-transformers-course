@@ -100,29 +100,22 @@
     title: 实战练习
   - local: chapter6/supplemental_reading
     title: 补充阅读
-#
-#- title: 第7单元：音频到音频合成(ATA)
-#  sections:
-#  - local: chapter7/introduction
-#    title: 单元简介
-#  - local: chapter7/tasks
-#    title: 音频到音频合成（ATA）任务实例
-#  - local: chapter7/choosing_dataset
-#    title: 数据集选择
-#  - local: chapter7/preprocessing
-#    title: 数据加载和预处理
-#  - local: chapter7/evaluation
-#    title: 音频到音频合成（ATA）的评价指标
-#  - local: chapter7/fine-tuning
-#    title: 模型微调
-#  - local: chapter7/quiz
-#    title: 习题
-#    quiz: 7
-#  - local: chapter7/hands_on
-#    title: 实战练习
-#  - local: chapter7/supplemental_reading
-#    title: 补充阅读
-#
+
+- title: 第7单元：整合实战
+  sections:
+  - local: chapter7/introduction
+    title: 单元简介
+  - local: chapter7/speech-to-speech
+    title: 语音到语音翻译
+  - local: chapter7/voice-assistant
+    title: 构建语音助手
+  - local: chapter7/transcribe-meeting
+    title: 会议转写
+  - local: chapter7/hands_on
+    title: 实战练习
+  - local: chapter7/supplemental_reading
+    title: 补充阅读
+
 - title: 第8单元：结束线
   sections:
   - local: chapter8/introduction
