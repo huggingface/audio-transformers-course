@@ -1,34 +1,24 @@
-# Transcribe a meeting
+# 会议转录
 
-In this final section, we'll use the Whisper model to generate a transcription for a conversation or meeting between 
-two or more speakers. We'll then pair it with a *speaker diarization* model to predict "who spoke when". By matching
-the timestamps from the Whisper transcriptions with the timestamps from the speaker diarization model, we can predict an 
-end-to-end meeting transcription with fully formatted start / end times for each speaker. This is a basic version of 
-the meeting transcription services you might have seen online from the likes of [Otter.ai](https://otter.ai) and co:
+在本节中，我们将使用Whisper模型为两位或多位说话者之间的对话或会议生成转录内容。然后，我们会结合一个**说话人分离**模型，用于预测“谁在什么时候说话”。通过将Whisper转录的时间戳与说话人分离模型的时间戳进行匹配，我们可以生成一份端到端的会议转录，为每位说话者准确标注起止时间。这就是你在网络上常见的会议转录服务（如 [Otter.ai](https://otter.ai)）的基础版本。
 
 <div class="flex justify-center">
      <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/diarization_transcription.png">
  </div>
 
-## Speaker Diarization
+## 说话人分离
 
-Speaker diarization (or diarisation) is the task of taking an unlabelled audio input and predicting "who spoke when".
-In doing so, we can predict start / end timestamps for each speaker turn, corresponding to when each speaker starts 
-speaking and when they finish.
+说话人分离（speaker diarization）是指从未标注的音频中预测“谁在什么时候说话”。这样一来，我们可以为每段发言预测开始与结束时间，精确对应每位说话者的说话时机。
 
-🤗 Transformers currently does not have a model for speaker diarization included in the library, but there are checkpoints 
-on the Hub that can be used with relative ease. In this example, we'll use the pre-trained speaker diarization model from 
-[pyannote.audio](https://github.com/pyannote/pyannote-audio). Let's get started and pip install the package:
+🤗 Transformers目前尚未在库中内置说话人分离模型，但Hub上已有可直接使用的检查点。本节中我们将使用[pyannote.audio](https://github.com/pyannote/pyannote-audio)提供的预训练模型。首先，我们需要安装相关工具包：
 
 ```bash
 pip install --upgrade pyannote.audio
 ```
 
-Great! The weights for this model are hosted on the Hugging Face Hub. To access them, we first have to agree to the speaker diarization model's 
-terms of use: [pyannote/speaker-diarization](https://huggingface.co/pyannote/speaker-diarization). And subsequently the 
-segmentation model's terms of use: [pyannote/segmentation](https://huggingface.co/pyannote/segmentation).
+太棒了！该模型的权重托管在Hugging Face Hub上。访问前需要同意说话人分离模型的使用条款：[pyannote/speaker-diarization](https://huggingface.co/pyannote/speaker-diarization)，随后还需同意分割模型的使用条款：[pyannote/segmentation](https://huggingface.co/pyannote/segmentation)。
 
-Once complete, we can load the pre-trained speaker diarization pipeline locally on our device:
+完成之后，我们就可以在本地加载预训练的说话人分离流水线：
 
 ```python
 from pyannote.audio import Pipeline
@@ -38,8 +28,7 @@ diarization_pipeline = Pipeline.from_pretrained(
 )
 ```
 
-Let's try it out on a sample audio file! For this, we'll load a sample of the [LibriSpeech ASR](https://huggingface.co/datasets/librispeech_asr)
-dataset that consists of two different speakers that have been concatenated together to give a single audio file:
+我们来试试用一个示例音频测试该流水线。为此，我们将加载[LibriSpeech ASR](https://huggingface.co/datasets/librispeech_asr)数据集中一个由两位说话者拼接而成的音频样本：
 
 ```python
 from datasets import load_dataset
@@ -50,7 +39,7 @@ concatenated_librispeech = load_dataset(
 sample = next(iter(concatenated_librispeech))
 ```
 
-We can listen to the audio to see what it sounds like:
+我们可以播放这段音频来听听效果：
 
 ```python
 from IPython.display import Audio
@@ -58,9 +47,7 @@ from IPython.display import Audio
 Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
 ```
 
-Cool! We can clearly hear two different speakers, with a transition roughly 15s of the way through. Let's pass this audio 
-file to the diarization model to get the speaker start / end times. Note that pyannote.audio expects the audio input to be a 
-PyTorch tensor of shape `(channels, seq_len)`, so we need to perform this conversion prior to running the model:
+很酷！我们可以清晰地听出有两位说话者，在大约15秒的位置发生了转换。现在我们将这段音频传入分离模型，获取每位说话者的起止时间。请注意，pyannote.audio要求输入为形状为(channels, seq_len)的PyTorch张量，因此在运行模型前需要进行转换：
 
 ```python
 import torch
@@ -82,16 +69,11 @@ outputs.for_json()["content"]
   'label': 'SPEAKER_00'}]
 ```
 
-This looks pretty good! We can see that the first speaker is predicted as speaking up until the 14.5 second mark, and the 
-second speaker from 15.4s onwards. Now we need to get our transcription!
+效果相当不错！我们可以看到，模型预测第一位说话者的发言持续至14.5秒左右，第二位说话者则从15.4秒开始。接下来我们要进行语音转录了！
 
-## Speech transcription
+## 语音转录
 
-For the third time in this Unit, we'll use the Whisper model for our speech transcription system. Specifically, we'll load the 
-[Whisper Base](https://huggingface.co/openai/whisper-base) checkpoint, since it's small enough to give good 
-inference speed with reasonable transcription accuracy. As before, feel free to use any speech recognition checkpoint 
-on [the Hub](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&library=transformers&sort=trending),
-including Wav2Vec2, MMS ASR or other Whisper checkpoints:
+这是本单元中第三次使用Whisper模型来完成语音转录任务。本节我们加载[Whisper Base](https://huggingface.co/openai/whisper-base)检查点，该模型体积小巧，能够在保持合理转录精度的同时提供不错的推理速度。和之前一样，你也可以自由选择其他Hub上的语音识别模型，比如Wav2Vec2、MMS ASR或其他Whisper模型：
 
 ```python
 from transformers import pipeline
@@ -102,9 +84,7 @@ asr_pipeline = pipeline(
 )
 ```
 
-Let's get the transcription for our sample audio, returning the segment level timestamps as well so that we know the 
-start / end times for each segment. You'll remember from Unit 5 that we need to pass the argument
-`return_timestamps=True` to activate the timestamp prediction task for Whisper:
+现在我们来获取示例音频的转录内容，同时返回每段音频的起止时间戳。你还记得在第5单元中，为了启用Whisper的时间戳预测功能，我们需要传入参数`return_timestamps=True`：
 
 ```python
 asr_pipeline(
@@ -137,28 +117,19 @@ asr_pipeline(
 }
 ```
 
-Alright! We see that each segment of the transcript has a start and end time, with the speakers changing at the 15.48 second 
-mark. We can now pair this transcription with the speaker timestamps that we got from our diarization model to get our 
-final transcription.
+好了！我们看到每段转录文本都带有开始和结束时间戳，而说话人在15.48秒处发生了切换。现在我们就可以将这个转录结果与说话人分离模型的时间戳结合起来，得到最终的会议转录了。
 
 ## Speechbox
 
-To get the final transcription, we'll align the timestamps from the diarization model with those from the Whisper model.
-The diarization model predicted the first speaker to end at 14.5 seconds, and the second speaker to start at 15.4s, whereas Whisper predicted segment boundaries at
-13.88, 15.48 and 19.44 seconds respectively. Since the timestamps from Whisper don't match perfectly with those from the 
-diarization model, we need to find which of these boundaries are closest to 14.5 and 15.4 seconds, and segment the transcription by
-speakers accordingly. Specifically, we'll find the closest alignment between diarization and transcription timestamps by 
-minimising the absolute distance between both.
+为了生成最终的转录结果，我们需要将说话人分离模型的时间戳与Whisper模型的时间戳对齐。说话人分离模型预测第一位说话者在14.5秒结束，第二位在15.4秒开始。而Whisper模型预测的片段边界分别为13.88、15.48和19.44秒。由于两个模型的时间戳并不完全匹配，我们需要找到最接近14.5和15.4秒的文本片段边界，并据此按说话人进行切分。具体来说，我们通过最小化两组时间戳之间的绝对距离，来找出最合适的对齐方式。
 
-Luckily for us, we can use the 🤗 Speechbox package to perform this alignment. First, let's pip install `speechbox` from 
-main:
+幸运的是，我们可以使用🤗 Speechbox工具包来完成这个对齐过程。首先，从主分支安装`speechbox`：
 
 ```bash
 pip install git+https://github.com/huggingface/speechbox
 ```
 
-We can now instantiate our combined diarization plus transcription pipeline, by passing the diarization model and 
-ASR model to the [`ASRDiarizationPipeline`](https://github.com/huggingface/speechbox/tree/main#asr-with-speaker-diarization) class:
+接着，我们通过传入ASR模型和说话人分离模型，实例化组合流水线[`ASRDiarizationPipeline`](https://github.com/huggingface/speechbox/tree/main#asr-with-speaker-diarization)：
 
 ```python
 from speechbox import ASRDiarizationPipeline
@@ -169,12 +140,13 @@ pipeline = ASRDiarizationPipeline(
 ```
 
 <Tip>
-    You can also instantiate the <code>ASRDiarizationPipeline</code> directly from pre-trained by specifying the model id
-    of an ASR model on the Hub:
-    <p><code>pipeline = ASRDiarizationPipeline.from_pretrained("openai/whisper-base")</code></p>
+
+你也可以直接使用Hub上的模型ID调用预训练版本的<code>ASRDiarizationPipeline</code>：
+<p><code>pipeline = ASRDiarizationPipeline.from_pretrained("openai/whisper-base")</code></p>
+
 </Tip>
 
-Let's pass the audio file to the composite pipeline and see what we get out:
+将音频输入该组合流水线，看看输出结果如何：
 
 ```python
 pipeline(sample["audio"].copy())
@@ -189,12 +161,9 @@ pipeline(sample["audio"].copy())
   'timestamp': (15.48, 21.28)}]
 ```
 
-Excellent! The first speaker is segmented as speaking from 0 to 15.48 seconds, and the second speaker from 15.48 to 21.28 seconds,
-with the corresponding transcriptions for each.
+太棒了！第一位说话者的发言时间为0到15.48秒，第二位说话者为15.48到21.28秒，并分别对应各自的转录文本。
 
-We can format the timestamps a little more nicely by defining two helper functions. The first converts a tuple of
-timestamps to a string, rounded to a set number of decimal places. The second combines the speaker id, timestamp and text
-information onto one line, and splits each speaker onto their own line for ease of reading:
+我们可以通过定义两个辅助函数来让时间戳的格式更美观一些。第一个函数将时间戳元组格式化为字符串，并保留指定的小数位数。第二个函数将说话人ID、时间戳和文本组合成一行，并将不同说话人分行展示，方便阅读：
 
 ```python
 def tuple_to_string(start_end_tuple, ndigits=1):
@@ -210,7 +179,8 @@ def format_as_transcription(raw_segments):
     )
 ```
 
-Let's re-run the pipeline, this time formatting the transcription according to the function we've just defined:
+我们再次运行流水线，并使用刚刚定义的格式化函数美化输出：
+
 ```python
 outputs = pipeline(sample["audio"].copy())
 
@@ -225,7 +195,4 @@ SPEAKER_00 (15.5, 21.3) He was in a favored state of mind, owing to the blight h
 his entire future.
 ```
 
-There we go! With that, we've both diarized and transcribe our input audio and returned speaker-segmented transcriptions.
-While the minimum distance algoirthm to align the diarized timestamps and transcribed timestamps is simple, it
-works well in practice. If you want to explore more advanced methods for combining the timestamps, the
-source code for the `ASRDiarizationPipeline` is a good place to start: [speechbox/diarize.py](https://github.com/huggingface/speechbox/blob/96d2d1a180252d92263f862a1cd25a48860f1aed/src/speechbox/diarize.py#L12)
+就这样！我们已经成功完成了音频的说话人分离与文本转录，并返回了按说话人分段的完整转录内容。尽管我们使用的是最小距离算法来对齐时间戳，这一方法在实际中效果非常好。如果你想进一步探索更复杂的对齐策略，不妨查看`ASRDiarizationPipeline`的源码：[speechbox/diarize.py](https://github.com/huggingface/speechbox/blob/96d2d1a180252d92263f862a1cd25a48860f1aed/src/speechbox/diarize.py#L12)。
