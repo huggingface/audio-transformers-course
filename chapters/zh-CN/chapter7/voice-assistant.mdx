@@ -1,102 +1,72 @@
-# Creating a voice assistant
+# 构建语音助手
 
-In this section, we'll piece together three models that we've already had hands-on experience with to build an end-to-end
-voice assistant called **Marvin** 🤖. Like Amazon's Alexa or Apple's Siri, Marvin is a virtual voice assistant who 
-responds to a particular 'wake word', then listens out for a spoken query, and finally responds with a spoken answer.
+在本节中，我们将组合三个之前已经实践过的模型，构建一个端到端的语音助手，名为**Marvin** 🤖。就像Amazon的Alexa或Apple的Siri一样，Marvin是一个虚拟语音助手，会响应特定的“唤醒词”，然后监听用户的语音提问，并以语音作答。
 
-We can break down the voice assistant pipeline into four stages, each of which requires a standalone model:
+我们可以将语音助手的流程拆解为四个阶段，每个阶段都对应一个独立的模型：
 
 <div class="flex justify-center">
      <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/voice_assistant.png">
  </div>
 
-### 1. Wake word detection
+### 1. 唤醒词检测
 
-Voice assistants are constantly listening to the audio inputs coming through your device's microphone, however they only 
-boot into action when a particular 'wake word' or 'trigger word' is spoken.
+语音助手会持续监听设备麦克风接收到的音频，但只有在用户说出特定的“唤醒词”或“触发词”时才会启动。
 
-The wake word detection task is handled by a small on-device audio classification model, which is much smaller and lighter 
-than the speech recognition model, often only several millions of parameters compared to several hundred millions for 
-speech recognition. Thus, it can be run continuously on your device without draining your battery. Only when the wake 
-word is detected is the larger speech recognition model launched, and afterwards it is shut down again.
+唤醒词检测任务由一个小型的本地音频分类模型完成，它远小于语音识别模型，通常只有几百万个参数，而语音识别模型则可能有几亿个参数。因此，这个小模型可以持续运行而不会消耗太多电量。只有检测到唤醒词时，才会加载更大的语音识别模型，使用完后又会立即关闭。
 
-### 2. Speech transcription
+### 2. 语音转文本
 
-The next stage in the pipeline is transcribing the spoken query to text. In practice, transferring audio files from your 
-local device to the Cloud is slow due to the large nature of audio files, so it's more efficient to transcribe them 
-directly using an automatic speech recognition (ASR) model on-device rather than using a model in the Cloud. The on-device
-model might be smaller and thus less accurate than one hosted in the Cloud, but the faster inference speed makes it 
-worthwhile since we can run speech recognition in near real-time, our spoken audio utterance being transcribed as we say it.
+下一步是将用户的语音问题转录为文本。实际上，由于音频文件体积较大，将其从本地传输到云端的速度较慢，因此更高效的方式是在本地设备上使用自动语音识别（ASR）模型进行转录。虽然本地模型可能比云端模型更小、精度略低，但由于推理速度快，可以实现近实时的转录体验，说话的同时就能看到文字结果。
 
-We're very familiar with the speech recognition process now, so this should be a piece of cake!
+我们现在已经非常熟悉语音识别流程了，所以这一步轻而易举！
 
-### 3. Language model query
+### 3. 语言模型生成回复
 
-Now that we know what the user asked, we need to generate a response! The best candidate models for this task are 
-*large language models (LLMs)*, since they are effectively able to understand the semantics of the text query and 
-generate a suitable response.
+识别出用户的问题后，我们就需要生成一个回答。完成这一步最好的模型是**大型语言模型（LLM）**，它们能够理解文本语义并生成合适的自然语言回复。
 
-Since our text query is small (just a few text tokens), and language models large (many billions of parameters), the most
-efficient way of running LLM inference is to send our text query from our device to an LLM running in the Cloud, 
-generate a text response, and return the response back to the device.
+由于用户的提问很短（只包含少量文本分词），而语言模型很大（拥有数十亿参数），最有效的方式是将文本提问发送到云端的语言模型，生成回答后再返回给本地设备。
 
-### 4. Synthesise speech
+### 4. 语音合成
 
-Finally, we'll use a text-to-speech (TTS) model to synthesise the text response as spoken speech. This is done
-on-device, but you could feasibly run a TTS model in the Cloud, generating the audio output and transferring it back to 
-the device.
+最后一步，我们使用文本到语音（TTS）模型将文本回复合成为语音。这通常在本地执行，但也可以在云端运行TTS模型，生成音频后再传回设备。
 
-Again, we've done this several times now, so the process will be very familiar!
+这一过程我们也已经多次完成，相信你已经驾轻就熟了！
 
 <Tip>
-    The following section requires the use of a microphone to record a voice input. Since Google Colab machines do not
-    have microphone compatibility, it is recommended to run this section locally, either on your CPU, or on a GPU if you
-    have local access. The checkpoint sizes have been selected as those small enough to run adequately fast on CPU, so
-    you will still get good performance without a GPU.
+
+下面的部分需要使用麦克风录制语音。由于Google Colab不支持麦克风功能，建议在本地运行本节内容，可以使用CPU，也可以使用本地GPU（如果有）。我们选用的模型检查点都足够小，即使在CPU上也能保持良好的性能。
+
 </Tip>
 
-## Wake word detection
+## 唤醒词检测
 
-The first stage in the voice assistant pipeline is detecting whether the wake word was spoken, and we need to find ourselves
-an appropriate pre-trained model for this task! You'll remember from the section on [pre-trained models for audio classification](../chapter4/classification_models) 
-that [Speech Commands](https://huggingface.co/datasets/speech_commands) is a dataset of spoken words designed to 
-evaluate audio classification models on 15+ simple command words like `"up"`, `"down"`, `"yes"` and `"no"`, as well as a 
-`"silence"` label to classify no speech. Take a minute to listen through the samples on the datasets viewer on 
-the Hub and re-acquaint yourself with the Speech Commands dataset: [datasets viewer](https://huggingface.co/datasets/speech_commands/viewer/v0.01/train).
+语音助手流程的第一步是检测用户是否说出了唤醒词。为此，我们需要一个合适的预训练模型！还记得我们在[音频分类的预训练模型](../chapter4/classification_models)一节中提到的[Speech Commands](https://huggingface.co/datasets/speech_commands)数据集吗？这个数据集包含多种简单指令词的语音样本（如`"up"`、`"down"`、`"yes"`和`"no"`），还有一个`"silence"`标签用于分类无语音片段，常用于评估音频分类模型的表现。你可以花一点时间在Hub上通过数据集预览器试听这些样本，重新熟悉一下Speech Commands数据集：[datasets viewer](https://huggingface.co/datasets/speech_commands/viewer/v0.01/train)。
 
-We can take an audio classification model pre-trained on the Speech Commands dataset and pick one of these simple command 
-words to be our chosen wake word. Out of the 15+ possible command words, if the model predicts our chosen wake word with the 
-highest probability, we can be fairly certain that the wake word has been said.
+我们可以选用一个在Speech Commands数据集上预训练好的音频分类模型，并从中选择一个简单的指令词作为唤醒词。在15个以上的可选指令词中，只要模型对我们指定的唤醒词预测概率最高，就可以判断唤醒词已被唤醒。
 
-Let's head to the Hugging Face Hub and click on the "Models" tab: https://huggingface.co/models
+首先，前往Hugging Face Hub的“Models”（模型）页面：[https://huggingface.co/models](https://huggingface.co/models)
 
-This is going to bring up all the models on the Hugging Face Hub, sorted by downloads in the past 30 days:
+你将看到所有托管在Hugging Face Hub上的模型，默认按过去30天下载量排序：
 
 <div class="flex justify-center">
      <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/all_models.png">
  </div>
 
-You'll notice on the left-hand side that we have a selection of tabs that we can select to filter models by task, library,
-dataset, etc. Scroll down and select the task "Audio Classification" from the list of audio tasks:
+在左侧，你可以使用筛选选项按任务、库、数据集等进行过滤。向下滚动，在音频任务列表中选择“Audio Classification”（音频分类）：
 
 <div class="flex justify-center">
      <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/by_audio_classification.png">
  </div>
 
-We're now presented with the sub-set of 500+ audio classification models on the Hub. To further refine this selection, we
-can filter models by dataset. Click on the tab "Datasets", and in the search box type "speech_commands". As you begin typing,
-you'll see the selection for `speech_commands` appear underneath the search tab. You can click this button to filter all
-audio classification models to those fine-tuned on the Speech Commands dataset:
+现在我们看到的是Hub上500多个音频分类模型。我们可以进一步通过数据集进行筛选。点击“Datasets”标签页，在搜索框中输入“speech\_commands”。当你开始输入时，会出现`speech_commands`的选项，点击它即可筛选出所有在该数据集上微调的音频分类模型：
 
 <div class="flex justify-center">
      <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/by_speech_commands.png">
  </div>
 
-Great! We see that we have six pre-trained models available to us for this specific dataset and task (although there may 
-be new models added if you're reading at a later date!). You'll recognise the first of these models as the [Audio Spectrogram Transformer checkpoint](https://huggingface.co/MIT/ast-finetuned-speech-commands-v2)
-that we used in Unit 4 example. We'll use this checkpoint again for our wake word detection task.
+太好了！我们可以看到目前有6个适用于该数据集和任务的预训练模型（如果你是在较晚时间阅读本课程，也许会有更多模型）。你可能已经认出了第一个模型，也就是我们在第4单元中用过的[Audio Spectrogram Transformer](https://huggingface.co/MIT/ast-finetuned-speech-commands-v2)。我们将在唤醒词检测任务中继续使用这个模型。
 
-Let's go ahead and load the checkpoint using the `pipeline` class:
+使用`pipeline`类加载该模型如下所示：
 
 ```python
 from transformers import pipeline
@@ -109,14 +79,13 @@ classifier = pipeline(
 )
 ```
 
-We can check what labels the model was trained on by checking the `id2label` attribute in the model config:
+语音助手的第一步是检测是否说出了唤醒词。我们可以通过查看模型配置中的`id2label`属性来确认该模型的分类标签：
+
 ```python
 classifier.model.config.id2label
 ```
 
-Alright! We see that the model was trained on 35 class labels, including some simple command words that we described above,
-as well as some particular objects like `"bed"`, `"house"` and `"cat"`. We see that there is one name in these class labels:
-id 27 corresponds to the label **"marvin"**:
+可以看到，该模型共训练了35个标签，包含一些简单的指令词（如前面提到的）以及一些物品名称（如 `"bed"`、`"house"`、`"cat"`）。其中标签编号27对应的是名称**"marvin"**：
 
 ```python
 classifier.model.config.id2label[27]
@@ -126,31 +95,15 @@ classifier.model.config.id2label[27]
 'marvin'
 ```
 
-Perfect! We can use this name as our wake word for our voice assistant, similar to how "Alexa" is used for Amazon's Alexa,
-or "Hey Siri" is used for Apple's Siri. Of all the possible labels, if the model predicts `"marvin"` with the highest class
-probability, we can be fairly sure that our chosen wake word has been said. 
+太好了！我们可以将这个名字作为语音助手的唤醒词，就像Amazon的Alexa或Apple的Siri一样。如果模型将`"marvin"`预测为概率最高的类别，我们就可以基本确定用户说出了唤醒词。
 
-Now we need to define a function that is constantly listening to our device's microphone input, and continuously 
-passes the audio to the classification model for inference. To do this, we'll use a handy helper function that comes 
-with 🤗 Transformers called [`ffmpeg_microphone_live`](https://github.com/huggingface/transformers/blob/fb78769b9c053876ed7ae152ee995b0439a4462a/src/transformers/pipelines/audio_utils.py#L98).
+接下来，我们需要定义一个函数，用于持续监听麦克风输入，并将音频实时传入分类模型进行推理。为此，我们将使用🤗 Transformers提供的辅助函数[`ffmpeg_microphone_live`](https://github.com/huggingface/transformers/blob/fb78769b9c053876ed7ae152ee995b0439a4462a/src/transformers/pipelines/audio_utils.py#L98)。
 
-This function forwards small chunks of audio of specified length `chunk_length_s` to the model to be classified. To ensure that 
-we get smooth boundaries across chunks of audio, we run a sliding window across our audio with stride `chunk_length_s / 6`. 
-So that we don't have to wait for the entire first chunk to be recorded before we start inferring, we also define a minimal 
-temporary audio input length `stream_chunk_s` that is forwarded to the model before `chunk_length_s` time is reached.
+该函数会将指定长度（`chunk_length_s`）的小段音频传入模型，并使用滑动窗口方式平滑拼接每段音频，窗口步长为`chunk_length_s / 6`。为了降低初始延迟，它还会在未达到一个完整音频段时提前以`stream_chunk_s`长度的音频段开始传入模型。
 
-The function `ffmpeg_microphone_live` returns a *generator* object, yielding a sequence of audio chunks that can each 
-be passed to the classification model to make a prediction. We can pass this generator directly to the `pipeline`, 
-which in turn returns a sequence of output predictions, one for each chunk of audio input. We can inspect the class 
-label probabilities for each audio chunk, and stop our wake word detection loop when we detect that the wake word 
-has been spoken.
+`ffmpeg_microphone_live`返回的是一个*生成器*对象，每次生成一段音频输入，我们可以将其传入`pipeline`模型进行推理。模型会返回每段音频的预测结果，我们可以根据每段的预测标签及其概率来判断是否听到了唤醒词。
 
-We'll use a very simple criteria for classifying whether our wake word was spoken: if the class label with the highest 
-probability was our wake word, and this probability exceeds a threshold `prob_threshold`, we declare that the wake word 
-as having been spoken. Using a probability threshold to gate our classifier this way ensures that the wake word is not 
-erroneously predicted if the audio input is noise, which is typically when the model is very uncertain and all the class 
-label probabilities low. You might want to tune this probability threshold, or explore more sophisticated means for 
-the wake word decision through an [*entropy*](https://en.wikipedia.org/wiki/Entropy_(information_theory)) (or uncertainty) based metric.
+我们采用一个非常简单的判断标准：如果预测得分最高的标签就是唤醒词，并且该标签的概率超过了设定阈值（`prob_threshold`），则认定唤醒词被说出。通过设定概率阈值，我们可以降低模型因背景噪声等引发的误判。如果你愿意，还可以进一步通过[*熵值（entropy）*](https://en.wikipedia.org/wiki/Entropy_(information_theory))或不确定性等指标来改进判断方式。
 
 ```python
 from transformers.pipelines.audio_utils import ffmpeg_microphone_live
@@ -186,9 +139,7 @@ def launch_fn(
                 return True
 ```
 
-Let's give this function a try to see how it works! We'll set the flag `debug=True` to print out the prediction for each
-chunk of audio. Let the model run for a few seconds to see the kinds of predictions that it makes when there is no speech 
-input, then clearly say the wake word `"marvin"` and watch the class label prediction for `"marvin"` spike to near 1:
+我们可以尝试运行这个函数来看看效果。将`debug=True`以输出每段音频的预测结果。先让模型运行几秒钟，观察在没有语音输入的情况下预测结果，然后清晰地说出唤醒词`"marvin"`，你会看到该标签的概率骤升接近1：
 
 ```python
 launch_fn(debug=True)
@@ -206,18 +157,11 @@ Listening for wake word...
 {'score': 0.999913215637207, 'label': 'marvin'}
 ```
 
-Awesome! As we expect, the model generates garbage predictions for the first few seconds. There is no speech input, so the
-model makes close to random predictions, but with very low probability. As soon as we say the wake word, the model predicts
-`"marvin"` with probability close to 1 and terminates the loop, signalling that the wake word has been detected and that the
-ASR system should be activated!
+太棒了！正如预期，前几秒的预测几乎都是随机的，因为没有语音输入，模型的置信度很低。当我们说出唤醒词时，模型会高置信度地预测`"marvin"`，并立即终止循环，这就表明唤醒词已被检测到，ASR系统可以启动了！
 
-## Speech transcription
+## 语音转录
 
-Once again, we'll use the Whisper model for our speech transcription system. Specifically, we'll load the [Whisper Base English](https://huggingface.co/openai/whisper-base.en) 
-checkpoint, since it's small enough to give good inference speed with reasonable transcription accuracy. We'll use a trick
-to get near real-time transcription by being clever with how we forward our audio inputs to the model. As before, feel 
-free to use any speech recognition checkpoint on [the Hub](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&library=transformers&sort=trending),
-including Wav2Vec2, MMS ASR or other Whisper checkpoints:
+我们依然使用Whisper模型来进行语音转录。这里我们选择的是[Whisper Base English](https://huggingface.co/openai/whisper-base.en)检查点，它模型小巧，能够在保证一定准确率的同时实现较快的推理速度。我们还会使用一些技巧，通过控制音频输入方式，使模型接近实时进行转录。当然，你也可以根据需要在[🤗 Hub](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&library=transformers&sort=trending)上选择其他语音识别模型，例如Wav2Vec2、MMS ASR或其他Whisper检查点：
 
 ```python
 transcriber = pipeline(
@@ -226,20 +170,14 @@ transcriber = pipeline(
 ```
 
 <Tip>
-    If you're using a GPU, you can increase the checkpoint size to use the <a href="https://huggingface.co/openai/whisper-small.en">Whisper Small English</a> 
-    checkpoint, which will return better transcription accuracy and still be within the required latency threshold. Simply swap the 
-    model id to: <code>"openai/whisper-small.en"</code>.
+
+如果你使用的是GPU，也可以将模型替换为更大的[Whisper Small English](https://huggingface.co/openai/whisper-small.en)检查点，它在延迟控制范围内提供了更好的转录准确率。只需将模型ID更改为`"openai/whisper-small.en"`。
+
 </Tip>
 
-We can now define a function to record our microphone input and transcribe the corresponding text. With the `ffmpeg_microphone_live`
-helper function, we can control how 'real-time' our speech recognition model is. Using a smaller `stream_chunk_s` lends
-itself to more real-time speech recognition, since we divide our input audio into smaller chunks and transcribe them on
-the fly. However, this comes at the expense of poorer accuracy, since there's less context for the model to infer from. 
+我们现在可以定义一个函数，从麦克风录制语音并进行转录。借助`ffmpeg_microphone_live`工具函数，我们可以控制语音识别的“实时程度”。较小的`stream_chunk_s`值会使语音被划分成更小片段，从而更实时地进行推理，但这也会带来上下文减少的问题，影响模型准确率。
 
-As we're transcribing the speech, we also need to have an idea of when the user **stops** speaking, so that we can terminate 
-the recording. For simplicity, we'll terminate our microphone recording after the first `chunk_length_s` (which is set to 
-5 seconds by default), but you can experiment with using a [voice activity detection (VAD)](https://huggingface.co/models?pipeline_tag=voice-activity-detection&sort=trending) 
-model to predict when the user has stopped speaking.
+此外，我们还需要检测用户**停止**说话的时机，以终止录音。为了简化处理，我们默认在录音达到`chunk_length_s`（默认为5秒）后自动终止。你也可以尝试使用[语音活动检测模型（Voice Activity Detection，VAD）](https://huggingface.co/models?pipeline_tag=voice-activity-detection&sort=trending)来精确判断用户是否仍在说话。
 
 ```python
 import sys
@@ -264,8 +202,8 @@ def transcribe(chunk_length_s=5.0, stream_chunk_s=1.0):
     return item["text"]
 ```
 
-Let's give this a go and see how we get on! Once the microphone is live, start speaking and watch your transcription 
-appear in semi real-time:
+运行这个函数看看效果吧！麦克风开启后开始说话，你将看到模型实时转录的文本结果显示在屏幕上：
+
 ```python
 transcribe()
 ```
@@ -275,35 +213,25 @@ Start speaking...
  Hey, this is a test with the whisper model.
 ```
 
-Nice! You can adjust the maximum audio length `chunk_length_s` based on how fast or slow you speak (increase it if you
-felt like you didn't have enough time to speak, decrease it if you were left waiting at the end), and the 
-`stream_chunk_s` for the real-time factor. Just pass these as arguments to the `transcribe` function.
+很不错！你可以根据说话速度调整`chunk_length_s`的值（说不完时加长，说太慢就缩短），也可以修改`stream_chunk_s`参数以优化实时效果。只需将它们作为参数传入`transcribe`函数即可。
 
-## Language model query
+## 调用语言模型生成回答
 
-Now that we have our spoken query transcribed, we want to generate a meaningful response. To do this, we'll use an LLM
-hosted on the Cloud. Specifically, we'll pick an LLM on the Hugging Face Hub and use the [Inference API](https://huggingface.co/inference-api)
-to easily query the model.
+有了转录文本后，我们需要生成一个有意义的回答。为此，我们可以调用部署在云端的LLM（大型语言模型）。我们将通过Hugging Face Hub上的[Inference API](https://huggingface.co/inference-api)来调用模型。
 
-First, let's head over to the Hugging Face Hub. To find our LLM, we'll use the [🤗 Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard),
-a Space that ranks LLM models by performance over four generation tasks. We'll search by "instruct" to filter out models 
-that have been instruction fine-tuned, since these should work better for our querying task:
+首先，前往Hugging Face Hub。我们推荐使用[🤗 Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard)页面来查找高性能的LLM，并筛选包含"instruct"的模型，这些模型经过指令微调，更适合用作问答助手：
 
 <div class="flex justify-center">
      <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/llm_leaderboard.png">
  </div>
 
-We'll use the [tiiuae/falcon-7b-instruct](https://huggingface.co/tiiuae/falcon-7b-instruct) checkpoint by [TII](https://www.tii.ae/),
-a 7B parameter decoder-only LM fine-tuned on a mixture of chat and instruction datasets. You can use any LLM on the Hugging 
-Face Hub that has the "Hosted inference API" enabled, just look out for the widget on the right-side of the model card:
+我们将使用[tiiuae/falcon-7b-instruct](https://huggingface.co/tiiuae/falcon-7b-instruct)模型，这是由[TII](https://www.tii.ae/)提供的70亿参数解码器式语言模型，经过聊天与指令数据集的微调。你也可以选择其他开启了“Hosted inference API”的模型，查看模型卡右侧是否有相关小组件即可：
 
 <div class="flex justify-center">
      <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/inference_api.png">
  </div>
 
-The Inference API allows us to send a HTTP request from our local machine to the LLM hosted on the Hub, and returns the 
-response as a `json` file. All we need to provide is our Hugging Face Hub token (which we retrieve directly from our Hugging Face
-Hub folder) and the model id of the LLM we wish to query:
+Inference API允许我们从本地向云端模型发送HTTP请求，并返回JSON格式的回答。你只需提供Hugging Face账号中的访问令牌（token）和要调用的模型ID即可：
 
 ```python
 from huggingface_hub import HfFolder
@@ -320,7 +248,8 @@ def query(text, model_id="tiiuae/falcon-7b-instruct"):
     return response.json()[0]["generated_text"][len(text) + 1 :]
 ```
 
-Let's give it a try with a test input!
+试试看这个示例输入吧：
+
 ```python
 query("What does Hugging Face do?")
 ```
@@ -329,15 +258,11 @@ query("What does Hugging Face do?")
 'Hugging Face is a company that provides natural language processing and machine learning tools for developers. They'
 ```
 
-You'll notice just how fast inference is using the Inference API - we only have to send a small number of text tokens
-from our local machine to the hosted model, so the communication cost is very low. The LLM is hosted on GPU accelerators,
-so inference runs very quickly. Finally, the generated response is transferred back from the model to our local machine,
-again with low communication overhead.
+你会注意到，通过Inference API推理的响应速度非常快--本地只需发送少量的文本token到云端模型，通信开销很低；模型在GPU加速器上运行，推理迅速；生成的结果再返回到本地，同样几乎无延迟。
 
-## Synthesise speech
+## 语音合成
 
-And now we're ready to get the final spoken output! Once again, we'll use the Microsoft [SpeechT5 TTS](https://huggingface.co/microsoft/speecht5_tts) 
-model for English TTS, but you can use any TTS model of your choice. Let's go ahead and load the processor and model:
+现在我们准备好生成最终的语音回答了！我们依然使用微软的[SpeechT5 TTS](https://huggingface.co/microsoft/speecht5_tts)模型进行英文语音合成。当然，你也可以根据需要选择任何其他TTS模型。我们加载处理器和模型：
 
 ```python
 from transformers import SpeechT5Processor, SpeechT5ForTextToSpeech, SpeechT5HifiGan
@@ -348,7 +273,8 @@ model = SpeechT5ForTextToSpeech.from_pretrained("microsoft/speecht5_tts").to(dev
 vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan").to(device)
 ```
 
-And also the speaker embeddings:
+再加载说话人嵌入向量：
+
 ```python
 from datasets import load_dataset
 
@@ -356,7 +282,7 @@ embeddings_dataset = load_dataset("Matthijs/cmu-arctic-xvectors", split="validat
 speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze(0)
 ```
 
-We'll re-use the `synthesise` function that we defined in the previous chapter on [Speech-to-speech translation](speech-to-speech):
+我们将复用前一章[语音到语音翻译](speech-to-speech)中定义的`synthesise`函数：
 
 ```python
 def synthesise(text):
@@ -367,7 +293,7 @@ def synthesise(text):
     return speech.cpu()
 ```
 
-Let's quickly verify this works as expected:
+最后来验证一下是否能正常工作：
 
 ```python
 from IPython.display import Audio
@@ -379,13 +305,11 @@ audio = synthesise(
 Audio(audio, rate=16000)
 ```
 
-Nice job 👍
+干得漂亮👍！
 
 ## Marvin 🤖
 
-Now that we've defined a function for each of the four stages of the voice assistant pipeline, all that's left to do is 
-piece them together to get our end-to-end voice assistant. We'll simply concatenate the four stages, starting with 
-wake word detection (`launch_fn`), speech transcription, querying the LLM, and finally speech synthesis.
+现在我们已经为语音助手流程的四个阶段分别定义了函数，接下来只需将它们组合起来即可实现端到端语音助手。我们会依次调用唤醒词检测（`launch_fn`）、语音转录、LLM 查询以及语音合成四个阶段。
 
 ```python
 launch_fn()
@@ -396,34 +320,20 @@ audio = synthesise(response)
 Audio(audio, rate=16000, autoplay=True)
 ```
 
-Try it out with a few prompts! Here are some examples to get you started:
-* *What is the hottest country in the world?*
-* *How do Transformer models work?*
-* *Do you know Spanish?*
+试试一些提示语吧！下面是几个示例：
+* *What is the hottest country in the world?*（世界上最热的国家是哪个？）
+* *How do Transformer models work?*（Transformer 模型是如何工作的？）
+* *Do you know Spanish?*（你会说西班牙语吗？）
 
-And with that, we have our end-to-end voice assistant complete, made using the 🤗 audio tools you've learnt throughout
-this course, with a sprinkling of LLM magic at the end. There are several extensions that we could make to improve the 
-voice assistant. Firstly, the audio classification model classifies 35 different labels. We could use a smaller, more 
-lightweight binary classification model that only predicts whether the wake word was spoken or not. Secondly, we pre-load
-all the models ahead and keep them running on our device. If we wanted to save power, we would only load each model at 
-the time it was required, and subsequently un-load them afterwards. Thirdly, we're missing a voice activity detection model 
-in our transcription function, transcribing for a fixed amount of time, which in some cases is too long, and in others too
-short.
+至此，我们就完成了端到端语音助手的构建，全部由你在本课程中掌握的🤗音频工具打造，最后再加上一点LLM的魔法。当然，还有不少可以改进的地方。首先，当前使用的音频分类模型包含35个不同的标签，我们其实可以改用一个更小巧、轻量的二分类模型，只判断是否说出了唤醒词。其次，我们是预先加载所有模型，并让它们持续驻留在设备上运行。为了节省设备资源，更理想的方式是：在需要时再加载对应模型，用完后立即释放。最后，我们的转录函数中缺乏语音活动检测（VAD），只能基于固定时间窗口进行转录，这样在某些情况下可能太短，而在另一些情况下又显得太长。
 
-## Generalise to anything 🪄
+## 万物皆可语音助手🪄
 
-So far, we've seen how we can generate speech outputs with our voice assistant Marvin. To finish, we'll demonstrate how 
-we can generalise these speech outputs to text, audio and image.
+目前我们实现了语音助手Marvin的语音输出功能。最后，我们将展示如何将其推广到生成文本、音频和图像等多模态内容。
 
-We'll use [Transformers Agents](https://huggingface.co/docs/transformers/transformers_agents) to build our assistant.
-Transformers Agents provides a natural language API on top of the 🤗 Transformers and Diffusers libraries, interpreting
-a natural language input using an LLM with carefully crafted prompts, and using a set of curated tools to provide 
-multimodal outputs.
+我们将使用[Transformers Agents](https://huggingface.co/docs/transformers/transformers_agents)来构建这个通用助手。Transformers Agents 提供了一个自然语言 API，基于🤗 Transformers和Diffusers库。它通过精心设计的提示词，让LLM理解用户意图，并结合一组精选工具生成多模态输出。
 
-Let's go ahead and instantiate an agent. There are [three LLMs available](https://huggingface.co/docs/transformers/transformers_agents#quickstart) 
-for Transformers Agents, two of which are open-source and free on the Hugging Face Hub. The third is a model from OpenAI 
-that requires an OpenAI API key. We'll use the free [Bigcode Starcoder](https://huggingface.co/bigcode/starcoder) model 
-in this example, but you can also try either of the other LLMs available:
+我们先初始化一个Agent。目前Transformers Agents支持[三种 LLM](https://huggingface.co/docs/transformers/transformers_agents#quickstart)，其中两个是Hugging Face Hub上的开源模型，第三个是来自OpenAI的模型，需要OpenAI API密钥。这里我们使用免费开源的[Bigcode Starcoder](https://huggingface.co/bigcode/starcoder)模型：
 
 ```python
 from transformers import HfAgent
@@ -433,8 +343,7 @@ agent = HfAgent(
 )
 ```
 
-To use the agent, we simply have to call `agent.run` with our text prompt. As an example, we'll get it to generate an 
-image of a cat 🐈 (that hopefully looks a bit better than this emoji):
+调用`agent.run`并传入文本提示，即可开始生成。比如我们让它画一只猫🐈：
 
 ```python
 agent.run("Generate an image of a cat")
@@ -445,16 +354,14 @@ agent.run("Generate an image of a cat")
  </div>
 
 <Tip>
-    Note that the first time calling this will trigger the model weights to be downloaded, which might take 
-    some time depending on your Hub download speed.
+
+首次调用时模型权重将被下载，时间取决于Hugging Face Hub的下载速度。
+
 </Tip>
 
-Easy as that! The Agent interpreted our prompt, and used [Stable Diffusion](https://huggingface.co/docs/diffusers/using-diffusers/conditional_image_generation) 
-under the hood to generate the image, without us having to worry about loading the model, writing the function or executing 
-the code.
+就是这么简单！Agent会自动理解提示语，并调用[Stable Diffusion](https://huggingface.co/docs/diffusers/using-diffusers/conditional_image_generation)生成图像，整个过程无需我们手动加载模型、编写函数或执行代码。
 
-We can now replace our LLM query function and text synthesis step with our Transformers Agent in our voice assistant, 
-since the Agent is going to take care of both of these steps for us:
+我们现在可以将之前Marvin中的LLM查询与语音合成步骤用Transformers Agent替代，因为Agent会自动完成这两个任务：
 
 ```python
 launch_fn()
@@ -462,12 +369,6 @@ transcription = transcribe()
 agent.run(transcription)
 ```
 
-Try speaking the same prompt "Generate an image of a cat" and see how the system gets on. If you ask the Agent a simple
-question / answer query, the Agent will respond with a text answer. You can encourage it to generate multimodal outputs 
-by asking it to return an image or speech. For example, you can ask it to: "Generate an image of a cat, caption it, and 
-speak the caption".
+现在可以试试对着麦克风说：“生成一只猫的图像”，看看系统效果如何。如果你提的是常规问答问题，Agent会返回文本答案；如果提示中包含图像或语音要求，它会生成相应的多模态内容。例如你可以说：“画一只猫，为它添加标题，并朗读这个标题”。
 
-While the Agent is more flexible than our first iteration Marvin 🤖 assistant, generalising the voice assistant task in this way
-may lead to inferior performance on standard voice assistant queries. To recover performance, you can try using a 
-more performant LLM checkpoint, such as the one from OpenAI, or define a set of [custom tools](https://huggingface.co/docs/transformers/transformers_agents#custom-tools)
-that are specific to the voice assistant task.
+尽管相比第一版Marvin 🤖，Agent的功能更灵活，但在常规语音助手场景下，其表现可能不如前者。如果想提升性能，可以使用更强大的LLM（如OpenAI模型），或[自定义工具](https://huggingface.co/docs/transformers/transformers_agents#custom-tools)，专门面向语音助手任务。
