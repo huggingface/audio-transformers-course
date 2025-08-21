@@ -162,18 +162,7 @@ Based on this information, you can select a checkpoint that is best suited to yo
 | base   | 74 M       | 1.5       | 16        | [✓](https://huggingface.co/openai/whisper-base.en)   | [✓](https://huggingface.co/openai/whisper-base)     |
 | small  | 244 M      | 2.3       | 6         | [✓](https://huggingface.co/openai/whisper-small.en)  | [✓](https://huggingface.co/openai/whisper-small)    |
 | medium | 769 M      | 4.2       | 2         | [✓](https://huggingface.co/openai/whisper-medium.en) | [✓](https://huggingface.co/openai/whisper-medium)   |
-| large  | 1550 M     | 7.5       | 1         | x                                                    | [✓](https://huggingface.co/openai/whisper-large-v3) |
-
-### Alternative ASR Models
-
-In addition to Whisper, several other modern ASR models are available with different optimization focuses:
-
-| Model | Parameters | VRAM / GB | Key Feature | Languages | Link |
-|-------|------------|-----------|-------------|-----------|------|
-| Moonshine Tiny | 27 M | 0.5 | 5x faster for short audio | English | [✓](https://huggingface.co/UsefulSensors/moonshine-tiny) |
-| Moonshine Base | 61 M | 1.0 | Edge-optimized | English | [✓](https://huggingface.co/UsefulSensors/moonshine-base) |
-| Kyutai STT 1B | 1000 M | 3.0 | Real-time streaming | English, French | [✓](https://huggingface.co/kyutai/stt-1b-en_fr) |
-| Kyutai STT 2.6B | 2600 M | 6.0 | Low-latency streaming | English | [✓](https://huggingface.co/kyutai/stt-2.6b-en) |
+| large  | 1550 M     | 7.5       | 1         | x                                                    | [✓](https://huggingface.co/openai/whisper-large-v2) |
 
 Let's load the [Whisper Base](https://huggingface.co/openai/whisper-base) checkpoint, which is of comparable size to the
 Wav2Vec2 checkpoint we used previously. Preempting our move to multilingual speech recognition, we'll load the multilingual
@@ -391,179 +380,20 @@ pipe(
 
 And voila! We have our predicted text as well as corresponding timestamps.
 
-## Modern ASR Architectures: Beyond Whisper
-
-While Whisper has been a game-changer for speech recognition, the field continues to evolve with new architectures designed to address specific limitations and use cases. Let's explore two notable recent developments: **Moonshine** and **Kyutai STT**, which offer different approaches to improving upon Whisper's capabilities.
-
-### Moonshine: Efficient Edge Computing ASR
-
-[Moonshine](https://huggingface.co/UsefulSensors/moonshine-base) is a family of speech recognition models developed by Useful Sensors specifically for **edge computing** and **real-time applications**. Released in October 2024, it represents a significant advancement in efficient ASR.
-
-#### Key Architecture Differences from Whisper:
-
-**1. Variable-Length Processing:**
-- **Whisper**: Processes all audio in fixed 30-second chunks
-- **Moonshine**: Processes audio in variable-length segments, making it **5x faster** for shorter audio clips
-
-**2. Model Size and Efficiency:**
-- **Moonshine Tiny**: 27M parameters (~190MB)
-- **Moonshine Base**: 61M parameters (~400MB)
-- **Whisper Small**: 244M parameters (~2.3GB)
-
-**3. Training Data:**
-- **Moonshine**: 200,000 hours of audio data
-- **Whisper**: 680,000 hours of audio data
-
-Let's see Moonshine in action:
-
-```python
-import torch
-from transformers import AutoProcessor, MoonshineForConditionalGeneration
-from datasets import load_dataset
-
-# Load the processor and model
-processor = AutoProcessor.from_pretrained("UsefulSensors/moonshine-base")
-model = MoonshineForConditionalGeneration.from_pretrained("UsefulSensors/moonshine-base")
-
-# Load sample audio
-dataset = load_dataset(
-    "hf-internal-testing/librispeech_asr_dummy", "clean", split="validation"
-)
-sample = dataset[0]["audio"]
-
-# Process the audio
-inputs = processor(
-    sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="pt"
-)
-
-# Generate transcription
-with torch.no_grad():
-    generated_ids = model.generate(**inputs, max_length=256)
-
-# Decode the result
-transcription = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
-print(f"Moonshine: {transcription}")
-```
-
-**Performance Characteristics:**
-- **Speed**: 5x faster than Whisper for short audio clips
-- **Accuracy**: Comparable to Whisper on English ASR tasks
-- **Memory**: Significantly lower memory footprint
-- **Language Support**: English-only (currently)
-
-### Kyutai STT: Streaming ASR with Real-Time Capabilities
-
-[Kyutai STT](https://huggingface.co/kyutai/stt-2.6b-en) represents a different approach to ASR, focusing on **streaming capabilities** and **real-time transcription**. Developed by Kyutai Labs, it's based on the **Delayed Streams Modeling (DSM)** framework.
-
-#### Key Architecture Differences from Whisper:
-
-**1. Streaming Architecture:**
-- **Whisper**: Offline processing, requires complete audio
-- **Kyutai STT**: Streaming processing, transcribes audio as it arrives
-
-**2. Audio Tokenization:**
-- **Whisper**: Log-mel spectrograms
-- **Kyutai STT**: Audio tokenized using **Mimi codec** at 12.5 Hz
-
-**3. Model Variants:**
-- **kyutai/stt-1b-en_fr**: 1B parameters, English/French, 0.5s delay
-- **kyutai/stt-2.6b-en**: 2.6B parameters, English-only, 2.5s delay
-
-**4. Training Scale:**
-- **Kyutai STT**: 2.5 million hours of public audio
-- **Whisper**: 680,000 hours of labeled audio
-
-Let's try Kyutai STT (requires transformers >= 4.53.0):
-
-```python
-import torch
-from transformers import AutoProcessor, KyutaiSTTForConditionalGeneration
-from datasets import load_dataset
-
-# Load the processor and model
-processor = AutoProcessor.from_pretrained("kyutai/stt-2.6b-en")
-model = KyutaiSTTForConditionalGeneration.from_pretrained("kyutai/stt-2.6b-en")
-
-# Load sample audio
-dataset = load_dataset(
-    "hf-internal-testing/librispeech_asr_dummy", "clean", split="validation"
-)
-sample = dataset[0]["audio"]
-
-# Process the audio
-inputs = processor(
-    sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="pt"
-)
-
-# Generate transcription
-with torch.no_grad():
-    generated_ids = model.generate(**inputs, max_length=256)
-
-# Decode the result
-transcription = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
-print(f"Kyutai STT: {transcription}")
-```
-
-**Performance Characteristics:**
-- **Latency**: Ultra-low latency (0.5-2.5s depending on model)
-- **Robustness**: Handles noisy conditions well
-- **Audio Length**: Can process up to 2 hours of audio
-- **Punctuation**: Includes capitalization and punctuation
-
-### Architecture Comparison Summary
-
-| Feature | Whisper | Moonshine | Kyutai STT |
-|---------|---------|-----------|------------|
-| **Processing** | Fixed 30s chunks | Variable-length | Streaming |
-| **Best Use Case** | General-purpose ASR | Edge/Mobile devices | Real-time applications |
-| **Model Size** | 39M - 1.5B params | 27M - 61M params | 1B - 2.6B params |
-| **Speed** | Baseline | 5x faster (short audio) | Ultra-low latency |
-| **Languages** | 96+ languages | English only | English (+French) |
-| **Punctuation** | Yes | Yes | Yes |
-| **Memory Usage** | High | Low | Medium |
-| **Training Data** | 680k hours | 200k hours | 2.5M hours |
-
-### When to Choose Each Model:
-
-**Choose Whisper when:**
-- You need multilingual support (96+ languages)
-- Accuracy is more important than speed
-- You're working with diverse audio domains
-- You need translation capabilities
-
-**Choose Moonshine when:**
-- You're deploying on edge devices or mobile
-- You need fast processing for short audio clips
-- Memory efficiency is crucial
-- You're working with English-only content
-
-**Choose Kyutai STT when:**
-- You need real-time transcription
-- Low latency is critical
-- You're building streaming applications
-- You need robust handling of long audio files
-
-The choice between these models depends on your specific use case, computational constraints, and performance requirements. Each represents a different optimization point in the trade-off between accuracy, speed, memory usage, and feature set.
-
 ## Summary
 
-The landscape of automatic speech recognition has expanded significantly beyond the groundbreaking Whisper model. While Whisper remains a strong pre-trained model for speech recognition and translation with support for 96+ languages, we now have specialized alternatives that excel in specific use cases.
+Whisper is a strong pre-trained model for speech recognition and translation. Compared to Wav2Vec2, it has higher
+transcription accuracy, with outputs that contain punctuation and casing. It can be used to transcribe speech in English
+as well as 96 other languages, both on short audio segments and longer ones through _chunking_. These attributes make it
+a viable model for many speech recognition and translation tasks without the need for fine-tuning. The `pipeline()` method
+provides an easy way of running inference in one-line API calls with control over the generated predictions.
 
-**Whisper** excels at general-purpose ASR with multilingual support, high accuracy, and translation capabilities. However, it requires complete audio input and has higher computational requirements.
+While the Whisper model performs extremely well on many high-resource languages, it has lower transcription and translation
+accuracy on low-resource languages, i.e. those with less readily available training data. There is also varying performance
+across different accents and dialects of certain languages, including lower accuracy for speakers of different genders,
+races, ages or other demographic criteria (_c.f._ [Whisper paper](https://arxiv.org/pdf/2212.04356.pdf)).
 
-**Moonshine** represents the next generation of efficient ASR, optimized for edge computing and real-time applications. With 5x faster processing for short audio clips and significantly lower memory usage, it's ideal for mobile and embedded applications, though currently limited to English.
-
-**Kyutai STT** pushes the boundaries of real-time ASR with streaming capabilities and ultra-low latency. Its ability to transcribe audio as it arrives makes it perfect for live applications, though it's currently limited to English and French.
-
-Each model represents different optimization trade-offs:
-- **Whisper**: Accuracy and multilingual support
-- **Moonshine**: Efficiency and edge deployment
-- **Kyutai STT**: Real-time processing and streaming
-
-The choice depends on your specific requirements: language support, computational constraints, latency requirements, and deployment environment. All three models support punctuation and casing, and are available through the 🤗 Transformers library with `pipeline()` support for easy inference.
-
-For applications requiring fine-tuning, the same principles apply across all models. 
-
-While transformers-based models offer excellent out-of-the-box performance, you might also want to explore [alternative ASR implementations](alternative_implementations) that provide different optimization trade-offs, including whisper.cpp for edge deployment, faster-whisper for server applications, and platform-specific optimizations like MLX-Whisper for Apple Silicon.
-
-In the next section, we'll explore dataset selection strategies that can be adapted for any of these ASR architectures.
+To boost the performance on low-resource languages, accents or dialects, we can take the pre-trained Whisper model and
+train it on a small corpus of appropriately selected data, in a process called _fine-tuning_. We'll show that with
+as little as ten hours of additional data, we can improve the performance of the Whisper model by over 100% on a low-resource
+language. In the next section, we'll cover the process behind selecting a dataset for fine-tuning.

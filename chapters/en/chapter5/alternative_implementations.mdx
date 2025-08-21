@@ -118,46 +118,6 @@ segments, info = model.transcribe(
 )
 ```
 
-### insanely-fast-whisper: Ultra-Low Latency
-
-[insanely-fast-whisper](https://github.com/Vaibhavs10/insanely-fast-whisper) pushes the boundaries of inference speed, achieving up to 9x faster processing than faster-whisper for real-time applications.
-
-#### Key Features:
-- **9x faster** than faster-whisper
-- **Real-time transcription** capabilities
-- **Optimized for streaming** applications
-- **Flash Attention** integration for efficiency
-- **Batch processing** support
-
-#### Performance Characteristics:
-- **Speed**: Fastest among all implementations
-- **Memory**: Higher memory usage due to optimizations
-- **Accuracy**: Slight accuracy trade-off for speed
-- **Deployment**: Perfect for real-time applications
-
-#### Installation and Usage:
-
-```bash
-pip install insanely-fast-whisper
-```
-
-```python
-import torch
-from transformers import pipeline
-
-# Initialize with flash attention
-pipe = pipeline(
-    "automatic-speech-recognition",
-    model="openai/whisper-large-v3",
-    torch_dtype=torch.float16,
-    device="cuda",
-    model_kwargs={"attn_implementation": "flash_attention_2"},
-)
-
-# Ultra-fast transcription
-result = pipe("audio.wav", chunk_length_s=30, batch_size=24)
-print(result["text"])
-```
 
 ## Platform-Specific Optimizations
 
@@ -233,7 +193,6 @@ Conformer architectures offer competitive performance with significantly lower c
 |---------------|------------------|--------------|----------------|---------------------|----------|
 | **whisper.cpp** | 10x faster (CPU) | Very Low | Cross-platform | ~75% | Edge/Mobile |
 | **faster-whisper** | 4x faster | Low | GPU/CPU | 100% | Server/Cloud |
-| **insanely-fast-whisper** | 36x faster | High | GPU | ~95% | Real-time |
 | **MLX-Whisper** | 2x faster | Medium | Apple Silicon | 100% | Apple devices |
 | **Lightning-Whisper-MLX** | 10x faster | Medium | Apple Silicon | ~98% | Apple real-time |
 | **WhisperKit** | 3x faster | Low | Apple Mobile | 100% | iOS/macOS apps |
@@ -357,7 +316,6 @@ def benchmark_implementation(model_func, audio_path, num_runs=5):
 implementations = {
     "whisper.cpp": lambda path: whisper_cpp_transcribe(path),
     "faster-whisper": lambda path: faster_whisper_transcribe(path),
-    "insanely-fast-whisper": lambda path: insanely_fast_transcribe(path),
     "mlx-whisper": lambda path: mlx_whisper_transcribe(path),
 }
 
@@ -372,7 +330,7 @@ for name, func in implementations.items():
 ### Choosing the Right Implementation:
 
 1. **For Production Servers**: Use **faster-whisper** for the best balance of speed and accuracy
-2. **For Real-Time Applications**: Use **insanely-fast-whisper** or **Lightning-Whisper-MLX**
+2. **For Real-Time Applications**: Use **Lightning-Whisper-MLX**
 3. **For Edge/Mobile Devices**: Use **whisper.cpp** or **WhisperKit** (Apple)
 4. **For Apple Silicon**: Use **MLX-Whisper** or **Lightning-Whisper-MLX**
 5. **For Wearables**: Use **Conformer-based** models
@@ -415,7 +373,6 @@ The ASR ecosystem extends far beyond transformers-based implementations, offerin
 
 - **whisper.cpp** excels in edge computing and mobile deployment with minimal resource usage
 - **faster-whisper** provides the best balance of speed and accuracy for server deployments
-- **insanely-fast-whisper** enables real-time applications with ultra-low latency
 - **MLX-Whisper** optimizes performance specifically for Apple Silicon devices
 - **Conformer-based models** offer efficient alternatives for resource-constrained environments
 
