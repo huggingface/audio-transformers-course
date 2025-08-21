@@ -289,42 +289,6 @@ for segment in segments:
     print(f"Text: {segment.text}, Emotion: {emotion}")
 ```
 
-### Benchmarking Different Implementations:
-
-```python
-import time
-import numpy as np
-
-
-def benchmark_implementation(model_func, audio_path, num_runs=5):
-    """Benchmark an ASR implementation"""
-    times = []
-    for _ in range(num_runs):
-        start_time = time.time()
-        result = model_func(audio_path)
-        end_time = time.time()
-        times.append(end_time - start_time)
-
-    return {
-        "mean_time": np.mean(times),
-        "std_time": np.std(times),
-        "transcription": result,
-    }
-
-
-# Compare implementations
-implementations = {
-    "whisper.cpp": lambda path: whisper_cpp_transcribe(path),
-    "faster-whisper": lambda path: faster_whisper_transcribe(path),
-    "mlx-whisper": lambda path: mlx_whisper_transcribe(path),
-}
-
-results = {}
-for name, func in implementations.items():
-    results[name] = benchmark_implementation(func, "test_audio.wav")
-    print(f"{name}: {results[name]['mean_time']:.2f}s ± {results[name]['std_time']:.2f}s")
-```
-
 ## Best Practices and Recommendations
 
 ### Choosing the Right Implementation:
@@ -342,30 +306,6 @@ for name, func in implementations.items():
 3. **Batching**: Process multiple audio files simultaneously when possible
 4. **Memory Management**: Use memory mapping for large models on resource-constrained devices
 5. **Preprocessing**: Ensure audio is properly formatted (16kHz, mono) before transcription
-
-### Error Handling and Robustness:
-
-```python
-def robust_transcribe(audio_path, fallback_implementations=None):
-    """Robust transcription with fallback implementations"""
-    if fallback_implementations is None:
-        fallback_implementations = [
-            faster_whisper_transcribe,
-            whisper_cpp_transcribe,
-            transformers_whisper_transcribe,
-        ]
-
-    for i, implementation in enumerate(fallback_implementations):
-        try:
-            result = implementation(audio_path)
-            if result and len(result.strip()) > 0:
-                return result
-        except Exception as e:
-            print(f"Implementation {i+1} failed: {e}")
-            continue
-
-    raise RuntimeError("All implementations failed")
-```
 
 ## Summary
 
