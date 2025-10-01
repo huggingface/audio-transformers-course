@@ -132,9 +132,8 @@ L'angle entre les composants réels et imaginaires fournit ce que l'on appelle l
 Nous utilions `librosa.amplitude_to_db()` pour convertir les valeurs d'amplitude en échelle de décibels, ce qui facilite la visualisation des détails les plus fins du spectre. 
 Parfois, les gens utilisent le **spectre de puissance**, qui mesure l'énergie plutôt que l'amplitude. Il s'agit simplement d'un spectre avec les valeurs d'amplitude au carré.
 
-<Tip> 
-💡 En pratique, les gens utilisent le terme FFT de manière interchangeable avec TFD, car la FFT ou transformée de Fourier rapide est le seul moyen efficace de calculer la TFD sur un ordinateur.
-</Tip>
+> [!TIP]
+> 💡 En pratique, les gens utilisent le terme FFT de manière interchangeable avec TFD, car la FFT ou transformée de Fourier rapide est le seul moyen efficace de calculer la TFD sur un ordinateur.
 
 Le spectre de fréquences d'un signal audio contient exactement la même information que sa forme d'onde. Ce sont simplement deux façons différentes de regarder les mêmes données (ici, les 4096 premiers échantillons du son de la trompette). 
 Là où la forme d'onde trace l'amplitude du signal audio au fil du temps, le spectre visualise les amplitudes des fréquences individuelles à un moment donné.
@@ -210,11 +209,10 @@ Tout comme avec un spectrogramme standard, il est courant d'exprimer la force de
 C'est ce qu'on appelle communément un **spectrogramme log-mel**, car la conversion en décibels implique une opération logarithmique. 
 L'exemple ci-dessus utilisé `librosa.power_to_db()` car `librosa.feature.melspectrogram()` crée un spectrogramme de puissance.
 
-<Tip>
-💡 Tous les spectrogrammes mel ne sont pas identiques ! Il existe deux échelles mel différentes d'usage courant (« htk » et « slaney »), et au lieu du spectrogramme de puissance, le spectrogramme d'amplitude peut être utilisé. 
-La conversion en spectrogramme log-mel ne calcule pas toujours les décibels vrais, mais peut simplement prendre le « log ». 
-Par conséquent, si un modèle d'apprentissage automatique attend un spectrogramme mel en entrée, vérifiez deux fois pour vous assurer que vous le calculez de la même manière.
-</Tip>
+> [!TIP]
+> 💡 Tous les spectrogrammes mel ne sont pas identiques ! Il existe deux échelles mel différentes d'usage courant (« htk » et « slaney »), et au lieu du spectrogramme de puissance, le spectrogramme d'amplitude peut être utilisé. 
+> La conversion en spectrogramme log-mel ne calcule pas toujours les décibels vrais, mais peut simplement prendre le « log ». 
+> Par conséquent, si un modèle d'apprentissage automatique attend un spectrogramme mel en entrée, vérifiez deux fois pour vous assurer que vous le calculez de la même manière.
 
 La création d'un spectrogramme mel est une opération avec perte car elle implique le filtrage du signal. 
 La conversion d'un spectrogramme mel en une forme d'onde est plus difficile que de le faire pour un spectrogramme régulier, car cela nécessite d'estimer les fréquences qui ont été jetées. 

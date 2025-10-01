@@ -22,11 +22,8 @@ Après le pré-entraînement, le réseau encodeur-décodeur *finetuné* pour cha
 
 Cette approche permet d'obtenir plusieurs modèles *finetunés* pour différentes tâches vocales qui bénéficient tous du pré-entraînement initial sur des données non étiquetées.  
 
-<Tip>
-
-Même si les modèles *finetunés* commencent par utiliser le même ensemble de poids provenant du modèle pré-entraîné partagé, les versions finales sont toutes très différentes au bout du compte. Vous ne pouvez pas prendre un modèle ASR *finetuné* et échanger les pré- et post-réseaux pour obtenir un modèle de TTS fonctionnel, par exemple. SpeechT5 est flexible, mais pas à ce point ;)
-
-</Tip>
+> [!TIP]
+> Même si les modèles *finetunés* commencent par utiliser le même ensemble de poids provenant du modèle pré-entraîné partagé, les versions finales sont toutes très différentes au bout du compte. Vous ne pouvez pas prendre un modèle ASR *finetuné* et échanger les pré- et post-réseaux pour obtenir un modèle de TTS fonctionnel, par exemple. SpeechT5 est flexible, mais pas à ce point ;)
 
 Voyons quels sont les pré- et post-réseaux que SpeechT5 utilise pour la tâche de TTS :
 
@@ -61,17 +58,14 @@ inputs = processor(text="Don't count the days, make the days count.", return_ten
 
 Le SpeechT5 TTS n'est pas limité à la création de discours pour un seul locuteur. Il utilise en effet ce que l'on appelle des " enchâssements de locuteurs, qui capturent les caractéristiques de la voix d'un locuteur particulier.
 
-<Tip>
-
-L'enchâssement des locuteurs est une méthode permettant de représenter l'identité d'un locuteur de manière compacte, sous la forme d'un vecteur de taille fixe, quelle que soit la longueur de l'énoncé. Ces enchâssements capturent des informations essentielles sur la voix d'un locuteur, son accent, son intonation et d'autres caractéristiques uniques qui distinguent un locuteur d'un autre. De tels enregistrements peuvent être utilisés pour la vérification du locuteur, la diarisation du locuteur, l'identification du locuteur, etc. 
-Les techniques les plus courantes pour générer des enchâssements de locuteurs sont les suivantes :
-
-* Les I-Vecteurs (vecteurs d'identité) : ils sont basés sur un modèle de mélange gaussien (GMM). Ils représentent les locuteurs sous la forme de vecteurs de faible dimension et de longueur fixe, dérivés des statistiques d'un GMM spécifique au locuteur, et sont obtenus de manière non supervisée. 
-* Les vecteurs X : ils sont dérivés à l'aide de réseaux neuronaux profonds (DNN) et capturent des informations sur le locuteur au niveau de l'image en incorporant le contexte temporel. 
-
-[X-Vectors](https://www.danielpovey.com/files/2018_icassp_xvectors.pdf) est une méthode de pointe qui montre des performances supérieures sur des jeux de données d'évaluation par rapport aux I-Vectors. Le réseau neuronal profond est utilisé pour obtenir les X-Vecteurs : il est entraîné à discriminer les locuteurs, et fait correspondre des énoncés de longueur variable à des enchâssements de dimension fixe. Vous pouvez également charger un enchâssement de locuteur X-Vector qui a été calculé à l'avance et qui encapsule les caractéristiques d'élocution d'un locuteur particulier.
-
-</Tip>
+> [!TIP]
+> L'enchâssement des locuteurs est une méthode permettant de représenter l'identité d'un locuteur de manière compacte, sous la forme d'un vecteur de taille fixe, quelle que soit la longueur de l'énoncé. Ces enchâssements capturent des informations essentielles sur la voix d'un locuteur, son accent, son intonation et d'autres caractéristiques uniques qui distinguent un locuteur d'un autre. De tels enregistrements peuvent être utilisés pour la vérification du locuteur, la diarisation du locuteur, l'identification du locuteur, etc. 
+> Les techniques les plus courantes pour générer des enchâssements de locuteurs sont les suivantes :
+>
+> * Les I-Vecteurs (vecteurs d'identité) : ils sont basés sur un modèle de mélange gaussien (GMM). Ils représentent les locuteurs sous la forme de vecteurs de faible dimension et de longueur fixe, dérivés des statistiques d'un GMM spécifique au locuteur, et sont obtenus de manière non supervisée. 
+> * Les vecteurs X : ils sont dérivés à l'aide de réseaux neuronaux profonds (DNN) et capturent des informations sur le locuteur au niveau de l'image en incorporant le contexte temporel. 
+>
+> [X-Vectors](https://www.danielpovey.com/files/2018_icassp_xvectors.pdf) est une méthode de pointe qui montre des performances supérieures sur des jeux de données d'évaluation par rapport aux I-Vectors. Le réseau neuronal profond est utilisé pour obtenir les X-Vecteurs : il est entraîné à discriminer les locuteurs, et fait correspondre des énoncés de longueur variable à des enchâssements de dimension fixe. Vous pouvez également charger un enchâssement de locuteur X-Vector qui a été calculé à l'avance et qui encapsule les caractéristiques d'élocution d'un locuteur particulier.
 
 Chargeons un tel enchâssement de locuteur à partir d'un jeu de données sur le *Hub*. Les enchâssements ont été obtenus à partir du [jeu de données CMU ARCTIC](http://www.festvox.org/cmu_arctic/) en utilisant [ce script](https://huggingface.co/mechanicalsea/speecht5-vc/blob/main/manifest/utils/prep_cmu_arctic_spkemb.py), mais n'importe quel enchâssement X-Vector devrait fonctionner.
 
@@ -98,15 +92,12 @@ Il en résulte un tenseur de forme (140, 80) contenant un log mel spectrogramme.
 Cependant, si nous cherchons à générer une forme d'onde de la parole, nous devons spécifier un vocodeur à utiliser pour la conversion du spectrogramme en forme d'onde.
 En théorie, vous pouvez utiliser n'importe quel vocodeur qui fonctionne sur des mel spectrogrammes 80-bin. De manière pratique, 🤗 *Transformers* propose un vocodeur basé sur HiFi-GAN. Ses poids ont été aimablement fournis par les auteurs originaux de SpeechT5.
 
-<Tip>
-
-[HiFi-GAN](https://arxiv.org/pdf/2010.05646v2.pdf) est un réseau antagoniste génératif (GAN) de pointe conçu pour de la synthèse vocale haute-fidélité. Il est capable de générer des formes d'ondes audio réalistes et de haute qualité à partir de spectrogrammes.
-
-À un niveau élevé, HiFi-GAN se compose d'un générateur et de deux discriminateurs. Le générateur est un réseau neuronal entièrement convolutionnel qui prend un mel spectrogramme en entrée et apprend à produire des formes d'ondes audio brutes. Les discriminateurs ont pour rôle de faire la distinction entre l'audio réel et l'audio généré. Les deux discriminateurs se concentrent sur des aspects différents de l'audio.
-
-HiFi-GAN est entraîné sur un grand jeu de données d'enregistrements audio de haute qualité. Il utilise un entraînement dit antagoniste, dans lequel les réseaux du générateur et du discriminateur sont en compétition l'un contre l'autre. Au départ, le générateur produit un son de faible qualité et le discriminateur peut facilement le différencier du son réel. Au fur et à mesure que l'entraînement progresse, le générateur améliore sa sortie, dans le but de tromper le discriminateur. Le discriminateur, à son tour, devient plus précis dans la distinction entre le son réel et le son généré. Cette boucle de rétroaction antagoniste permet aux deux réseaux de s'améliorer au fil du temps. En fin de compte, HiFi-GAN apprend à générer un son de haute fidélité qui ressemble étroitement aux caractéristiques des données entraînées.
-
-</Tip>
+> [!TIP]
+> [HiFi-GAN](https://arxiv.org/pdf/2010.05646v2.pdf) est un réseau antagoniste génératif (GAN) de pointe conçu pour de la synthèse vocale haute-fidélité. Il est capable de générer des formes d'ondes audio réalistes et de haute qualité à partir de spectrogrammes.
+>
+> À un niveau élevé, HiFi-GAN se compose d'un générateur et de deux discriminateurs. Le générateur est un réseau neuronal entièrement convolutionnel qui prend un mel spectrogramme en entrée et apprend à produire des formes d'ondes audio brutes. Les discriminateurs ont pour rôle de faire la distinction entre l'audio réel et l'audio généré. Les deux discriminateurs se concentrent sur des aspects différents de l'audio.
+>
+> HiFi-GAN est entraîné sur un grand jeu de données d'enregistrements audio de haute qualité. Il utilise un entraînement dit antagoniste, dans lequel les réseaux du générateur et du discriminateur sont en compétition l'un contre l'autre. Au départ, le générateur produit un son de faible qualité et le discriminateur peut facilement le différencier du son réel. Au fur et à mesure que l'entraînement progresse, le générateur améliore sa sortie, dans le but de tromper le discriminateur. Le discriminateur, à son tour, devient plus précis dans la distinction entre le son réel et le son généré. Cette boucle de rétroaction antagoniste permet aux deux réseaux de s'améliorer au fil du temps. En fin de compte, HiFi-GAN apprend à générer un son de haute fidélité qui ressemble étroitement aux caractéristiques des données entraînées.
 
 Le chargement du vocodeur est aussi simple que n'importe quel autre modèle de 🤗 *Transformers*.
 

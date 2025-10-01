@@ -65,11 +65,8 @@ def translate(audio):
     return outputs["text"]
 ```
 
-<Tip>
-
-Whisper peut aussi être "trompé" pour traduire de la parole dans n'importe quelle langue X vers n'importe quelle langue Y. Il suffit de mettre la tâche à `"transcribe"` et `"language"` à votre langue cible en argument. Par exemple pour l'espagnol, on mettrait : `generate_kwargs={"task" : "transcribe", "language" : "es"&rcub;`
-
-</Tip>
+> [!TIP]
+> Whisper peut aussi être "trompé" pour traduire de la parole dans n'importe quelle langue X vers n'importe quelle langue Y. Il suffit de mettre la tâche à `"transcribe"` et `"language"` à votre langue cible en argument. Par exemple pour l'espagnol, on mettrait : `generate_kwargs={"task" : "transcribe", "language" : "es"&rcub;`
 
 Bien, vérifions rapidement que nous obtenons un résultat raisonnable à partir du modèle :
 
@@ -110,9 +107,8 @@ model = SpeechT5ForTextToSpeech.from_pretrained("microsoft/speecht5_tts")
 vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
 ```
 
-<Tip>
-    Nous utilisons ici le *checkpoint* SpeechT5 entraîné spécifiquement pour le TTS anglais. Si vous souhaitez traduire dans une autre langue que l'anglais, remplacez le *checkpoint* par un modèle SpeechT5 TTS *finetuné* dans la langue de votre choix, ou utilisez un *checkpoint* MMS TTS pré-entraîné dans la langue cible.
-</Tip>
+> [!TIP]
+> Nous utilisons ici le *checkpoint* SpeechT5 entraîné spécifiquement pour le TTS anglais. Si vous souhaitez traduire dans une autre langue que l'anglais, remplacez le *checkpoint* par un modèle SpeechT5 TTS *finetuné* dans la langue de votre choix, ou utilisez un *checkpoint* MMS TTS pré-entraîné dans la langue cible.
 
 Comme pour le Whisper, nous placerons le SpeechT5 et le vocodeur sur notre GPU, si nous en avons un :
 

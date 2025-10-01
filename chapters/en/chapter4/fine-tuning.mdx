@@ -28,12 +28,9 @@ Dataset({
 })
 ```
 
-<Tip warning={true}>
-
-One of the recordings in GTZAN is corrupted, so it's been removed from the dataset. That's why we have 999 examples
-instead of 1,000.
-
-</Tip>
+> [!WARNING]
+> One of the recordings in GTZAN is corrupted, so it's been removed from the dataset. That's why we have 999 examples
+> instead of 1,000.
 
 
 GTZAN doesn't provide a predefined validation set, so we'll have to create one ourselves. The dataset is balanced across
@@ -279,14 +276,11 @@ different lengths.
 We can see that the mean value is now very much closer to zero, and the variance bang-on one! This is exactly the form we
 want our audio samples in prior to feeding them to the HuBERT model.
 
-<Tip warning={true}>
-
-Note how we've passed the sampling rate of our audio data to our feature extractor. This is good practice, as the feature
-extractor performs a check under-the-hood to make sure the sampling rate of our audio data matches the sampling rate
-expected by the model. If the sampling rate of our audio data did not match the sampling rate of our model, we'd need to
-up-sample or down-sample the audio data to the correct sampling rate.
-
-</Tip>
+> [!WARNING]
+> Note how we've passed the sampling rate of our audio data to our feature extractor. This is good practice, as the feature
+> extractor performs a check under-the-hood to make sure the sampling rate of our audio data matches the sampling rate
+> expected by the model. If the sampling rate of our audio data did not match the sampling rate of our model, we'd need to
+> up-sample or down-sample the audio data to the correct sampling rate.
 
 Great, so now we know how to process our resampled audio files, the last thing to do is define a function that we can
 apply to all the examples in the dataset. Since we expect the audio clips to be 30 seconds in length, we'll also
@@ -345,12 +339,11 @@ DatasetDict({
 })
 ```
 
-<Tip warning={true}>
-    If you exhaust your device's RAM executing the above code, you can adjust the batch parameters to reduce the peak
-    RAM usage. In particular, the following two arguments can be modified:
-    * `batch_size`: defaults to 1000, but set to 100 above. Try reducing by a factor of 2 again to 50
-    * `writer_batch_size`: defaults to 1000. Try reducing it to 500, and if that doesn't work, then reduce it by a factor of 2 again to 250
-</Tip>
+> [!WARNING]
+> If you exhaust your device's RAM executing the above code, you can adjust the batch parameters to reduce the peak
+>     RAM usage. In particular, the following two arguments can be modified:
+>     * `batch_size`: defaults to 1000, but set to 100 above. Try reducing by a factor of 2 again to 50
+>     * `writer_batch_size`: defaults to 1000. Try reducing it to 500, and if that doesn't work, then reduce it by a factor of 2 again to 250
 
 
 To simplify the training, we've removed the `audio` and `file` columns from the dataset. The `input_values` column contains
@@ -456,12 +449,9 @@ training_args = TrainingArguments(
 )
 ```
 
-<Tip warning={true}>
-
-    Here we have set `push_to_hub=True` to enable automatic upload of our fine-tuned checkpoints during training. Should you
-    not wish for your checkpoints to be uploaded to the Hub, you can set this to `False`.
-
-</Tip>
+> [!WARNING]
+> Here we have set `push_to_hub=True` to enable automatic upload of our fine-tuned checkpoints during training. Should you
+>     not wish for your checkpoints to be uploaded to the Hub, you can set this to `False`.
 
 The last thing we need to do is define the metrics. Since the dataset is balanced, we'll use accuracy as our metric and
 load it using the 🤗 Evaluate library:
@@ -496,13 +486,10 @@ trainer = Trainer(
 trainer.train()
 ```
 
-<Tip warning={true}>
-
-Depending on your GPU, it is possible that you will encounter a CUDA `"out-of-memory"` error when you start training.
-In this case, you can reduce the `batch_size` incrementally by factors of 2 and employ [`gradient_accumulation_steps`](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.TrainingArguments.gradient_accumulation_steps)
-to compensate.
-
-</Tip>
+> [!WARNING]
+> Depending on your GPU, it is possible that you will encounter a CUDA `"out-of-memory"` error when you start training.
+> In this case, you can reduce the `batch_size` incrementally by factors of 2 and employ [`gradient_accumulation_steps`](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.TrainingArguments.gradient_accumulation_steps)
+> to compensate.
 
 **Output:**
 ```out

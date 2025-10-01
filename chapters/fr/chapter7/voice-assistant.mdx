@@ -162,9 +162,8 @@ transcriber = pipeline(
 )
 ```
 
-<Tip>
-    Si vous utilisez un GPU, vous pouvez augmenter la taille du modèle à utiliser, ce qui permettra d'obtenir une meilleure précision de transcription tout en respectant le seuil de latence requis. Il suffit de remplacer l'identifiant du modèle par : <code>"openai/whisper-small.en"</code>.
-</Tip>
+> [!TIP]
+> Si vous utilisez un GPU, vous pouvez augmenter la taille du modèle à utiliser, ce qui permettra d'obtenir une meilleure précision de transcription tout en respectant le seuil de latence requis. Il suffit de remplacer l'identifiant du modèle par : <code>"openai/whisper-small.en"</code>.
 
 Nous pouvons maintenant définir une fonction pour enregistrer l'entrée de notre microphone et transcrire le texte correspondant. Avec la fonction d'aide `ffmpeg_microphone_live`, nous pouvons contrôler le degré de "temps réel" de notre modèle de reconnaissance vocale. L'utilisation d'un `stream_chunk_s` plus petit se prête à une reconnaissance vocale davantage en temps réel, puisque nous divisons notre audio d'entrée en plus petits morceaux et que nous les transcrivons à la volée. Cependant, cela se fait au détriment de la précision, puisqu'il y a moins de contexte pour le modèle à déduire. 
 
@@ -345,9 +344,8 @@ agent.run("Generate an image of a cat")
      <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/generated_cat.png">
  </div>
 
-<Tip>
-    Notez que la première fois que vous appelez cette fonction, les poids du modèle sont téléchargés, ce qui peut prendre un certain temps en fonction de votre connexion internet.
-</Tip>
+> [!TIP]
+> Notez que la première fois que vous appelez cette fonction, les poids du modèle sont téléchargés, ce qui peut prendre un certain temps en fonction de votre connexion internet.
 
 C'est aussi simple que cela ! L'agent a interprété notre prompt et a utilisé [Stable Diffusion](https://huggingface.co/docs/diffusers/using-diffusers/conditional_image_generation) pour générer l'image, sans que nous ayons à nous soucier du chargement du modèle, de l'écriture de la fonction ou de l'exécution du code.
 

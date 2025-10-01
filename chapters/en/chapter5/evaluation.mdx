@@ -279,10 +279,9 @@ common_voice_test = load_dataset(
 )
 ```
 
-<Tip>
-    If you face an authentication issue when loading the dataset, ensure that you have accepted the dataset's terms of use
-    on the Hugging Face Hub through the following link: https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
-</Tip>
+> [!TIP]
+> If you face an authentication issue when loading the dataset, ensure that you have accepted the dataset's terms of use
+>     on the Hugging Face Hub through the following link: https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
 
 Evaluating over an entire dataset can be done in much the same way as over a single example - all we have to do is **loop**
 over the input audios, rather than inferring just a single sample. To do this, we first transform our dataset into a
@@ -310,10 +309,9 @@ for prediction in tqdm(
     all_predictions.append(prediction["text"])
 ```
 
-<Tip>
-    If you experience a CUDA out-of-memory (OOM) when running the above cell, incrementally reduce the `batch_size` by
-    factors of 2 until you find a batch size that fits your device.
-</Tip>
+> [!TIP]
+> If you experience a CUDA out-of-memory (OOM) when running the above cell, incrementally reduce the `batch_size` by
+>     factors of 2 until you find a batch size that fits your device.
 
 And finally, we can compute the WER. Let's first compute the orthographic WER, i.e. the WER without any post-processing:
 

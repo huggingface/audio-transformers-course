@@ -23,9 +23,8 @@ Dataset({
 })
 ``` 
 
-<Tip warning={true}>
-L'un des enregistrements dans GTZAN est corrompu, il a donc été supprimé du jeu de données. C'est pourquoi nous avons 999 exemples au lieu de 1 000.
-</Tip>
+> [!WARNING]
+> L'un des enregistrements dans GTZAN est corrompu, il a donc été supprimé du jeu de données. C'est pourquoi nous avons 999 exemples au lieu de 1 000.
 
 GTZAN ne fournit pas de jeu de validation prédéfini, nous devrons donc en créer un nous-mêmes. Le jeu de données est équilibré entre les genres, nous pouvons donc utiliser la méthode `train_test_split()` pour créer rapidement une répartition 90/10 comme suit :
 
@@ -234,9 +233,8 @@ Mean: -4.53e-09, Variance: 1.0
 Notre extracteur de caractéristiques renvoie un dictionnaire de deux tableaux : `input_values` et `attention_mask`. Les `input_values` sont les entrées audio prétraitées que nous passerons au modèle HuBERT. L’[`attention_mask`](https://huggingface.co/docs/transentraîners/glossary#attention-mask) est utilisé lorsque nous traitons un _batch_ d'entrées audio à la fois. Il est utilisé pour indiquer au modèle où nous avons des entrées rembourrées de différentes longueurs.
 Nous pouvons voir que la valeur moyenne est maintenant beaucoup plus proche de 0, et la variance est à 1 ! C'est exactement la forme sous laquelle nous voulons que nos échantillons audio soient avant de les passer dans notre HuBERT.
 
-<Tip warning={true}>
-Notez comment nous avons transmis le taux d'échantillonnage de nos données audio à notre extracteur de caractéristiques. Il s'agit d'une bonne pratique, car l'extracteur de caractéristiques effectue une vérification sous le capot pour s'assurer que le taux d'échantillonnage de nos données audio correspond au taux d'échantillonnage attendu par le modèle. Si le taux d'échantillonnage de nos données audio ne correspondait pas au taux d'échantillonnage de notre modèle, nous aurions besoin de suréchantillonner ou de sous-échantillonner les données audio au taux d'échantillonnage correct.
-</Tip>
+> [!WARNING]
+> Notez comment nous avons transmis le taux d'échantillonnage de nos données audio à notre extracteur de caractéristiques. Il s'agit d'une bonne pratique, car l'extracteur de caractéristiques effectue une vérification sous le capot pour s'assurer que le taux d'échantillonnage de nos données audio correspond au taux d'échantillonnage attendu par le modèle. Si le taux d'échantillonnage de nos données audio ne correspondait pas au taux d'échantillonnage de notre modèle, nous aurions besoin de suréchantillonner ou de sous-échantillonner les données audio au taux d'échantillonnage correct.
 
 Alors maintenant que nous savons comment traiter nos fichiers audio rééchantillonnés, la dernière chose à faire est de définir une fonction que nous pouvons appliquer à tous les exemples du jeu de données. Étant donné que nous nous attendons à des échantillons de 30 secondes, nous tronquerons aussi les échantillons plus longs en utilisant les arguments `max_length` et `truncation` de l'extracteur de caractéristiques comme suit :
 
@@ -373,9 +371,8 @@ training_args = TrainingArguments(
 )
 ```
 
-<Tip warning={true}>
-Ici, nous avons défini `push_to_hub=True` pour activer le téléchargement automatique de nos *checkpoints* *finetunés* pendant l'entraînement. Si vous ne souhaitez pas que vos *checkpoints*  soient téléchargés sur le *Hub*, vous pouvez définir cette option sur `False`.
-</Tip>
+> [!WARNING]
+> Ici, nous avons défini `push_to_hub=True` pour activer le téléchargement automatique de nos *checkpoints* *finetunés* pendant l'entraînement. Si vous ne souhaitez pas que vos *checkpoints*  soient téléchargés sur le *Hub*, vous pouvez définir cette option sur `False`.
 
 La dernière chose que nous devons faire est de définir les métriques. Étant donné que le jeu de données est équilibré, nous utiliserons la précision comme métrique et le chargerons à l'aide de la bibliothèque 🤗 *Evaluate* :
 
@@ -408,10 +405,9 @@ trainer = Trainer(
 trainer.train()
 ``` 
 
-<Tip warning={true}>
-Selon votre GPU, il est possible que vous rencontriez une erreur CUDA `"out-of-memory"` lorsque vous commencez à vous entraîner.
-Dans ce cas, vous pouvez réduire la taille du batch de manière incrémentielle par des facteurs de 2 et utiliser ['gradient_accumulation_steps'](https://huggingface.co/docs/transentraîners/main_classes/trainer#transentraîners.TrainingArguments.gradient_accumulation_steps) pour compenser.
-</Tip>
+> [!WARNING]
+> Selon votre GPU, il est possible que vous rencontriez une erreur CUDA `"out-of-memory"` lorsque vous commencez à vous entraîner.
+> Dans ce cas, vous pouvez réduire la taille du batch de manière incrémentielle par des facteurs de 2 et utiliser ['gradient_accumulation_steps'](https://huggingface.co/docs/transentraîners/main_classes/trainer#transentraîners.TrainingArguments.gradient_accumulation_steps) pour compenser.
 
 **Sortie :**
 

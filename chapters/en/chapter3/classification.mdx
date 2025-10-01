@@ -18,9 +18,8 @@ Just like ViT, the AST model splits the audio spectrogram into a sequence of par
 
 Image from the paper [AST: Audio Spectrogram Transformer](https://arxiv.org/pdf/2104.01778.pdf)
 
-<Tip>
-💡 Even though here we pretend spectrograms are the same as images, there are important differences. For example, shifting the contents of an image up or down generally does not change the meaning of what is in the image. However, shifting a spectrogram up or down will change the frequencies that are in the sound and completely change its character. Images are invariant under translation but spectrograms are not. Treating spectrograms as images can work very well in practice, but keep in mind they are not really the same thing.
-</Tip>
+> [!TIP]
+> 💡 Even though here we pretend spectrograms are the same as images, there are important differences. For example, shifting the contents of an image up or down generally does not change the meaning of what is in the image. However, shifting a spectrogram up or down will change the frequencies that are in the sound and completely change its character. Images are invariant under translation but spectrograms are not. Treating spectrograms as images can work very well in practice, but keep in mind they are not really the same thing.
 
 ## Any transformer can be a classifier
 

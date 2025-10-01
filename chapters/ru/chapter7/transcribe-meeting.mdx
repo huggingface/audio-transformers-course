@@ -160,11 +160,10 @@ pipeline = ASRDiarizationPipeline(
 )
 ```
 
-<Tip>
-    Вы также можете инстанцировать  <code>ASRDiarizationPipeline</code> directly непосредственно из предварительно обученных моделей, указав идентификатор 
-    модели ASR на Hub:
-    <p><code>pipeline = ASRDiarizationPipeline.from_pretrained("openai/whisper-base")</code></p>
-</Tip>
+> [!TIP]
+> Вы также можете инстанцировать  <code>ASRDiarizationPipeline</code> directly непосредственно из предварительно обученных моделей, указав идентификатор 
+>     модели ASR на Hub:
+>     <p><code>pipeline = ASRDiarizationPipeline.from_pretrained("openai/whisper-base")</code></p>
 
 Передадим аудиофайл в композитный конвейер и посмотрим, что получится в результате:
 

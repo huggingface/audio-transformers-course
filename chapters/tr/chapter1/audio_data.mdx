@@ -125,9 +125,8 @@ DFT'nin çıktısı, gerçel ve sanal bileşenlerden oluşan karmaşık sayılar
 Genlik değerlerini desibel ölçeğine dönüştürmek için `librosa.amplitude_to_db()` kullandınız, böylece spektrumdaki daha ince ayrıntıları görmeyi kolaylaştırdınız. Bazen insanlar genlik yerine enerjiyi ölçen **güç spektrumunu** kullanır;
 bu basitçe genlik değerlerinin karesi olan bir spektrumdur.
 
-<Tip>
-💡 Pratikte insanlar FFT terimini DFT ile birbirinin yerine kullanırlar çünkü FFT veya Hızlı Fourier Dönüşümü DFT'yi bilgisayarda hesaplamak için tek etkili yöntemdir.
-</Tip>
+> [!TIP]
+> 💡 Pratikte insanlar FFT terimini DFT ile birbirinin yerine kullanırlar çünkü FFT veya Hızlı Fourier Dönüşümü DFT'yi bilgisayarda hesaplamak için tek etkili yöntemdir.
 
 Bir ses sinyalinin frekans spektrumu, dalga formuyla aynı bilgiyi içerir. Bunlar aynı veriye (burada trompet sesinden ilk 4096 örnek) bakmanın iki farklı yoludur. Dalga formunun genliğe karşı zaman içinde çizdiği yerde, spektrum her bir frekansın genliğini sabit bir noktada görselleştirir.
 
@@ -203,9 +202,8 @@ Yukarıdaki örnekte, `n_mels`, oluşturulacak mel bantlarının sayısını ifa
 
 Düzenli bir spektrogramda olduğu gibi, mel frekans bileşenlerinin gücünü desibel cinsinden ifade etmek yaygın bir uygulamadır. Bu genellikle bir **log-mel spektrogramu* olarak adlandırılır, çünkü desibellere dönüştürme işlemi logaritmik bir işlem içerir. Yukarıdaki örnek, `librosa.feature.melspectrogram()` olarak `librosa.power_to_db()` kullanarak güç spektrogramı oluşturur.
 
-<Tip>
-💡 Tüm mel spektrogramları aynı değildir! Yaygın olarak kullanılan iki farklı mel ölçeği vardır ("htk" ve "slaney"), ve güç spektrogramı yerine genlik spektrogramı kullanılabilir. Log-mel spektrogramına dönüştürme işlemi her zaman gerçek desibelleri hesaplamaz, sadece `log`larını alabilir. Bu nedenle, bir makine öğrenme modeli girdi olarak bir mel spektrogramı bekliyorsa, bunu aynı şekilde hesapladığınızdan emin olmak için kontrol edin.
-</Tip>
+> [!TIP]
+> 💡 Tüm mel spektrogramları aynı değildir! Yaygın olarak kullanılan iki farklı mel ölçeği vardır ("htk" ve "slaney"), ve güç spektrogramı yerine genlik spektrogramı kullanılabilir. Log-mel spektrogramına dönüştürme işlemi her zaman gerçek desibelleri hesaplamaz, sadece `log`larını alabilir. Bu nedenle, bir makine öğrenme modeli girdi olarak bir mel spektrogramı bekliyorsa, bunu aynı şekilde hesapladığınızdan emin olmak için kontrol edin.
 
 Bir mel spektrogramı oluşturmak, sinyali filtrelemeyi içerdiği için kayıplı bir işlemdir. Bir mel spektrogramını bir dalga formuna dönüştürmek, bir düzenli spektrogram için bunu yapmaktan daha zordur, çünkü daha önce kaybedilen frekansları tahmin etmeyi gerektirir. Bu nedenle, mel spektrogramından bir dalga formu üretmek için HiFiGAN vokoder gibi makine öğrenme modellerine ihtiyaç vardır.
 

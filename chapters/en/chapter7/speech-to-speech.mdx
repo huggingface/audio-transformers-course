@@ -91,15 +91,12 @@ def translate(audio):
     return outputs["text"]
 ```
 
-<Tip>
-
-    Whisper can also be 'tricked' into translating from speech in any language X to any language Y. Simply set the task to
-    `"transcribe"` and the `"language"` to your target language in the generation key-word arguments, 
-    e.g. for Spanish, one would set:
-
-	`generate_kwargs={"task": "transcribe", "language": "es"&rcub;`
-
-</Tip>
+> [!TIP]
+> Whisper can also be 'tricked' into translating from speech in any language X to any language Y. Simply set the task to
+>     `"transcribe"` and the `"language"` to your target language in the generation key-word arguments, 
+>     e.g. for Spanish, one would set:
+>
+> 	`generate_kwargs={"task": "transcribe", "language": "es"&rcub;`
 
 Great! Let's quickly check that we get a sensible result from the model:
 
@@ -144,11 +141,10 @@ model = SpeechT5ForTextToSpeech.from_pretrained("microsoft/speecht5_tts")
 vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
 ```
 
-<Tip>
-    Here we're using SpeechT5 checkpoint trained specifically for English TTS. Should you wish to translate into a language 
-    other than English, either swap the checkpoint for a SpeechT5 TTS model fine-tuned on your language of choice, or 
-    use an MMS TTS checkpoint pre-trained in your target langauge.
-</Tip>
+> [!TIP]
+> Here we're using SpeechT5 checkpoint trained specifically for English TTS. Should you wish to translate into a language 
+>     other than English, either swap the checkpoint for a SpeechT5 TTS model fine-tuned on your language of choice, or 
+>     use an MMS TTS checkpoint pre-trained in your target langauge.
 
 As with the Whisper model, we'll place the SpeechT5 model and vocoder on our GPU accelerator device if we have one:
 ```python

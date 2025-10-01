@@ -74,10 +74,9 @@ DatasetDict({
 })
 ```
 
-<Tip>
-    您可以将语言标识符从 `"dv"` 更改为您选择的语言标识符。要查看 Common Voice 13 中所有可选的语言，
-    请查看 Hugging Face Hub 上的数据集卡片：https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
-</Tip>
+> [!TIP]
+> 您可以将语言标识符从 `"dv"` 更改为您选择的语言标识符。要查看 Common Voice 13 中所有可选的语言，
+>     请查看 Hugging Face Hub 上的数据集卡片：https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
 
 大多数 ASR 数据集只提供输入音频样本（`audio`）和相应的转写文本（`sentence`）。Common Voice 包含额外的元数据，如 `accent` 和 `locale`，
 我们做 ASR 时可以忽略这些信息。为了让代码尽可能通用，我们只用输入音频和转写文本来进行微调，丢弃额外的元数据信息：
@@ -413,9 +412,8 @@ training_args = Seq2SeqTrainingArguments(
 )
 ```
 
-<Tip>
-    如果您不想将模型检查点上传到 Hub，请设置 `push_to_hub=False`。
-</Tip>
+> [!TIP]
+> 如果您不想将模型检查点上传到 Hub，请设置 `push_to_hub=False`。
 
 我们可以将训练参数传递给 🤗 Trainer，连同我们的模型、数据集、数据整理器和 `compute_metrics` 函数一起：
 

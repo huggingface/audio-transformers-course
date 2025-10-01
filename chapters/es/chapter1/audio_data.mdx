@@ -187,10 +187,9 @@ Utilizamos `librosa.amplitude_to_db()` para convertir los valores de amplitud a 
 sutiles en el espectro. A veces, las personas utilizan el **espectro de potencia**, que mide la energía en lugar de la amplitud; esto es simplemente
 un espectro con los valores de amplitud elevados al cuadrado.+
 
-<Tip>
-💡 En la práctica, las personas utilizan indistintamente los términos FFT (Transformada Rápida de Fourier) y DFT (Transformada Discreta de Fourier), 
-ya que la FFT es la única forma eficiente de calcular la DFT en una computadora.
-</Tip>
+> [!TIP]
+> 💡 En la práctica, las personas utilizan indistintamente los términos FFT (Transformada Rápida de Fourier) y DFT (Transformada Discreta de Fourier), 
+> ya que la FFT es la única forma eficiente de calcular la DFT en una computadora.
 
 El espectro de frecuencia de una señal de audio contiene exactamente la misma información que su representación en el dominio
 del tiempo(forma de onda); simplemente son dos formas diferentes de ver los mismos datos (en este caso, los primeros 4096 valores
@@ -289,14 +288,12 @@ Al igual que con un espectrograma regular, es práctica común expresar la inten
  El ejemplo anterior se usó `librosa.power_to_db()` ya que la función `librosa.feature.melspectrogram()` crea un espectrograma de potencia.
 
 
-<Tip>
-
-💡 ¡No todos los espectrogramas mel son iguales! Existen dos variantes comumente usadas de las escalas de mel("htk" y "slaney"),
-, y en lugar del espectrograma de potencia, se puede estar usando el espectrograma de amplitud. El cálculo de un espectrograma 
-logarítmico de mel no siempre usa decibelios reales, puede que se haya aplicado solamente la función `log`. Por lo tanto, 
-si un modelo de aprendizaje automático espera un espectrograma de mel como entrada, verifica que estés calculándolo de la misma manera
- para asegurarte de que sea compatible.
-</Tip>
+> [!TIP]
+> 💡 ¡No todos los espectrogramas mel son iguales! Existen dos variantes comumente usadas de las escalas de mel("htk" y "slaney"),
+> , y en lugar del espectrograma de potencia, se puede estar usando el espectrograma de amplitud. El cálculo de un espectrograma 
+> logarítmico de mel no siempre usa decibelios reales, puede que se haya aplicado solamente la función `log`. Por lo tanto, 
+> si un modelo de aprendizaje automático espera un espectrograma de mel como entrada, verifica que estés calculándolo de la misma manera
+>  para asegurarte de que sea compatible.
 
 La creación de un espectrograma mel es una operación con pérdidas, ya que implica filtrar la señal. Convertir un espectrograma de mel de
 nuevo en una forma de onda es más difícil que hacerlo para un espectrograma regular, ya que requiere estimar las frecuencias que se eliminaron.

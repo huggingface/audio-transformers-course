@@ -15,9 +15,8 @@ L'architecture de **Whisper** est la suivante (figure provenant du blog d’[Ope
 
 Cela devrait vous sembler assez familier. Sur la gauche se trouve l’**encodeur du *transformer***. Il prend comme entrée un spectrogramme log-mel et encode ce spectrogramme pour former une séquence d'états cachés de l’encodeur qui extraient des caractéristiques importantes de la parole. Ce tenseur à états cachés représente la séquence d'entrée dans son ensemble et code efficacement le « sens » du discours d'entrée.
 
-<Tip>
-💡 Il est courant que ces modèles seq2seq utilisent des spectrogrammes comme entrée. Cependant, un modèle seq2seq peut également être conçu pour fonctionner directement sur les formes d'onde audio.
-</Tip>
+> [!TIP]
+> 💡 Il est courant que ces modèles seq2seq utilisent des spectrogrammes comme entrée. Cependant, un modèle seq2seq peut également être conçu pour fonctionner directement sur les formes d'onde audio.
 
 La sortie de l’encodeur est ensuite passée dans le **décodeur du *transformer***, illustré à droite, à l'aide d'un mécanisme d’**attention croisée**. C'est comme l'auto-attention, mais assiste la sortie de l'encodeur. À partir de ce moment, l'encodeur n'est plus nécessaire.
 Le décodeur prédit une séquence de *tokens* de texte de manière **autorégressive**, un seul *token* à la fois, à partir d'une séquence initiale qui contient juste un *token* « start » (`SOT` dans le cas de Whisper). À chaque pas de temps suivant, la séquence de sortie précédente est réintroduite dans le décodeur en tant que nouvelle séquence d'entrée. De cette manière, le décodeur émet un nouveau *token* à la fois, augmentant régulièrement la séquence de sortie, jusqu'à ce qu'il prédise qu'un *token* de fin ou un nombre maximum de pas de temps est atteint.
@@ -26,19 +25,18 @@ Alors que l'architecture du décodeur est en grande partie identique à celle de
 2. L'attention du décodeur est causale : le décodeur n'est pas autorisé à regarder vers l'avenir.
 Dans cette conception, le décodeur joue le rôle d'un **modèle de langage**, traitant les représentations à l'état caché de l'encodeur et générant les transcriptions de texte correspondantes. Il s'agit d'une approche plus puissante que la CTC (même si la CTC est combinée avec un modèle de langage externe), car le système seq2seq peut être entraîné de bout en bout avec les mêmes données d'apprentissage et la même fonction de perte, offrant une plus grande flexibilité et des performances généralement supérieures.
 
-<Tip>
-💡 Alors qu'un modèle avec CTC produit une séquence de caractères individuels, les *tokens* prédits par Whisper sont des mots complets ou des portions de mots. Il utilise le tokenizer de GPT-2 et dispose d’environ 50 000 *tokens* uniques. Un modèle seq2seq peut donc produire une séquence beaucoup plus courte qu'un modèle CTC pour la même transcription.
-</Tip >
-
-Une fonction de perte typique pour un modèle d’ASR seq2seq est la perte d'entropie croisée car la dernière couche du modèle prédit une distribution de probabilité sur les *tokens* possibles. Ceci est généralement combiné avec des techniques telles que [recherche en faisceau pour générer la séquence finale](https://huggingface.co/blog/how-to-generate). La métrique de la reconnaissance vocale est le WER (*word error rate*) ou taux d'erreur de mots, qui mesure le nombre de substitutions, d'insertions et de suppressions nécessaires pour transformer le texte prédit en texte cible. Moins il y en a, meilleur est le score.
-
-## Synthèse vocale
-
-Cela ne vous surprendra peut-être pas : un modèle seq2seq pour la synthèse vocale fonctionne essentiellement de la même manière que décrit ci-dessus, mais avec les entrées et les sorties inversées ! L'encodeur du *transformer* prend une séquence de *tokens* de texte et extrait une séquence d'états masqués qui représentent le texte d'entrée. Le décodeur du *transformer* applique une attention croisée à la sortie de l’encodeur et prédit un spectrogramme.
-
-<Tip>
-💡 Rappelons qu'un spectrogramme est fabriqué en prenant le spectre de fréquences de tranches de temps successives d'une forme d'onde audio et en les empilant ensemble. En d'autres termes, un spectrogramme est une séquence où les éléments sont des spectres de fréquence (log-mel), un pour chaque pas de temps.
-</Tip>
+> [!TIP]
+> 💡 Alors qu'un modèle avec CTC produit une séquence de caractères individuels, les *tokens* prédits par Whisper sont des mots complets ou des portions de mots. Il utilise le tokenizer de GPT-2 et dispose d’environ 50 000 *tokens* uniques. Un modèle seq2seq peut donc produire une séquence beaucoup plus courte qu'un modèle CTC pour la même transcription.
+> </Tip >
+>
+> Une fonction de perte typique pour un modèle d’ASR seq2seq est la perte d'entropie croisée car la dernière couche du modèle prédit une distribution de probabilité sur les *tokens* possibles. Ceci est généralement combiné avec des techniques telles que [recherche en faisceau pour générer la séquence finale](https://huggingface.co/blog/how-to-generate). La métrique de la reconnaissance vocale est le WER (*word error rate*) ou taux d'erreur de mots, qui mesure le nombre de substitutions, d'insertions et de suppressions nécessaires pour transformer le texte prédit en texte cible. Moins il y en a, meilleur est le score.
+>
+> ## Synthèse vocale
+>
+> Cela ne vous surprendra peut-être pas : un modèle seq2seq pour la synthèse vocale fonctionne essentiellement de la même manière que décrit ci-dessus, mais avec les entrées et les sorties inversées ! L'encodeur du *transformer* prend une séquence de *tokens* de texte et extrait une séquence d'états masqués qui représentent le texte d'entrée. Le décodeur du *transformer* applique une attention croisée à la sortie de l’encodeur et prédit un spectrogramme.
+>
+> <Tip>
+> 💡 Rappelons qu'un spectrogramme est fabriqué en prenant le spectre de fréquences de tranches de temps successives d'une forme d'onde audio et en les empilant ensemble. En d'autres termes, un spectrogramme est une séquence où les éléments sont des spectres de fréquence (log-mel), un pour chaque pas de temps.
 
 Avec le modèle d’ASR, le décodeur a été démarré à l'aide d'une séquence qui contient simplement le *token* spécial « start ». Pour le modèle de synthèse vocale, on peut commencer le décodage avec un spectrogramme de longueur 1 et rempli de 0 qui agit comme le « *token* de départ ». Compte tenu de ce spectrogramme initial et des attentions croisées sur les représentations à l'état caché de l’encodeur, le décodeur prédit ensuite la prochaine tranche de temps pour ce spectrogramme, augmentant régulièrement le spectrogramme un pas de temps à la fois.
 
