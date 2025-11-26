@@ -91,6 +91,36 @@ Let's take an example were we predict 10 words and the target only has 2 words. 
 we'd have a WER of 10 / 2 = 5, or 500%! This is something to bear in mind if you train an ASR system and see a WER of over
 100%. Although if you're seeing this, something has likely gone wrong... 😅
 
+## Inverse Real-Time Factor (RTFx)
+
+While WER measures the accuracy of transcriptions, the *inverse real-time factor (RTFx)* measures the speed of an ASR system.
+RTFx is the inverse ratio of processing time to audio duration:
+
+$$
+\text{RTFx} = \frac{\text{Audio Duration}}{\text{Processing Time}}
+$$
+
+For example, if it takes 10 seconds to transcribe 100 seconds of audio, the RTFx is 100/10 = 10. An RTFx greater than 1.0
+means the system can transcribe audio faster than real-time, which is essential for live transcription applications like
+video conferencing or live captioning. An RTFx of 1.0 means the system processes at exactly real-time speed, while values
+below 1.0 indicate slower-than-real-time processing.
+
+Key points about RTFx:
+* **Higher is better**: Higher RTFx means faster processing
+* **RTFx > 1.0**: Faster than real-time (good for streaming applications)
+* **RTFx = 1.0**: Processes at exactly real-time speed
+* **RTFx < 1.0**: Slower than real-time (may be acceptable for batch processing)
+
+RTFx is hardware-dependent and varies based on factors like:
+- Model size (larger models typically have lower RTFx)
+- Hardware acceleration (GPU vs CPU)
+- Batch size
+- Audio characteristics (sampling rate, number of channels)
+
+When evaluating ASR systems, it's important to consider both WER and RTFx together. A model with excellent WER but very
+low RTFx may not be practical for real-time applications, while a model with slightly higher WER but high RTFx might be
+more suitable for latency-sensitive use cases.
+
 ## Word Accuracy
 
 We can flip the WER around to give us a metric where *higher is better*. Rather than measuring the word error rate,
