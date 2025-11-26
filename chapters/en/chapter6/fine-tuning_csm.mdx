@@ -1,0 +1,251 @@
+# Fine-tuning CSM 1B
+
+In this section, we will explore how to fine-tune Sesame's Conversational Speech Model (CSM) 1B. Unlike SpeechT5, which is a smaller model, CSM 1B is a larger causal language model (1.6B parameters) capable of context-aware speech generation. We will fine-tune it to learn a specific set of voices from an anime dataset.
+
+## House-keeping
+
+To fine-tune a model of this size, a GPU is essential. You can check your GPU status with:
+
+```bash
+nvidia-smi
+```
+
+You will need to install a few specific dependencies. Note that `torchcodec` is required for audio handling in this context.
+
+```bash
+pip install fsspec==2023.9.2 torchcodec peft bitsandbytes
+```
+
+<Tip>
+CSM 1B is a gated model. You must accept the license agreement on the [Hugging Face Hub model page](https://huggingface.co/sesame/csm-1b) before you can access it.
+</Tip>
+
+Make sure to log in to your Hugging Face account:
+
+```python
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+## The Dataset
+
+For this example, we will use the [AnimeVox](https://huggingface.co/datasets/taresh18/AnimeVox) dataset, which contains over 11,000 audio clips from 19 distinct anime characters.
+
+```python
+from datasets import load_dataset
+
+dataset = load_dataset("taresh18/AnimeVox", split="train")
+```
+
+The dataset contains audio clips and the corresponding character names. We want to teach the model to associate specific internal IDs with these unique voices.
+
+## Preprocessing
+
+First, we need to ensure the audio data matches the sampling rate expected by the CSM processor.
+
+```python
+from transformers import AutoProcessor
+from datasets import Audio
+
+processor = AutoProcessor.from_pretrained("sesame/csm-1b")
+
+# Cast the audio column to the correct sampling rate
+dataset = dataset.cast_column(
+    "audio", Audio(sampling_rate=processor.feature_extractor.sampling_rate)
+)
+```
+
+### Speaker Mapping
+
+CSM uses speaker IDs to distinguish between voices in a conversation. To fine-tune the model on new voices, we will assign a unique ID to each character in our dataset. We'll use IDs starting from 100 (e.g., `100`, `101`, etc.) to ensure they don't conflict with the IDs seen during pre-training.
+
+```python
+# Create a mapping from character names to IDs
+names = [
+    "Frieren",
+    "Fern",
+    "Power",
+    "Marin Kitagawa",
+    "Saber",
+    "Homura Akemi",
+    "Makima",
+    "Rin Tohsaka",
+    "Mai Sakurajima",
+    "Lucy",
+    "Emilia",
+    "Megumin",
+    "Kurisu Makise",
+    "Momo Ayase",
+    "Mikasa Ackerman",
+    "Rem",
+    "Asuna Yuuki",
+    "Madoka Kaname",
+    "Shiro",
+]
+names_to_id = {name: i for i, name in enumerate(names)}
+```
+
+### Data Collator
+
+We need a data collator to format the inputs correctly. CSM expects a conversation format where each turn has a role (speaker ID) and content (text and/or audio). We will format our training data as "conversations" where the "assistant" (our target speaker) says the transcription text with the corresponding audio.
+
+```python
+def data_collator(samples):
+    conversations = []
+
+    for sample in samples:
+        caption = sample["transcription"]
+        audio = sample["audio"]["array"]
+        # Use the mapped ID + 100 as the role
+        role_id = str(100 + names_to_id[sample["character_name"]])
+
+        conversations.append(
+            [
+                {
+                    "role": role_id,
+                    "content": [
+                        {"type": "text", "text": caption},
+                        {"type": "audio", "audio": audio},
+                    ],
+                }
+            ]
+        )
+
+    # Apply the chat template to process text and audio
+    inputs = processor.apply_chat_template(
+        conversations,
+        tokenize=True,
+        return_dict=True,
+        output_labels=True,
+    )
+    return inputs
+```
+
+## Efficient Training with PEFT
+
+Fine-tuning a 1.6B parameter model can be memory-intensive. To fit this on a standard GPU (like a T4 with 16GB VRAM), we need to use Parameter-Efficient Fine-Tuning (PEFT) and other memory-saving techniques:
+
+1.  **LoRA (Low-Rank Adaptation)**: Freezes most model weights and only trains small adapter layers.
+2.  **8-bit Optimizer**: Reduces the memory footprint of the optimizer states.
+3.  **Gradient Checkpointing**: Trades compute for memory by re-computing activations during the backward pass.
+
+Let's configure the model for LoRA:
+
+```python
+from peft import get_peft_model, LoraConfig
+from transformers import CsmForConditionalGeneration
+
+model = CsmForConditionalGeneration.from_pretrained("sesame/csm-1b", device_map="auto")
+
+# Freeze the codec model (audio encoder/decoder)
+for name, param in model.named_parameters():
+    if "codec_model" in name:
+        param.requires_grad = False
+
+# Configure LoRA
+config = LoraConfig(
+    r=16,
+    lora_alpha=16,
+    target_modules=[
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "out_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj",
+    ],
+    exclude_modules="codec_model",
+    task_type="CAUSAL_LM",
+)
+
+model.enable_input_require_grads()
+model = get_peft_model(model, config)
+model.print_trainable_parameters()
+```
+
+You should see that we are training less than 1% of the parameters!
+
+## Training
+
+Now we can set up the `Trainer`. We'll use `adamw_torch_8bit` as the optimizer and enable gradient accumulation to simulate a larger batch size.
+
+```python
+from transformers import TrainingArguments, Trainer
+
+training_args = TrainingArguments(
+    output_dir="csm-1b-finetuned-animevox",
+    num_train_epochs=3,
+    gradient_accumulation_steps=2,  # Adjust based on your GPU memory
+    gradient_checkpointing=True,
+    per_device_train_batch_size=4,  # Reduce if you hit OOM
+    dataloader_num_workers=2,
+    remove_unused_columns=False,
+    save_strategy="no",
+    optim="adamw_torch_8bit",
+    logging_steps=10,
+    report_to="none",
+    push_to_hub=True,
+)
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=dataset,
+    data_collator=data_collator,
+)
+
+trainer.train()
+```
+
+After training, save and push the model to the Hub:
+
+```python
+trainer.push_to_hub()
+```
+
+## Inference
+
+To use your fine-tuned model, you can load it using the standard `CsmForConditionalGeneration` class. You need to construct a conversation prompt using the specific speaker ID you trained on (e.g., `100 + ID` for a specific character).
+
+```python
+import torch
+from transformers import CsmForConditionalGeneration, AutoProcessor
+from IPython.display import Audio as IPyAudio
+
+# Load your fine-tuned model
+model_id = "YOUR_USERNAME/csm-1b-finetuned-animevox"
+model = CsmForConditionalGeneration.from_pretrained(model_id, device_map="cuda")
+processor = AutoProcessor.from_pretrained("sesame/csm-1b")
+
+# Define the speaker ID you want to use (e.g., Momo Ayase)
+character_name = "Momo Ayase"
+speaker_id = str(100 + names_to_id[character_name])
+
+# Prepare the conversation input
+conversation = [
+    {
+        "role": speaker_id,
+        "content": [
+            {
+                "type": "text",
+                "text": "We just fine-tuned a text-to-speech model in a few lines using Transformers!",
+            }
+        ],
+    }
+]
+
+# Process and generate
+inputs = processor.apply_chat_template(conversation, tokenize=True, return_dict=True)
+inputs = inputs.to("cuda")
+
+torch.manual_seed(42)
+audio = model.generate(**inputs, output_audio=True)
+
+# Listen to the result
+IPyAudio(audio[0].cpu().numpy(), rate=processor.feature_extractor.sampling_rate)
+```
+
+Experiment with different characters from the training set by changing the `speaker_id`!
+
