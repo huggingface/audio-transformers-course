@@ -24,13 +24,12 @@ checkpoints, either the checkpoint [sanchit-gandhi/speecht5_tts_vox_nl](https://
 which is a SpeechT5 checkpoint fine-tuned on the Dutch split of the [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli)
 dataset, or an MMS TTS checkpoint (see section on [pretrained models for TTS](../chapter6/pre-trained_models)).
 
-<Tip>
-    In our experience experimenting with the Dutch language, using an MMS TTS checkpoint results in better performance than a
-    fine-tuned SpeechT5 one, but you might find that your fine-tuned TTS checkpoint is preferable in your language.
-    If you decide to use an MMS TTS checkpoint, you will need to update the <a href="https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/a03175878f522df7445290d5508bfb5c5178f787/requirements.txt#L2">requirements.txt</a>
-    file of your demo to install <code>transformers</code> from the PR branch:
-    <p><code>git+https://github.com/hollance/transformers.git@6900e8ba6532162a8613d2270ec2286c3f58f57b</code></p>
-</Tip>
+> [!TIP]
+> In our experience experimenting with the Dutch language, using an MMS TTS checkpoint results in better performance than a
+>     fine-tuned SpeechT5 one, but you might find that your fine-tuned TTS checkpoint is preferable in your language.
+>     If you decide to use an MMS TTS checkpoint, you will need to update the <a href="https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/a03175878f522df7445290d5508bfb5c5178f787/requirements.txt#L2">requirements.txt</a>
+>     file of your demo to install <code>transformers</code> from the PR branch:
+>     <p><code>git+https://github.com/hollance/transformers.git@6900e8ba6532162a8613d2270ec2286c3f58f57b</code></p>
 
 
 Your demo should take as input an audio file, and return as output another audio file, matching the signature of the 

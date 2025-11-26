@@ -231,9 +231,8 @@ common_voice_test = load_dataset(
 )
 ```
 
-<Tip>
-    Si vous rencontrez un problème d'authentification lors du chargement du jeu de données, assurez-vous que vous avez accepté les conditions d'utilisation du jeu de données sur le *Hub* via le lien suivant : https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0.
-</Tip>
+> [!TIP]
+> Si vous rencontrez un problème d'authentification lors du chargement du jeu de données, assurez-vous que vous avez accepté les conditions d'utilisation du jeu de données sur le *Hub* via le lien suivant : https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0.
 
 L'évaluation sur un jeu de données entier peut être faite de la même manière que sur un seul exemple. Tout ce que nous avons à faire est de **boucler** sur les audios d'entrée, plutôt que d'inférer un seul échantillon. Pour ce faire, nous transformons d'abord notre jeu de données en un `KeyDataset`. Cela sélectionne la colonne particulière du jeu de données que nous voulons transmettre au modèle (dans notre cas, c'est la colonne `"audio"`), en ignorant le reste (comme les transcriptions cibles, que nous ne voulons pas utiliser pour l'inférence). Nous itérons ensuite sur ce jeu de données transformé, en ajoutant les sorties du modèle à une liste pour sauvegarder les prédictions. La cellule de code suivante prendra environ cinq minutes si elle est exécutée sur un GPU en demi-précision, avec un maximum de 12 Go de mémoire :
 
@@ -256,9 +255,8 @@ for prediction in tqdm(
     all_predictions.append(prediction["text"])
 ```
 
-<Tip>
-Si vous rencontrez une erreur de mémoire CUDA lors de l'exécution de la cellule ci-dessus, réduisez progressivement la taille du batch par un facteur de 2 jusqu'à ce que vous trouviez une taille de batch qui convienne à votre appareil.
-</Tip>
+> [!TIP]
+> Si vous rencontrez une erreur de mémoire CUDA lors de l'exécution de la cellule ci-dessus, réduisez progressivement la taille du batch par un facteur de 2 jusqu'à ce que vous trouviez une taille de batch qui convienne à votre appareil.
 
 Enfin, nous pouvons calculer le WER. Calculons d'abord le WER orthographique, c'est-à-dire le WER sans post-traitement :
 

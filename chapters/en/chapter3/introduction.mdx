@@ -92,9 +92,8 @@ In the **SpeechT5** TTS model, for example, the output from the transformer netw
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/speecht5.png" alt="SpeechT5 outputs a spectrogram and uses a vocoder to create the waveform">
 </div>
 
-<Tip>
-💡 If you take an existing waveform and apply the Short-Time Fourier Transform or STFT, it is possible to perform the inverse operation, the ISTFT, to get the original waveform again. This works because the spectrogram created by the STFT contains both amplitude and phase information, and both are needed to reconstruct the waveform. However, audio models that generate their output as a spectrogram typically only predict the amplitude information, not the phase. To turn such a spectrogram into a waveform, we have to somehow estimate the phase information. That's what a vocoder does.
-</Tip>
+> [!TIP]
+> 💡 If you take an existing waveform and apply the Short-Time Fourier Transform or STFT, it is possible to perform the inverse operation, the ISTFT, to get the original waveform again. This works because the spectrogram created by the STFT contains both amplitude and phase information, and both are needed to reconstruct the waveform. However, audio models that generate their output as a spectrogram typically only predict the amplitude information, not the phase. To turn such a spectrogram into a waveform, we have to somehow estimate the phase information. That's what a vocoder does.
 
 ### Waveform output
 

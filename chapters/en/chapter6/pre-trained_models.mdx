@@ -38,13 +38,10 @@ need the text encoder pre-net for the text inputs and the speech decoder pre- an
 This approach allows to obtain several models fine-tuned for different speech tasks that all benefit from the initial 
 pre-training on unlabeled data.  
 
-<Tip>
-
-Even though the fine-tuned models start out using the same set of weights from the shared pre-trained model, the 
-final versions are all quite different in the end. You can't take a fine-tuned ASR model and swap out the pre-nets and 
-post-net to get a working TTS model, for example. SpeechT5 is flexible, but not that flexible ;)
-
-</Tip>
+> [!TIP]
+> Even though the fine-tuned models start out using the same set of weights from the shared pre-trained model, the 
+> final versions are all quite different in the end. You can't take a fine-tuned ASR model and swap out the pre-nets and 
+> post-net to get a working TTS model, for example. SpeechT5 is flexible, but not that flexible ;)
 
 Let's see what are the pre- and post-nets that SpeechT5 uses for the TTS task specifically:
 
@@ -83,22 +80,19 @@ inputs = processor(text="Don't count the days, make the days count.", return_ten
 The SpeechT5 TTS model is not limited to creating speech for a single speaker. Instead, it uses so-called speaker embeddings 
 that capture a particular speaker's voice characteristics.
 
-<Tip>
-
-Speaker embeddings is a method of representing a speaker's identity in a compact way, as a vector of 
-fixed size, regardless of the length of the utterance. These embeddings capture essential information about a speaker's 
-voice, accent, intonation, and other unique characteristics that distinguish one speaker from another. Such embeddings can 
-be used for speaker verification, speaker diarization, speaker identification, and more. 
-The most common techniques for generating speaker embeddings include:
-
-* I-Vectors (identity vectors): I-Vectors are based on a Gaussian mixture model (GMM). They represent speakers as low-dimensional fixed-length vectors derived from the statistics of a speaker-specific GMM, and are obtained in unsupervised manner. 
-* X-Vectors: X-Vectors are derived using deep neural networks (DNNs) and capture frame-level speaker information by incorporating temporal context. 
-
-[X-Vectors](https://www.danielpovey.com/files/2018_icassp_xvectors.pdf) are a state-of-the-art method that shows superior performance 
-on evaluation datasets compared to I-Vectors. The deep neural network is used to obtain X-Vectors: it trains to discriminate 
-between speakers, and maps variable-length utterances to fixed-dimensional embeddings. You can also load an X-Vector speaker embedding that has been computed ahead of time, which will encapsulate the speaking characteristics of a particular speaker.
-
-</Tip>
+> [!TIP]
+> Speaker embeddings is a method of representing a speaker's identity in a compact way, as a vector of 
+> fixed size, regardless of the length of the utterance. These embeddings capture essential information about a speaker's 
+> voice, accent, intonation, and other unique characteristics that distinguish one speaker from another. Such embeddings can 
+> be used for speaker verification, speaker diarization, speaker identification, and more. 
+> The most common techniques for generating speaker embeddings include:
+>
+> * I-Vectors (identity vectors): I-Vectors are based on a Gaussian mixture model (GMM). They represent speakers as low-dimensional fixed-length vectors derived from the statistics of a speaker-specific GMM, and are obtained in unsupervised manner. 
+> * X-Vectors: X-Vectors are derived using deep neural networks (DNNs) and capture frame-level speaker information by incorporating temporal context. 
+>
+> [X-Vectors](https://www.danielpovey.com/files/2018_icassp_xvectors.pdf) are a state-of-the-art method that shows superior performance 
+> on evaluation datasets compared to I-Vectors. The deep neural network is used to obtain X-Vectors: it trains to discriminate 
+> between speakers, and maps variable-length utterances to fixed-dimensional embeddings. You can also load an X-Vector speaker embedding that has been computed ahead of time, which will encapsulate the speaking characteristics of a particular speaker.
 
 Let's load such a speaker embedding from a dataset on the Hub. The embeddings 
 were obtained from the [CMU ARCTIC dataset](http://www.festvox.org/cmu_arctic/) using 
@@ -131,23 +125,20 @@ However, if we are looking to generate speech waveform, we need to specify a voc
 In theory, you can use any vocoder that works on 80-bin mel spectrograms. Conveniently, 🤗 Transformers offers a vocoder 
 based on HiFi-GAN. Its weights were kindly provided by the original authors of SpeechT5.
 
-<Tip>
-
-[HiFi-GAN](https://arxiv.org/pdf/2010.05646v2.pdf) is a state-of-the-art generative adversarial network (GAN) designed 
-for high-fidelity speech synthesis. It is capable of generating high-quality and realistic audio waveforms from spectrogram inputs.
-
-On a high level, HiFi-GAN consists of one generator and two discriminators. The generator is a fully convolutional 
-neural network that takes a mel-spectrogram as input and learns to produce raw audio waveforms. The discriminators' 
-role is to distinguish between real and generated audio. The two discriminators focus on different aspects of the audio.
-
-HiFi-GAN is trained on a large dataset of high-quality audio recordings. It uses a so-called <em>adversarial training</em>, 
-where the generator and discriminator networks compete against each other. Initially, the generator produces low-quality 
-audio, and the discriminator can easily differentiate it from real audio. As training progresses, the generator improves 
-its output, aiming to fool the discriminator. The discriminator, in turn, becomes more accurate in distinguishing real 
-and generated audio. This adversarial feedback loop helps both networks improve over time. Ultimately, HiFi-GAN learns to 
-generate high-fidelity audio that closely resembles the characteristics of the training data.
-
-</Tip>
+> [!TIP]
+> [HiFi-GAN](https://arxiv.org/pdf/2010.05646v2.pdf) is a state-of-the-art generative adversarial network (GAN) designed 
+> for high-fidelity speech synthesis. It is capable of generating high-quality and realistic audio waveforms from spectrogram inputs.
+>
+> On a high level, HiFi-GAN consists of one generator and two discriminators. The generator is a fully convolutional 
+> neural network that takes a mel-spectrogram as input and learns to produce raw audio waveforms. The discriminators' 
+> role is to distinguish between real and generated audio. The two discriminators focus on different aspects of the audio.
+>
+> HiFi-GAN is trained on a large dataset of high-quality audio recordings. It uses a so-called <em>adversarial training</em>, 
+> where the generator and discriminator networks compete against each other. Initially, the generator produces low-quality 
+> audio, and the discriminator can easily differentiate it from real audio. As training progresses, the generator improves 
+> its output, aiming to fool the discriminator. The discriminator, in turn, becomes more accurate in distinguishing real 
+> and generated audio. This adversarial feedback loop helps both networks improve over time. Ultimately, HiFi-GAN learns to 
+> generate high-fidelity audio that closely resembles the characteristics of the training data.
 
 Loading the vocoder is as easy as any other 🤗 Transformers model.
 
@@ -334,11 +325,8 @@ Audio(speech_output[2], rate=sampling_rate)
 Your browser does not support the audio element. 
 </audio> 
 
-<Tip>
-
-Bark, like other 🤗 Transformers models, can be optimized in just a few lines of code regarding speed and memory impact. To find out how, click on [this colab demonstration notebook](https://colab.research.google.com/github/ylacombe/notebooks/blob/main/Benchmark_Bark_HuggingFace.ipynb).
-
-</Tip>
+> [!TIP]
+> Bark, like other 🤗 Transformers models, can be optimized in just a few lines of code regarding speed and memory impact. To find out how, click on [this colab demonstration notebook](https://colab.research.google.com/github/ylacombe/notebooks/blob/main/Benchmark_Bark_HuggingFace.ipynb).
 
 ## Massive Multilingual Speech (MMS)
 
@@ -355,15 +343,12 @@ generated. The waveform is then decoded using transposed convolutional layers ad
 During inference, the text encodings are upsampled and transformed into waveforms using the flow module and HiFi-GAN decoder.
 Like Bark, there's no need for a vocoder, as waveforms are generated directly.
 
-<Tip warning={true}>
-	
-MMS model has been added to 🤗 Transformers very recently, so you will have to install the library from source:
-
-```bash
-pip install git+https://github.com/huggingface/transformers.git
-```
-
-</Tip>
+> [!WARNING]
+> MMS model has been added to 🤗 Transformers very recently, so you will have to install the library from source:
+>
+> ```bash
+> pip install git+https://github.com/huggingface/transformers.git
+> ```
 
 Let's give MMS a go, and see how we can synthesize speech in a language other than English, e.g. German.
 First, we'll load the model checkpoint and the tokenizer for the correct language: 

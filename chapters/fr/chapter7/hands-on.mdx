@@ -8,9 +8,8 @@ Des conseils pour mettre à jour la fonction de traduction vocale afin d'effectu
 
 Pour synthétiser du texte dans la langue Y vers la parole dans la langue Y, où Y est une langue multilingue, vous devrez utiliser un *checkpoint* TTS multilingue. Pour cela, vous pouvez utiliser soit celui de SpeechT5 TTS que vous avez *finetuné* dans l'exercice pratique précédent, soit un un *checkpoint* TTS multilingue pré-entraîné. Il y a alors deux options pour ce dernier cas : soit le *checkpoint* [sanchit-gandhi/speecht5_tts_vox_nl](https://huggingface.co/sanchit-gandhi/speecht5_tts_vox_nl), qui est un SpeechT5 *finetuné* sur la partie néerlandaise de [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli), soit un *checkpoint* MMS TTS (voir la section [modèles pretrainés pour TTS](../chapter6/pre-trained_models)).
 
-<Tip>
-D'après notre expérience avec le néerlandais, l'utilisation d'un *checkpoint* MMS TTS permet d'obtenir de meilleures performances qu'un *checkpoint* SpeechT5 *finetuné* mais il se peut que votre *checkpoint* TTS *fientuné* soit préférable dans votre langue.
-</Tip>
+> [!TIP]
+> D'après notre expérience avec le néerlandais, l'utilisation d'un *checkpoint* MMS TTS permet d'obtenir de meilleures performances qu'un *checkpoint* SpeechT5 *finetuné* mais il se peut que votre *checkpoint* TTS *fientuné* soit préférable dans votre langue.
 
 
 Votre démo doit prendre en entrée un fichier audio, et retourner en sortie un autre fichier audio, correspondant à la signature de la fonction [`speech_to_speech_translation`](https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/3946ba6705a6632a63de8672ac52a482ab74b3fc/app.py#L35). Par conséquent, nous vous recommandons de laisser la fonction principale `speech_to_speech_translation` telle quelle, et de ne mettre à jour les fonctions [`translate`](https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/a03175878f522df7445290d5508bfb5c5178f787/app.py#L24) et [`synthesise`](https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/a03175878f522df7445290d5508bfb5c5178f787/app.py#L29) que si nécessaire.

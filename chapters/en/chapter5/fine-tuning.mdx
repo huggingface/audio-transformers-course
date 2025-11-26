@@ -79,10 +79,9 @@ DatasetDict({
 })
 ```
 
-<Tip>
-    You can change the language identifier from `"dv"` to a language identifier of your choice. To see all possible languages
-    in Common Voice 13, check out the dataset card on the Hugging Face Hub: https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
-</Tip>
+> [!TIP]
+> You can change the language identifier from `"dv"` to a language identifier of your choice. To see all possible languages
+>     in Common Voice 13, check out the dataset card on the Hugging Face Hub: https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
 
 Most ASR datasets only provide input audio samples (`audio`) and the corresponding transcribed text (`sentence`).
 Common Voice contains additional metadata information, such as `accent` and `locale`, which we can disregard for ASR.
@@ -451,9 +450,8 @@ training_args = Seq2SeqTrainingArguments(
 )
 ```
 
-<Tip>
-    If you do not want to upload the model checkpoints to the Hub, set `push_to_hub=False`.
-</Tip>
+> [!TIP]
+> If you do not want to upload the model checkpoints to the Hub, set `push_to_hub=False`.
 
 We can forward the training arguments to the 🤗 Trainer along with our model, dataset, data collator and `compute_metrics` function:
 

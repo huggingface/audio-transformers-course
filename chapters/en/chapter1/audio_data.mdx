@@ -178,10 +178,9 @@ You used `librosa.amplitude_to_db()` to convert the amplitude values to the deci
 the finer details in the spectrum. Sometimes people use the **power spectrum**, which measures energy rather than amplitude;
 this is simply a spectrum with the amplitude values squared.
 
-<Tip>
-💡 In practice, people use the term FFT interchangeably with DFT, as the FFT or Fast Fourier Transform is the only efficient
-way to calculate the DFT on a computer.
-</Tip>
+> [!TIP]
+> 💡 In practice, people use the term FFT interchangeably with DFT, as the FFT or Fast Fourier Transform is the only efficient
+> way to calculate the DFT on a computer.
 
 The frequency spectrum of an audio signal contains the exact same information as its waveform — they are simply two different
 ways of looking at the same data (here, the first 4096 samples from the trumpet sound). Where the waveform plots the amplitude
@@ -276,12 +275,11 @@ Just as with a regular spectrogram, it's common practice to express the strength
 decibels. This is commonly referred to as a **log-mel spectrogram**, because the conversion to decibels involves a
 logarithmic operation. The above example used `librosa.power_to_db()` as `librosa.feature.melspectrogram()` creates a power spectrogram.
 
-<Tip>
-💡 Not all mel spectrograms are the same! There are two different mel scales in common use ("htk" and "slaney"),
-and instead of the power spectrogram the amplitude spectrogram may be used. The conversion to a log-mel spectrogram doesn't
-always compute true decibels but may simply take the `log`. Therefore, if a machine learning model expects a mel spectrogram
-as input, double check to make sure you're computing it the same way.
-</Tip>
+> [!TIP]
+> 💡 Not all mel spectrograms are the same! There are two different mel scales in common use ("htk" and "slaney"),
+> and instead of the power spectrogram the amplitude spectrogram may be used. The conversion to a log-mel spectrogram doesn't
+> always compute true decibels but may simply take the `log`. Therefore, if a machine learning model expects a mel spectrogram
+> as input, double check to make sure you're computing it the same way.
 
 Creating a mel spectrogram is a lossy operation as it involves filtering the signal. Converting a mel spectrogram back
 into a waveform is more difficult than doing this for a regular spectrogram, as it requires estimating the frequencies

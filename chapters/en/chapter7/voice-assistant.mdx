@@ -48,12 +48,11 @@ the device.
 
 Again, we've done this several times now, so the process will be very familiar!
 
-<Tip>
-    The following section requires the use of a microphone to record a voice input. Since Google Colab machines do not
-    have microphone compatibility, it is recommended to run this section locally, either on your CPU, or on a GPU if you
-    have local access. The checkpoint sizes have been selected as those small enough to run adequately fast on CPU, so
-    you will still get good performance without a GPU.
-</Tip>
+> [!TIP]
+> The following section requires the use of a microphone to record a voice input. Since Google Colab machines do not
+>     have microphone compatibility, it is recommended to run this section locally, either on your CPU, or on a GPU if you
+>     have local access. The checkpoint sizes have been selected as those small enough to run adequately fast on CPU, so
+>     you will still get good performance without a GPU.
 
 ## Wake word detection
 
@@ -225,11 +224,10 @@ transcriber = pipeline(
 )
 ```
 
-<Tip>
-    If you're using a GPU, you can increase the checkpoint size to use the <a href="https://huggingface.co/openai/whisper-small.en">Whisper Small English</a> 
-    checkpoint, which will return better transcription accuracy and still be within the required latency threshold. Simply swap the 
-    model id to: <code>"openai/whisper-small.en"</code>.
-</Tip>
+> [!TIP]
+> If you're using a GPU, you can increase the checkpoint size to use the <a href="https://huggingface.co/openai/whisper-small.en">Whisper Small English</a> 
+>     checkpoint, which will return better transcription accuracy and still be within the required latency threshold. Simply swap the 
+>     model id to: <code>"openai/whisper-small.en"</code>.
 
 We can now define a function to record our microphone input and transcribe the corresponding text. With the `ffmpeg_microphone_live`
 helper function, we can control how 'real-time' our speech recognition model is. Using a smaller `stream_chunk_s` lends
@@ -444,10 +442,9 @@ agent.run("Generate an image of a cat")
      <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/generated_cat.png">
  </div>
 
-<Tip>
-    Note that the first time calling this will trigger the model weights to be downloaded, which might take 
-    some time depending on your Hub download speed.
-</Tip>
+> [!TIP]
+> Note that the first time calling this will trigger the model weights to be downloaded, which might take 
+>     some time depending on your Hub download speed.
 
 Easy as that! The Agent interpreted our prompt, and used [Stable Diffusion](https://huggingface.co/docs/diffusers/using-diffusers/conditional_image_generation) 
 under the hood to generate the image, without us having to worry about loading the model, writing the function or executing 

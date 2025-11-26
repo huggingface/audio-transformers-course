@@ -243,9 +243,8 @@ common_voice_test = load_dataset(
 )
 ```
 
-<Tip>
-    如果在加载数据集时遇到身份验证问题，请确保您已经通过以下链接在 Hugging Face Hub 上接受了数据集的使用条款：https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
-</Tip>
+> [!TIP]
+> 如果在加载数据集时遇到身份验证问题，请确保您已经通过以下链接在 Hugging Face Hub 上接受了数据集的使用条款：https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
 
 用与推理单个样本相同的方式评估整个数据集——我们所要做的就是**循环**处理输入的所有音频，而不是仅推理单个样本。为此，我们首先将我们的数据集转换为 `KeyDataset`。
 我们要做的只是挑选出我们要传递给模型的特定的数据列（在我们的案例中，那是 `"audio"` 列），忽略其余的（如目标转写，在推理时用不上）。
@@ -270,9 +269,8 @@ for prediction in tqdm(
     all_predictions.append(prediction["text"])
 ```
 
-<Tip>
-    如果在运行上述单元时遇到 CUDA 内存不足（out-of-memory, OOM）问题，请将 `batch_size` 逐渐减小 2 的倍数，直到找到适合您设备的批次大小。
-</Tip>
+> [!TIP]
+> 如果在运行上述单元时遇到 CUDA 内存不足（out-of-memory, OOM）问题，请将 `batch_size` 逐渐减小 2 的倍数，直到找到适合您设备的批次大小。
 
 最后，我们可以计算 WER。让我们首先计算正字法 WER，即没有任何后处理时的 WER：
 

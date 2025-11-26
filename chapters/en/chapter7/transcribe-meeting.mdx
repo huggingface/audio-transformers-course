@@ -168,11 +168,10 @@ pipeline = ASRDiarizationPipeline(
 )
 ```
 
-<Tip>
-    You can also instantiate the <code>ASRDiarizationPipeline</code> directly from pre-trained by specifying the model id
-    of an ASR model on the Hub:
-    <p><code>pipeline = ASRDiarizationPipeline.from_pretrained("openai/whisper-base")</code></p>
-</Tip>
+> [!TIP]
+> You can also instantiate the <code>ASRDiarizationPipeline</code> directly from pre-trained by specifying the model id
+>     of an ASR model on the Hub:
+>     <p><code>pipeline = ASRDiarizationPipeline.from_pretrained("openai/whisper-base")</code></p>
 
 Let's pass the audio file to the composite pipeline and see what we get out:
 

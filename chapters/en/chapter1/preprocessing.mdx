@@ -61,16 +61,15 @@ minds[0]
 You may notice that the array values are now also different. This is because we've now got twice the number of amplitude values for
 every one that we had before.
 
-<Tip>
-💡 Some background on resampling: If an audio signal has been sampled at 8 kHz, so that it has 8000 sample readings per
-second, we know that the audio does not contain any frequencies over 4 kHz. This is guaranteed by the Nyquist sampling
-theorem. Because of this, we can be certain that in between the sampling points the original continuous signal always
-makes a smooth curve. Upsampling to a higher sampling rate is then a matter of calculating additional sample values that go in between
-the existing ones, by approximating this curve. Downsampling, however, requires that we first filter out any frequencies
-that would be higher than the new Nyquist limit, before estimating the new sample points. In other words, you can't
-downsample by a factor 2x by simply throwing away every other sample — this will create distortions in the signal called
-aliases. Doing resampling correctly is tricky and best left to well-tested libraries such as librosa or 🤗 Datasets.
-</Tip>
+> [!TIP]
+> 💡 Some background on resampling: If an audio signal has been sampled at 8 kHz, so that it has 8000 sample readings per
+> second, we know that the audio does not contain any frequencies over 4 kHz. This is guaranteed by the Nyquist sampling
+> theorem. Because of this, we can be certain that in between the sampling points the original continuous signal always
+> makes a smooth curve. Upsampling to a higher sampling rate is then a matter of calculating additional sample values that go in between
+> the existing ones, by approximating this curve. Downsampling, however, requires that we first filter out any frequencies
+> that would be higher than the new Nyquist limit, before estimating the new sample points. In other words, you can't
+> downsample by a factor 2x by simply throwing away every other sample — this will create distortions in the signal called
+> aliases. Doing resampling correctly is tricky and best left to well-tested libraries such as librosa or 🤗 Datasets.
 
 ## Filtering the dataset
 

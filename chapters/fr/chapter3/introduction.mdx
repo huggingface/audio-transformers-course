@@ -82,9 +82,8 @@ Par exemple dans le modèle **[SpeechT5](https://arxiv.org/abs/2110.07205)** la 
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/speecht5.png" alt="SpeechT5 outputs a spectrogram and uses a vocoder to create the waveform">
 </div>
 
-<Tip>
-💡 Si vous prenez une forme d'onde existante et appliquez la transformée de Fourier à court terme (TFCT), il est possible d'effectuer l'opération inverse pour obtenir à nouveau la forme d'onde d'origine. Cela fonctionne parce que le spectrogramme créé par la TFCT contient à la fois des informations d'amplitude et de phase, et les deux sont nécessaires pour reconstruire la forme d'onde. Cependant, les modèles audio qui génèrent leur sortie sous forme de spectrogramme ne prédisent généralement que les informations d'amplitude, pas la phase. Pour transformer un tel spectrogramme en une forme d'onde, nous devons en quelque sorte estimer l'information de phase. C'est ce que fait un vocodeur.
-</Tip>
+> [!TIP]
+> 💡 Si vous prenez une forme d'onde existante et appliquez la transformée de Fourier à court terme (TFCT), il est possible d'effectuer l'opération inverse pour obtenir à nouveau la forme d'onde d'origine. Cela fonctionne parce que le spectrogramme créé par la TFCT contient à la fois des informations d'amplitude et de phase, et les deux sont nécessaires pour reconstruire la forme d'onde. Cependant, les modèles audio qui génèrent leur sortie sous forme de spectrogramme ne prédisent généralement que les informations d'amplitude, pas la phase. Pour transformer un tel spectrogramme en une forme d'onde, nous devons en quelque sorte estimer l'information de phase. C'est ce que fait un vocodeur.
 
 ### Sortie sous forme de forme d'onde
 

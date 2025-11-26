@@ -24,13 +24,12 @@
 дообученную на голландском фрагменте набора данных [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli) [NL], либо контрольная точка MMS TTS
 (смотрите  раздел [предварительно обученные модели text-to-speech](../chapter6/pre-trained_models)).
 
-<Tip>
-    По нашему опыту экспериментов с голландским языком, использование контрольной точки MMS TTS дает лучшую производительность, чем
-    с дообученной SpeechT5, но вы можете обнаружить, что ваша дообученная контрольная точка TTS предпочтительнее для вашего языка.
-    Если вы решили использовать контрольную точку MMS TTS, вам необходимо обновить <a href="https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/a03175878f522df7445290d5508bfb5c5178f787/requirements.txt#L2">requirements.txt</a>
-    файл вашей демонстрации для установки <code>transformers</code> из ветки PR:
-    <p><code>git+https://github.com/hollance/transformers.git@6900e8ba6532162a8613d2270ec2286c3f58f57b</code></p>
-</Tip>
+> [!TIP]
+> По нашему опыту экспериментов с голландским языком, использование контрольной точки MMS TTS дает лучшую производительность, чем
+>     с дообученной SpeechT5, но вы можете обнаружить, что ваша дообученная контрольная точка TTS предпочтительнее для вашего языка.
+>     Если вы решили использовать контрольную точку MMS TTS, вам необходимо обновить <a href="https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/a03175878f522df7445290d5508bfb5c5178f787/requirements.txt#L2">requirements.txt</a>
+>     файл вашей демонстрации для установки <code>transformers</code> из ветки PR:
+>     <p><code>git+https://github.com/hollance/transformers.git@6900e8ba6532162a8613d2270ec2286c3f58f57b</code></p>
 
 Ваше демо должно принимать на вход аудиофайл, а на выходе возвращать другой аудиофайл, соответствующий сигнатуре функции 
 [`speech_to_speech_translation`](https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/3946ba6705a6632a63de8672ac52a482ab74b3fc/app.py#L35) [NL] в шаблоне демо.

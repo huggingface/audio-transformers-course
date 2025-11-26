@@ -57,14 +57,13 @@ minds[0]
 ```
 Vous remarquerez peut-être que les valeurs de tableau sont maintenant également différentes. C'est parce que nous avons maintenant deux fois plus de valeurs d'amplitude pour chacune d'entre elles que nous avions auparavant.
 
-<Tip> 
-💡 Quelques informations sur le rééchantillonnage: Si un signal audio a été échantillonné à 8 kHz, de sorte qu'il a 8000 lectures d'échantillon par seconde, nous savons que l'audio ne contient aucune fréquence supérieure à 4 kHz. 
-Ceci est garanti par le théorème d'échantillonnage de Nyquist. Pour cette raison, nous pouvons être certains qu'entre les points d'échantillonnage, le signal continu d'origine fait toujours une courbe lisse.
-L'augmentation du prélèvement vers un taux d'échantillonnage plus élevé consiste alors à calculer des valeurs d'échantillonnage supplémentaires qui se situent entre les valeurs existantes, en approximant cette courbe. 
-Le sous-échantillonnage, cependant, nécessite que nous filtrons d'abord toutes les fréquences qui seraient supérieures à la nouvelle limite de Nyquist, avant d'estimer les nouveaux points d'échantillonnage. 
-En d'autres termes, vous ne pouvez pas sous-échantillonner d'un facteur 2x en jetant simplement tous les autres échantillons - cela créera des distorsions dans le signal appelées alias. 
-Faire un rééchantillonnage correct est délicat et mieux laissé à des bibliothèques bien testées telles que librosa ou 🤗 *Datasets*.
-</Tip>
+> [!TIP]
+> 💡 Quelques informations sur le rééchantillonnage: Si un signal audio a été échantillonné à 8 kHz, de sorte qu'il a 8000 lectures d'échantillon par seconde, nous savons que l'audio ne contient aucune fréquence supérieure à 4 kHz. 
+> Ceci est garanti par le théorème d'échantillonnage de Nyquist. Pour cette raison, nous pouvons être certains qu'entre les points d'échantillonnage, le signal continu d'origine fait toujours une courbe lisse.
+> L'augmentation du prélèvement vers un taux d'échantillonnage plus élevé consiste alors à calculer des valeurs d'échantillonnage supplémentaires qui se situent entre les valeurs existantes, en approximant cette courbe. 
+> Le sous-échantillonnage, cependant, nécessite que nous filtrons d'abord toutes les fréquences qui seraient supérieures à la nouvelle limite de Nyquist, avant d'estimer les nouveaux points d'échantillonnage. 
+> En d'autres termes, vous ne pouvez pas sous-échantillonner d'un facteur 2x en jetant simplement tous les autres échantillons - cela créera des distorsions dans le signal appelées alias. 
+> Faire un rééchantillonnage correct est délicat et mieux laissé à des bibliothèques bien testées telles que librosa ou 🤗 *Datasets*.
 
 ## Filtrage du jeu de données
 

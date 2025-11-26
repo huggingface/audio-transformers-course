@@ -59,9 +59,8 @@ minds[0]
 Dizi değerlerinin de artık farklı olduğunu fark edebilirsiniz. Bunun nedeni artık iki kat daha fazla genlik değerine sahip olmamızdır.
 daha önce sahip olduğumuz her biri.
 
-<Tip>
-💡 Örnekleme hakkında bazı temel bilgiler: Bir ses sinyali 8 kHz'de örneklenmişse, yani saniyede 8000 örnek okuma alıyorsak, sesin 4 kHz'nin üzerinde herhangi bir frekanseyi içermediğini biliyoruz. Bu, Nyquist örnekleme teoremi tarafından garanti edilir. Bu nedenle, örnekleme noktaları arasında, orijinal sürekli sinyalin her zaman düzgün bir eğri oluşturduğundan emin olabiliriz. Örnekleme hızını daha yüksek bir örnekleme hızına yükseltmek, bu eğriyi yaklaşıklayarak mevcut olanların arasına ek örnek değerlerini hesaplamakla ilgilidir. Bununla birlikte, örnekleme hızını düşürmek, önce yeni Nyquist sınırından daha yüksek frekanstaki herhangi bir frekansı filtrelemeyi gerektirir, ardından yeni örnek noktalarını tahmin etmeden önce. Yani, örnekleme hızını 2x faktörüyle sadece her diğer örneği atarak düşüremezsiniz - bu, sinyalde bozulmalara yol açan aliaslar adı verilen bozulmaları oluşturur. Örnekleme işlemini doğru bir şekilde yapmak karmaşıktır ve en iyi test edilmiş kütüphanelere, örneğin librosa veya 🤗 Datasets gibi kütüphanelere bırakılmalıdır.
-</Tip>
+> [!TIP]
+> 💡 Örnekleme hakkında bazı temel bilgiler: Bir ses sinyali 8 kHz'de örneklenmişse, yani saniyede 8000 örnek okuma alıyorsak, sesin 4 kHz'nin üzerinde herhangi bir frekanseyi içermediğini biliyoruz. Bu, Nyquist örnekleme teoremi tarafından garanti edilir. Bu nedenle, örnekleme noktaları arasında, orijinal sürekli sinyalin her zaman düzgün bir eğri oluşturduğundan emin olabiliriz. Örnekleme hızını daha yüksek bir örnekleme hızına yükseltmek, bu eğriyi yaklaşıklayarak mevcut olanların arasına ek örnek değerlerini hesaplamakla ilgilidir. Bununla birlikte, örnekleme hızını düşürmek, önce yeni Nyquist sınırından daha yüksek frekanstaki herhangi bir frekansı filtrelemeyi gerektirir, ardından yeni örnek noktalarını tahmin etmeden önce. Yani, örnekleme hızını 2x faktörüyle sadece her diğer örneği atarak düşüremezsiniz - bu, sinyalde bozulmalara yol açan aliaslar adı verilen bozulmaları oluşturur. Örnekleme işlemini doğru bir şekilde yapmak karmaşıktır ve en iyi test edilmiş kütüphanelere, örneğin librosa veya 🤗 Datasets gibi kütüphanelere bırakılmalıdır.
 
 ## Veri kümesini filtreleme
 

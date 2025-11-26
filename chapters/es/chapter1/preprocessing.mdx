@@ -60,16 +60,15 @@ minds[0]
 Puedes ver que los valores del array ahora son diferentes. Esto es porque ahora tenemos el doble de valores de amplitud de la longitud
 original.
 
-<Tip>
-💡 Si una señal de audio ha sido grabada a una frecuencia de muestreo de 8kHz, de manera que cada segundo de la 
-señal esta representado por 8000 muestras, sabemos tambien que el audio no contiene ninguna frecuencia por encima
-de 4kHz. Esto esta garantizado por el teorema de Nyquist. Resamplear a una frecuencia de muestro mayor(Upsampling) 
-consiste en estimar los puntos adicionales que irian entre las muestras existentes. El proceso de Downsampling, requiere en cambio,
-que primero filtremos cualquier frecuencia que sea mayor al nuevo Limite de Nyquist antes de estimar las nuevas muestras.
-En otras palabras, no puedes hacer downsampling por un facto de 2x solo descartando la mitad de muestras de la señal - Esto 
-crearía distorsiones en la señal llamadas alias. Hacer resampliing de la manera correcta es complejo por lo que es mejor
-usar librerias que han sido probadas a lo largo de los años como lo son librosa o 🤗 Datasets.
-</Tip>
+> [!TIP]
+> 💡 Si una señal de audio ha sido grabada a una frecuencia de muestreo de 8kHz, de manera que cada segundo de la 
+> señal esta representado por 8000 muestras, sabemos tambien que el audio no contiene ninguna frecuencia por encima
+> de 4kHz. Esto esta garantizado por el teorema de Nyquist. Resamplear a una frecuencia de muestro mayor(Upsampling) 
+> consiste en estimar los puntos adicionales que irian entre las muestras existentes. El proceso de Downsampling, requiere en cambio,
+> que primero filtremos cualquier frecuencia que sea mayor al nuevo Limite de Nyquist antes de estimar las nuevas muestras.
+> En otras palabras, no puedes hacer downsampling por un facto de 2x solo descartando la mitad de muestras de la señal - Esto 
+> crearía distorsiones en la señal llamadas alias. Hacer resampliing de la manera correcta es complejo por lo que es mejor
+> usar librerias que han sido probadas a lo largo de los años como lo son librosa o 🤗 Datasets.
 
 ## Filtrando el conjunto de datos
 
