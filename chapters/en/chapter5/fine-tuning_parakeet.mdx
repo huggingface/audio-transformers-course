@@ -1,0 +1,306 @@
+# Fine-tuning Parakeet for ASR
+
+In this section, we will explore how to fine-tune NVIDIA's Parakeet CTC model for Automatic Speech Recognition (ASR). Parakeet is a family of high-performance ASR models based on the FastConformer architecture, trained on over 64,000 hours of English speech data. We will fine-tune it on a conversational speech dataset using the Hugging Face `transformers` and `datasets` libraries.
+
+## House-keeping
+
+To fine-tune a model of this size (1.1B parameters), a GPU is essential. You can check your GPU status with:
+
+```bash
+nvidia-smi
+```
+
+You will need to install a few specific dependencies:
+
+```bash
+pip install transformers datasets librosa jiwer peft accelerate soundfile
+```
+
+Make sure to log in to your Hugging Face account if you want to push your model to the Hub:
+
+```python
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+## The Dataset
+
+For this example, we will use a subset of the LibriSpeech dataset for quick experimentation. In practice, you would use a larger dataset relevant to your domain.
+
+```python
+from datasets import load_dataset, Audio
+
+dataset = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+```
+
+The dataset contains audio clips and the corresponding transcriptions. Let's take a look at an example:
+
+```python
+print(dataset[0])
+# {'file': '...', 'audio': {'path': '...', 'array': array([...]), 'sampling_rate': 16000}, 'text': '...'}
+```
+
+## Preprocessing
+
+First, we need to ensure the audio data matches the sampling rate expected by Parakeet (16kHz).
+
+```python
+from transformers import AutoProcessor
+
+processor = AutoProcessor.from_pretrained("nvidia/parakeet-ctc-1.1b")
+
+# Cast the audio column to the correct sampling rate
+dataset = dataset.cast_column(
+    "audio", Audio(sampling_rate=processor.feature_extractor.sampling_rate)
+)
+```
+
+### Data Collator
+
+We need a data collator to process the audio and text inputs correctly. The Parakeet processor handles feature extraction for the audio and tokenization for the text.
+
+```python
+class ParakeetDataCollator:
+    """Data collator for Parakeet CTC training."""
+    
+    def __init__(self, processor):
+        self.processor = processor
+
+    def __call__(self, features):
+        texts = [f["text"] for f in features]
+        audios = [f["audio"]["array"] for f in features]
+
+        # Process audio features and text labels
+        inputs = self.processor(
+            audio=audios,
+            text=texts,
+            sampling_rate=self.processor.feature_extractor.sampling_rate,
+        )
+        return inputs
+```
+
+## Training (Full Fine-tuning)
+
+For full fine-tuning, we simply load the model and train all parameters:
+
+```python
+from transformers import AutoModelForCTC, TrainingArguments, Trainer
+
+model = AutoModelForCTC.from_pretrained("nvidia/parakeet-ctc-1.1b")
+
+data_collator = ParakeetDataCollator(processor)
+
+training_args = TrainingArguments(
+    output_dir="parakeet-finetuned",
+    num_train_epochs=3,
+    per_device_train_batch_size=2,
+    gradient_accumulation_steps=4,
+    learning_rate=5e-5,
+    bf16=True,
+    logging_steps=10,
+    save_strategy="steps",
+    save_steps=50,
+    remove_unused_columns=False,
+    report_to="none",
+)
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=dataset,
+    data_collator=data_collator,
+)
+
+trainer.train()
+```
+
+## Efficient Training with LoRA
+
+Fine-tuning a 1.1B parameter model can be memory-intensive. To fit this on a standard GPU, we can use Parameter-Efficient Fine-Tuning (PEFT) with LoRA:
+
+1.  **LoRA (Low-Rank Adaptation)**: Freezes most model weights and only trains small adapter layers.
+2.  **Gradient Checkpointing**: Trades compute for memory by re-computing activations during the backward pass.
+
+Let's configure the model for LoRA:
+
+```python
+from peft import LoraConfig, get_peft_model
+from transformers import AutoModelForCTC
+
+model = AutoModelForCTC.from_pretrained("nvidia/parakeet-ctc-1.1b")
+
+# Configure LoRA - targeting linear layers in the encoder
+lora_config = LoraConfig(
+    r=16,
+    lora_alpha=32,
+    lora_dropout=0.05,
+    bias="none",
+    target_modules=["linear"],
+)
+
+model = get_peft_model(model, lora_config)
+model.print_trainable_parameters()
+```
+
+You should see that we are training less than 1% of the parameters!
+
+Optionally, enable gradient checkpointing to save memory:
+
+```python
+if hasattr(model, "gradient_checkpointing_enable"):
+    model.gradient_checkpointing_enable()
+```
+
+### Training with LoRA
+
+Now we can set up the `Trainer`:
+
+```python
+from transformers import TrainingArguments, Trainer
+
+training_args = TrainingArguments(
+    output_dir="parakeet-finetuned-lora",
+    num_train_epochs=3,
+    per_device_train_batch_size=2,
+    gradient_accumulation_steps=4,
+    learning_rate=5e-5,
+    bf16=True,
+    logging_steps=10,
+    save_strategy="steps",
+    save_steps=50,
+    remove_unused_columns=False,
+    report_to="none",
+    ddp_find_unused_parameters=False,
+)
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=dataset,
+    data_collator=data_collator,
+)
+
+trainer.train()
+```
+
+After training, save the model and push to the Hub:
+
+```python
+trainer.save_model()
+processor.save_pretrained("parakeet-finetuned-lora")
+
+# Optionally push to Hub
+trainer.push_to_hub()
+```
+
+## Evaluation
+
+To evaluate your fine-tuned model, you can compute the Word Error Rate (WER):
+
+```python
+from jiwer import wer
+
+# Load your fine-tuned model
+from transformers import AutoModelForCTC, AutoProcessor
+
+model = AutoModelForCTC.from_pretrained("YOUR_USERNAME/parakeet-finetuned-lora")
+processor = AutoProcessor.from_pretrained("YOUR_USERNAME/parakeet-finetuned-lora")
+
+# Transcribe test audio
+def transcribe(audio_array):
+    inputs = processor(
+        audio=audio_array,
+        sampling_rate=16000,
+        return_tensors="pt"
+    )
+    
+    with torch.no_grad():
+        logits = model(**inputs.to(model.device)).logits
+    
+    predicted_ids = torch.argmax(logits, dim=-1)
+    transcription = processor.batch_decode(predicted_ids)
+    return transcription[0]
+
+# Calculate WER on test set
+predictions = []
+references = []
+
+for sample in test_dataset:
+    prediction = transcribe(sample["audio"]["array"])
+    predictions.append(prediction)
+    references.append(sample["text"])
+
+error_rate = wer(references, predictions)
+print(f"Word Error Rate: {error_rate:.2%}")
+```
+
+## Inference
+
+To use your fine-tuned model for inference:
+
+```python
+import torch
+from transformers import AutoModelForCTC, AutoProcessor
+
+# Load your fine-tuned model
+model_id = "YOUR_USERNAME/parakeet-finetuned-lora"
+model = AutoModelForCTC.from_pretrained(model_id, device_map="cuda")
+processor = AutoProcessor.from_pretrained(model_id)
+
+# Load an audio file
+from datasets import Audio
+import librosa
+
+audio_array, sr = librosa.load("path/to/audio.wav", sr=16000)
+
+# Process and transcribe
+inputs = processor(audio=audio_array, sampling_rate=16000, return_tensors="pt")
+inputs = inputs.to("cuda")
+
+with torch.no_grad():
+    logits = model(**inputs).logits
+
+predicted_ids = torch.argmax(logits, dim=-1)
+transcription = processor.batch_decode(predicted_ids)[0]
+
+print(f"Transcription: {transcription}")
+```
+
+## Using a Custom Dataset
+
+If you want to use a different dataset, ensure it has:
+
+* An **`audio`** column (cast to `Audio(sampling_rate=16000)`), and
+* A **`text`** column (the reference transcription).
+
+Here's an example with Common Voice:
+
+```python
+from datasets import load_dataset, Audio
+
+# Load Common Voice dataset
+dataset = load_dataset("mozilla-foundation/common_voice_13_0", "en", split="train")
+
+# Select only the columns we need and rename if necessary
+dataset = dataset.select_columns(["audio", "sentence"])
+dataset = dataset.rename_column("sentence", "text")
+
+# Cast audio to 16kHz
+dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
+```
+
+## Tips for Better Results
+
+1. **Use a larger dataset**: The dummy dataset used here is just for demonstration. Real fine-tuning benefits from thousands of hours of speech data.
+
+2. **Adjust learning rate**: For LoRA fine-tuning, learning rates between 1e-5 and 5e-5 typically work well.
+
+3. **Increase LoRA rank**: If you're not seeing enough improvement, try increasing the LoRA rank (`r`) from 16 to 32 or 64.
+
+4. **Domain-specific data**: For best results, fine-tune on data that matches your target domain (medical, legal, conversational, etc.).
+
+5. **Data augmentation**: Consider using speed perturbation, noise injection, or SpecAugment to improve robustness.
+
+Happy fine-tuning Parakeet! 🦜
+
