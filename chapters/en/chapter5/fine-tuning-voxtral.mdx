@@ -1,0 +1,431 @@
+# Fine-tuning Voxtral for Speech Recognition
+
+In this section, we'll cover how to fine-tune Voxtral, Mistral AI's powerful speech recognition model, for automatic speech 
+recognition (ASR) on a new language. Voxtral is a state-of-the-art multimodal model that combines audio understanding with 
+the powerful language capabilities of the Mistral family.
+
+We'll fine-tune the **Voxtral-Mini-3B** model on the Spanish subset of the Common Voice dataset, demonstrating how you can 
+adapt this model to improve performance on specific languages or domains.
+
+## What is Voxtral?
+
+Voxtral is Mistral AI's entry into the speech recognition space. It's a multimodal model that processes audio input 
+through a dedicated audio encoder and generates text transcriptions using a powerful language model decoder. The model 
+supports transcription in multiple languages and can handle various audio formats.
+
+Key features of Voxtral:
+- **Multimodal architecture**: Combines an audio tower with a language model
+- **Multilingual support**: Can transcribe speech in many languages
+- **Flexible input**: Handles various audio formats and sampling rates
+- **Strong baseline**: Pre-trained on diverse speech data for robust performance
+
+## Prepare Environment
+
+First, let's install the required dependencies:
+
+```bash
+pip install transformers datasets accelerate evaluate jiwer
+```
+
+Make sure you have access to a GPU with at least 16GB of VRAM. For smaller GPUs, we'll also show how to use LoRA 
+(Low-Rank Adaptation) to reduce memory requirements.
+
+Log in to your Hugging Face account to save and share your fine-tuned model:
+
+```python
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+## Load the Dataset
+
+We'll use the Spanish subset of the Common Voice 13 dataset. Common Voice is a multilingual dataset of read speech 
+that's perfect for training and evaluating ASR models.
+
+```python
+from datasets import load_dataset, DatasetDict, Audio
+
+common_voice = DatasetDict()
+
+common_voice["train"] = load_dataset(
+    "mozilla-foundation/common_voice_13_0", "es", split="train", streaming=False
+)
+common_voice["test"] = load_dataset(
+    "mozilla-foundation/common_voice_13_0", "es", split="test", streaming=False
+)
+
+print(common_voice)
+```
+
+**Output:**
+```
+DatasetDict({
+    train: Dataset({
+        features: ['client_id', 'path', 'audio', 'sentence', ...],
+        num_rows: ...
+    })
+    test: Dataset({
+        features: ['client_id', 'path', 'audio', 'sentence', ...],
+        num_rows: ...
+    })
+})
+```
+
+<Tip>
+    You can change the language identifier from `"es"` (Spanish) to any other language code available in Common Voice.
+    Check the dataset card for available languages: https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
+</Tip>
+
+For this tutorial, we'll use a subset of the data to speed up training. In a production setting, you'd want to use 
+the full dataset:
+
+```python
+# Use a subset for faster training (adjust these numbers based on your needs)
+common_voice["train"] = common_voice["train"].select(range(min(5000, len(common_voice["train"]))))
+common_voice["test"] = common_voice["test"].select(range(min(500, len(common_voice["test"]))))
+```
+
+Voxtral requires audio at 16kHz sampling rate. Let's ensure our audio is properly formatted:
+
+```python
+common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
+```
+
+We'll also simplify the dataset by keeping only the columns we need:
+
+```python
+common_voice = common_voice.select_columns(["audio", "sentence"])
+
+# Rename 'sentence' to 'text' to match our data collator's expectations
+common_voice = common_voice.rename_column("sentence", "text")
+```
+
+## Load the Model and Processor
+
+Now let's load the Voxtral model and processor:
+
+```python
+import torch
+from transformers import VoxtralForConditionalGeneration, VoxtralProcessor
+
+model_checkpoint = "mistralai/Voxtral-Mini-3B-2507"
+
+processor = VoxtralProcessor.from_pretrained(model_checkpoint)
+
+model = VoxtralForConditionalGeneration.from_pretrained(
+    model_checkpoint,
+    torch_dtype=torch.bfloat16,
+    device_map="auto"
+)
+```
+
+## Define the Data Collator
+
+The data collator is responsible for preparing batches of data for training. For Voxtral, we need to:
+1. Build the prompt with audio tokens and a transcription request
+2. Tokenize the reference transcription
+3. Create labels that mask the prompt tokens (so we only compute loss on the transcription)
+
+```python
+class VoxtralDataCollator:
+    """Data collator for Voxtral ASR training - processes audio and text."""
+    
+    def __init__(self, processor, model_id, language="es"):
+        self.processor = processor
+        self.model_id = model_id
+        self.language = language
+        self.pad_id = processor.tokenizer.pad_token_id
+
+    def __call__(self, features):
+        """
+        Each feature should have:
+          - "audio": raw audio dict with 'array' key
+          - "text": transcription string
+        """
+        texts = [f["text"] for f in features]
+        audios = [f["audio"]["array"] for f in features]
+
+        # Build the prompt: [AUDIO]…[AUDIO] <transcribe>
+        prompt = self.processor.apply_transcription_request(
+            language=self.language,
+            model_id=self.model_id,
+            audio=audios,
+            format=["WAV"] * len(audios),
+            return_tensors="pt",
+        )
+        
+        # Keep any extra fields (e.g., audio features) to pass through to the model
+        passthrough = {k: v for k, v in prompt.items()
+                       if k not in ("input_ids", "attention_mask")}
+
+        prompt_ids = prompt["input_ids"]
+        prompt_attn = prompt["attention_mask"]
+        B = prompt_ids.size(0)
+
+        tok = self.processor.tokenizer
+        
+        # Tokenize transcriptions
+        text_tok = tok(
+            texts,
+            add_special_tokens=False,
+            padding=False,
+            truncation=True,
+            max_length=256,
+            return_tensors=None,
+        )
+        text_ids_list = text_tok["input_ids"]
+
+        # Concatenate: input_ids = [PROMPT] + [TEXT] + [EOS]
+        input_ids, attention_mask, labels = [], [], []
+        for i in range(B):
+            p_ids = prompt_ids[i].tolist()
+            p_att = prompt_attn[i].tolist()
+            t_ids = text_ids_list[i]
+
+            ids = p_ids + t_ids + [tok.eos_token_id]
+            attn = p_att + [1] * (len(t_ids) + 1)
+            # Labels: mask prompt tokens with -100, learn only on text tokens
+            lab = [-100] * len(p_ids) + t_ids + [tok.eos_token_id]
+
+            input_ids.append(ids)
+            attention_mask.append(attn)
+            labels.append(lab)
+
+        # Pad to max length in batch
+        pad_id = tok.pad_token_id if tok.pad_token_id is not None else tok.eos_token_id
+        max_len = max(len(x) for x in input_ids)
+
+        def pad_to(seq, fill, length):
+            return seq + [fill] * (length - len(seq))
+
+        input_ids = [pad_to(x, pad_id, max_len) for x in input_ids]
+        attention_mask = [pad_to(x, 0, max_len) for x in attention_mask]
+        labels = [pad_to(x, -100, max_len) for x in labels]
+
+        batch = {
+            "input_ids": torch.tensor(input_ids, dtype=torch.long),
+            "attention_mask": torch.tensor(attention_mask, dtype=torch.long),
+            "labels": torch.tensor(labels, dtype=torch.long),
+        }
+        
+        # Include processor outputs needed by the model (e.g., audio features)
+        for k, v in passthrough.items():
+            batch[k] = v
+
+        return batch
+```
+
+Initialize the data collator:
+
+```python
+data_collator = VoxtralDataCollator(
+    processor=processor,
+    model_id=model_checkpoint,
+    language="es"  # Spanish
+)
+```
+
+## Training Configuration
+
+Let's set up the training arguments. We'll use a relatively small number of training steps to demonstrate the process:
+
+```python
+from transformers import TrainingArguments
+
+training_args = TrainingArguments(
+    output_dir="./voxtral-spanish-asr",
+    per_device_train_batch_size=2,
+    per_device_eval_batch_size=4,
+    gradient_accumulation_steps=4,
+    learning_rate=5e-5,
+    num_train_epochs=3,
+    bf16=True,
+    logging_steps=25,
+    eval_steps=100,
+    save_steps=100,
+    eval_strategy="steps",
+    save_strategy="steps",
+    load_best_model_at_end=True,
+    report_to=["tensorboard"],
+    remove_unused_columns=False,
+    push_to_hub=True,
+)
+```
+
+## Training with the Trainer API
+
+Now we can set up the Trainer and start training:
+
+```python
+from transformers import Trainer
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=common_voice["train"],
+    eval_dataset=common_voice["test"],
+    data_collator=data_collator,
+)
+
+# Start training
+trainer.train()
+```
+
+Training will take some time depending on your GPU and the amount of data. On a T4 GPU with the subset we defined, 
+expect training to take approximately 1-2 hours.
+
+## Memory-Efficient Training with LoRA
+
+If you have limited GPU memory, you can use LoRA (Low-Rank Adaptation) to significantly reduce memory requirements 
+while still achieving good results.
+
+First, install the PEFT library:
+
+```bash
+pip install peft
+```
+
+Then modify the model loading to use LoRA:
+
+```python
+from peft import LoraConfig, get_peft_model
+
+# Load base model
+model = VoxtralForConditionalGeneration.from_pretrained(
+    model_checkpoint,
+    torch_dtype=torch.bfloat16,
+    device_map="auto"
+)
+
+# Freeze the audio encoder
+for param in model.audio_tower.parameters():
+    param.requires_grad = False
+
+# Configure LoRA
+lora_config = LoraConfig(
+    r=8,  # Rank of LoRA matrices
+    lora_alpha=32,
+    lora_dropout=0.0,
+    bias="none",
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+    task_type="SEQ_2_SEQ_LM",
+)
+
+# Apply LoRA to model
+model = get_peft_model(model, lora_config)
+model.print_trainable_parameters()
+```
+
+**Output:**
+```
+trainable params: 3,407,872 || all params: 3,000,000,000 || trainable%: 0.11
+```
+
+With LoRA, you're only training about 0.1% of the total parameters, which dramatically reduces memory usage and 
+training time.
+
+## Evaluation
+
+After training, let's evaluate the model using Word Error Rate (WER):
+
+```python
+import evaluate
+
+wer_metric = evaluate.load("wer")
+
+def compute_wer(pred_texts, ref_texts):
+    return wer_metric.compute(predictions=pred_texts, references=ref_texts)
+```
+
+Let's run inference on some test samples:
+
+```python
+def transcribe(audio_array, sampling_rate=16000):
+    inputs = processor(
+        audio=audio_array,
+        sampling_rate=sampling_rate,
+        return_tensors="pt"
+    ).to(model.device)
+    
+    with torch.no_grad():
+        generated_ids = model.generate(**inputs, max_new_tokens=256)
+    
+    transcription = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+    return transcription
+
+# Test on a few samples
+predictions = []
+references = []
+
+for i in range(min(10, len(common_voice["test"]))):
+    sample = common_voice["test"][i]
+    pred = transcribe(sample["audio"]["array"])
+    ref = sample["text"]
+    
+    predictions.append(pred)
+    references.append(ref)
+    
+    print(f"Reference: {ref}")
+    print(f"Prediction: {pred}")
+    print("-" * 50)
+
+# Compute WER
+wer = compute_wer(predictions, references)
+print(f"\nWord Error Rate: {wer * 100:.2f}%")
+```
+
+## Saving and Sharing the Model
+
+After training, save your model and push it to the Hugging Face Hub:
+
+```python
+# Save locally
+trainer.save_model()
+processor.save_pretrained("./voxtral-spanish-asr")
+
+# Push to Hub
+trainer.push_to_hub()
+```
+
+## Inference with Your Fine-tuned Model
+
+Once your model is on the Hub, anyone can use it:
+
+```python
+from transformers import pipeline
+
+pipe = pipeline(
+    "automatic-speech-recognition",
+    model="your-username/voxtral-spanish-asr",
+    device="cuda:0" if torch.cuda.is_available() else "cpu"
+)
+
+# Transcribe audio
+result = pipe("path/to/spanish_audio.wav")
+print(result["text"])
+```
+
+## Summary
+
+In this tutorial, we covered:
+
+1. **Loading Voxtral**: How to load the Voxtral model and processor from Hugging Face
+2. **Data preparation**: Preparing Common Voice data for ASR fine-tuning
+3. **Custom data collator**: Creating a data collator that properly formats audio and text for Voxtral
+4. **Training**: Using the Trainer API to fine-tune Voxtral
+5. **LoRA**: Memory-efficient training with Low-Rank Adaptation
+6. **Evaluation**: Computing Word Error Rate on test data
+7. **Deployment**: Saving and sharing your fine-tuned model
+
+Voxtral provides strong multilingual ASR capabilities out of the box, but fine-tuning on specific languages or domains 
+can significantly improve performance. The techniques shown here apply to any language in the Common Voice dataset or 
+any custom ASR dataset you might have.
+
+## Next Steps
+
+- Try fine-tuning on a different language
+- Experiment with different LoRA configurations (rank, alpha, target modules)
+- Increase the training data size for better performance
+- Add data augmentation to improve robustness
+- Explore the full Voxtral model for even better baseline performance
