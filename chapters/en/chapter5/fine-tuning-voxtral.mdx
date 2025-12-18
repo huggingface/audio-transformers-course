@@ -4,7 +4,7 @@ In this section, we'll cover how to fine-tune Voxtral, Mistral AI's powerful spe
 recognition (ASR) on a new language. Voxtral is a state-of-the-art multimodal model that combines audio understanding with 
 the powerful language capabilities of the Mistral family.
 
-We'll fine-tune the **Voxtral-Mini-3B** model on the Spanish subset of the Common Voice dataset, demonstrating how you can 
+We'll fine-tune the **Voxtral-Mini-3B** model on the Spanish subset of the Multilingual LibriSpeech dataset, demonstrating how you can 
 adapt this model to improve performance on specific languages or domains.
 
 ## What is Voxtral?
@@ -40,69 +40,31 @@ notebook_login()
 
 ## Load the Dataset
 
-We'll use the Spanish subset of the Common Voice 13 dataset. Common Voice is a multilingual dataset of read speech 
-that's perfect for training and evaluating ASR models.
+We'll use the Spanish subset of the [Multilingual LibriSpeech (MLS)](https://huggingface.co/datasets/facebook/multilingual_librispeech) dataset. MLS is a large-scale multilingual corpus derived from LibriVox audiobooks, containing thousands of hours of transcribed speech in 8 languages.
 
 ```python
-from datasets import load_dataset, DatasetDict, Audio
+from datasets import load_dataset, Audio
 
-common_voice = DatasetDict()
-
-common_voice["train"] = load_dataset(
-    "mozilla-foundation/common_voice_13_0", "es", split="train", streaming=False
+mls_train = load_dataset(
+    "facebook/multilingual_librispeech", "spanish", split="train", streaming=True
 )
-common_voice["test"] = load_dataset(
-    "mozilla-foundation/common_voice_13_0", "es", split="test", streaming=False
+seed, buffer_size = 42, 10_000
+mls_train = mls_train.shuffle(seed=seed, buffer_size=buffer_size)
+mls_test = load_dataset(
+    "facebook/multilingual_librispeech", "spanish", split="test", streaming=True
 )
-
-print(common_voice)
-```
-
-**Output:**
-```
-DatasetDict({
-    train: Dataset({
-        features: ['client_id', 'path', 'audio', 'sentence', ...],
-        num_rows: ...
-    })
-    test: Dataset({
-        features: ['client_id', 'path', 'audio', 'sentence', ...],
-        num_rows: ...
-    })
-})
 ```
 
 <Tip>
-    You can change the language identifier from `"es"` (Spanish) to any other language code available in Common Voice.
-    Check the dataset card for available languages: https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
+    MLS supports 8 languages: German, Dutch, French, Spanish, Italian, Portuguese, Polish, and English.
+    Check the dataset card for more details: https://huggingface.co/datasets/facebook/multilingual_librispeech
 </Tip>
 
-For this tutorial, we'll use a subset of the data to speed up training. In a production setting, you'd want to use 
-the full dataset:
+We use streaming mode since MLS is a large dataset. Let's cast the audio to the correct sampling rate (Voxtral requires 16kHz):
 
 ```python
-# Use a subset for faster training (adjust these numbers based on your needs)
-common_voice["train"] = common_voice["train"].select(
-    range(min(5000, len(common_voice["train"])))
-)
-common_voice["test"] = common_voice["test"].select(
-    range(min(500, len(common_voice["test"])))
-)
-```
-
-Voxtral requires audio at 16kHz sampling rate. Let's ensure our audio is properly formatted:
-
-```python
-common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
-```
-
-We'll also simplify the dataset by keeping only the columns we need:
-
-```python
-common_voice = common_voice.select_columns(["audio", "sentence"])
-
-# Rename 'sentence' to 'text' to match our data collator's expectations
-common_voice = common_voice.rename_column("sentence", "text")
+mls_train = mls_train.cast_column("audio", Audio(sampling_rate=16000))
+mls_test = mls_test.cast_column("audio", Audio(sampling_rate=16000))
 ```
 
 ## Load the Model and Processor
@@ -143,9 +105,9 @@ class VoxtralDataCollator:
         """
         Each feature should have:
           - "audio": raw audio dict with 'array' key
-          - "text": transcription string
+          - "transcript": transcription string
         """
-        texts = [f["text"] for f in features]
+        texts = [f["transcript"] for f in features]
         audios = [f["audio"]["array"] for f in features]
 
         # Build the prompt: [AUDIO]…[AUDIO] <transcribe>
@@ -229,26 +191,25 @@ data_collator = VoxtralDataCollator(
 
 ## Training Configuration
 
-Let's set up the training arguments. We'll use a relatively small number of training steps to demonstrate the process:
+Let's set up the training arguments. We use `max_steps` instead of epochs since we're using a streaming dataset:
 
 ```python
 from transformers import TrainingArguments
 
 training_args = TrainingArguments(
     output_dir="./voxtral-spanish-asr",
+    max_steps=1000,  # Use max_steps for streaming datasets
     per_device_train_batch_size=2,
     per_device_eval_batch_size=4,
     gradient_accumulation_steps=4,
     learning_rate=5e-5,
-    num_train_epochs=3,
     bf16=True,
     logging_steps=25,
-    eval_steps=100,
-    save_steps=100,
+    eval_steps=200,
+    save_steps=200,
     eval_strategy="steps",
     save_strategy="steps",
-    load_best_model_at_end=True,
-    report_to=["tensorboard"],
+    report_to=None,
     remove_unused_columns=False,
     push_to_hub=True,
 )
@@ -264,8 +225,8 @@ from transformers import Trainer
 trainer = Trainer(
     model=model,
     args=training_args,
-    train_dataset=common_voice["train"],
-    eval_dataset=common_voice["test"],
+    train_dataset=mls_train,
+    eval_dataset=mls_test,
     data_collator=data_collator,
 )
 
@@ -273,8 +234,7 @@ trainer = Trainer(
 trainer.train()
 ```
 
-Training will take some time depending on your GPU and the amount of data. On a T4 GPU with the subset we defined, 
-expect training to take approximately 1-2 hours.
+Training will take some time depending on your GPU. On a T4 GPU, expect training to take approximately 1-2 hours for 1000 steps.
 
 ## Memory-Efficient Training with LoRA
 
@@ -314,14 +274,24 @@ lora_config = LoraConfig(
 # Apply LoRA to model
 model = get_peft_model(model, lora_config)
 model.print_trainable_parameters()
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=mls_train,
+    eval_dataset=mls_test,
+    data_collator=data_collator,
+)
+
+trainer.train()
 ```
 
 **Output:**
 ```
-trainable params: 3,407,872 || all params: 3,000,000,000 || trainable%: 0.11
+trainable params: 7,372,800 || all params: 4,683,643,904 || trainable%: 0.1574
 ```
 
-With LoRA, you're only training about 0.1% of the total parameters, which dramatically reduces memory usage and 
+With LoRA, you're only training about 0.16% of the total parameters, which dramatically reduces memory usage and 
 training time.
 
 ## Evaluation
@@ -353,14 +323,15 @@ def transcribe(audio_array, sampling_rate=16000):
     return transcription
 
 
-# Test on a few samples
+# Test on a few samples from the streaming dataset
 predictions = []
 references = []
 
-for i in range(min(10, len(common_voice["test"]))):
-    sample = common_voice["test"][i]
+for i, sample in enumerate(mls_test):
+    if i >= 10:  # Evaluate on 10 samples
+        break
     pred = transcribe(sample["audio"]["array"])
-    ref = sample["text"]
+    ref = sample["transcript"]
 
     predictions.append(pred)
     references.append(ref)
@@ -434,7 +405,7 @@ print("=" * 80)
 In this tutorial, we covered:
 
 1. **Loading Voxtral**: How to load the Voxtral model and processor from Hugging Face
-2. **Data preparation**: Preparing Common Voice data for ASR fine-tuning
+2. **Data preparation**: Preparing Multilingual LibriSpeech data for ASR fine-tuning with streaming
 3. **Custom data collator**: Creating a data collator that properly formats audio and text for Voxtral
 4. **Training**: Using the Trainer API to fine-tune Voxtral
 5. **LoRA**: Memory-efficient training with Low-Rank Adaptation
@@ -442,13 +413,13 @@ In this tutorial, we covered:
 7. **Deployment**: Saving and sharing your fine-tuned model
 
 Voxtral provides strong multilingual ASR capabilities out of the box, but fine-tuning on specific languages or domains 
-can significantly improve performance. The techniques shown here apply to any language in the Common Voice dataset or 
-any custom ASR dataset you might have.
+can significantly improve performance. The techniques shown here apply to any language in MLS (German, Dutch, French, 
+Spanish, Italian, Portuguese, Polish) or any custom ASR dataset you might have.
 
 ## Next Steps
 
-- Try fine-tuning on a different language
+- Try fine-tuning on a different language (e.g., French, German, Italian)
 - Experiment with different LoRA configurations (rank, alpha, target modules)
-- Increase the training data size for better performance
+- Increase training steps for better performance
 - Add data augmentation to improve robustness
 - Explore the full Voxtral model for even better baseline performance
