@@ -126,7 +126,7 @@ The data collator prepares batches of data for training. For Dia, we need to:
 ```python
 class DiaDataCollator:
     """Pads & tensorises text (+ speaker tags) and audio, sets -100 where labels are PAD."""
-    
+
     def __init__(self, processor, text_column="text"):
         self.processor = processor
         self.text_column = text_column
@@ -135,15 +135,15 @@ class DiaDataCollator:
     def __call__(self, features):
         audios = []
         texts = []
-        
+
         for f in features:
             # Format text with speaker tags
             grouped_text = ""
-            for speaker_id, text in zip(f['speaker_ids'], f['texts']):
+            for speaker_id, text in zip(f["speaker_ids"], f["texts"]):
                 grouped_text += f"[S{speaker_id + 1}] {text} "
             texts.append(grouped_text.strip())
             audios.append(f["audio"]["array"])
-        
+
         # Process through Dia processor
         proc_out = self.processor(
             audio=audios,
@@ -153,10 +153,10 @@ class DiaDataCollator:
             padding=True,
             return_tensors="pt",
         )
-        
+
         # Mask padding tokens in labels
         proc_out["labels"][proc_out["labels"] == self.pad_id] = -100
-        
+
         return proc_out
 ```
 
@@ -227,7 +227,7 @@ If you encounter out-of-memory errors, try these strategies:
 ```python
 training_args = TrainingArguments(
     per_device_train_batch_size=1,  # Reduced from 2
-    gradient_accumulation_steps=8,   # Increased to compensate
+    gradient_accumulation_steps=8,  # Increased to compensate
     # ... other args
 )
 ```
@@ -247,6 +247,7 @@ def filter_long_audio(example, max_seconds=30):
     audio_length = len(example["audio"]["array"]) / example["audio"]["sampling_rate"]
     return audio_length <= max_seconds
 
+
 dataset = dataset.filter(filter_long_audio)
 ```
 
@@ -257,24 +258,22 @@ After training, you can generate speech with your fine-tuned model:
 ```python
 def generate_speech(text, speaker_id=1):
     """Generate speech from text using the fine-tuned model."""
-    
+
     # Format with speaker tag
     formatted_text = f"[S{speaker_id}] {text}"
-    
+
     # Process input
-    inputs = processor(
-        text=formatted_text,
-        return_tensors="pt"
-    ).to(device)
-    
+    inputs = processor(text=formatted_text, return_tensors="pt").to(device)
+
     # Generate audio codes
     with torch.no_grad():
         output = model.generate(**inputs, max_new_tokens=2048)
-    
+
     # Decode to audio
     audio = processor.decode(output[0])
-    
+
     return audio
+
 
 # Example usage
 text = "Bonjour! Comment allez-vous aujourd'hui?"
@@ -297,21 +296,19 @@ Dia's strength lies in generating natural dialogue with multiple speakers:
 def generate_dialogue(dialogue_text):
     """
     Generate multi-speaker dialogue.
-    
+
     Args:
         dialogue_text: Text formatted with speaker tags, e.g.:
                       "[S1] Hello! [S2] Hi there! [S1] How are you?"
     """
-    inputs = processor(
-        text=dialogue_text,
-        return_tensors="pt"
-    ).to(device)
-    
+    inputs = processor(text=dialogue_text, return_tensors="pt").to(device)
+
     with torch.no_grad():
         output = model.generate(**inputs, max_new_tokens=4096)
-    
+
     audio = processor.decode(output[0])
     return audio
+
 
 # Example: Generate a conversation
 conversation = """
@@ -371,13 +368,15 @@ from datasets import load_dataset
 dataset = load_dataset("facebook/voxpopuli", "de", split="train")
 dataset = dataset.cast_column("audio", Audio(sampling_rate=44_100))
 
+
 # Simplify for single-speaker TTS
 def prepare_single_speaker(example):
     return {
         "audio": example["audio"],
         "speaker_ids": [0],
-        "texts": [example["normalized_text"]]
+        "texts": [example["normalized_text"]],
     }
+
 
 dataset = dataset.map(prepare_single_speaker)
 ```
