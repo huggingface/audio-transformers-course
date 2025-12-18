@@ -82,8 +82,12 @@ the full dataset:
 
 ```python
 # Use a subset for faster training (adjust these numbers based on your needs)
-common_voice["train"] = common_voice["train"].select(range(min(5000, len(common_voice["train"]))))
-common_voice["test"] = common_voice["test"].select(range(min(500, len(common_voice["test"]))))
+common_voice["train"] = common_voice["train"].select(
+    range(min(5000, len(common_voice["train"])))
+)
+common_voice["test"] = common_voice["test"].select(
+    range(min(500, len(common_voice["test"])))
+)
 ```
 
 Voxtral requires audio at 16kHz sampling rate. Let's ensure our audio is properly formatted:
@@ -114,9 +118,7 @@ model_checkpoint = "mistralai/Voxtral-Mini-3B-2507"
 processor = VoxtralProcessor.from_pretrained(model_checkpoint)
 
 model = VoxtralForConditionalGeneration.from_pretrained(
-    model_checkpoint,
-    torch_dtype=torch.bfloat16,
-    device_map="auto"
+    model_checkpoint, torch_dtype=torch.bfloat16, device_map="auto"
 )
 ```
 
@@ -130,7 +132,7 @@ The data collator is responsible for preparing batches of data for training. For
 ```python
 class VoxtralDataCollator:
     """Data collator for Voxtral ASR training - processes audio and text."""
-    
+
     def __init__(self, processor, model_id, language="es"):
         self.processor = processor
         self.model_id = model_id
@@ -154,17 +156,18 @@ class VoxtralDataCollator:
             format=["WAV"] * len(audios),
             return_tensors="pt",
         )
-        
+
         # Keep any extra fields (e.g., audio features) to pass through to the model
-        passthrough = {k: v for k, v in prompt.items()
-                       if k not in ("input_ids", "attention_mask")}
+        passthrough = {
+            k: v for k, v in prompt.items() if k not in ("input_ids", "attention_mask")
+        }
 
         prompt_ids = prompt["input_ids"]
         prompt_attn = prompt["attention_mask"]
         B = prompt_ids.size(0)
 
         tok = self.processor.tokenizer
-        
+
         # Tokenize transcriptions
         text_tok = tok(
             texts,
@@ -208,7 +211,7 @@ class VoxtralDataCollator:
             "attention_mask": torch.tensor(attention_mask, dtype=torch.long),
             "labels": torch.tensor(labels, dtype=torch.long),
         }
-        
+
         # Include processor outputs needed by the model (e.g., audio features)
         for k, v in passthrough.items():
             batch[k] = v
@@ -220,9 +223,7 @@ Initialize the data collator:
 
 ```python
 data_collator = VoxtralDataCollator(
-    processor=processor,
-    model_id=model_checkpoint,
-    language="es"  # Spanish
+    processor=processor, model_id=model_checkpoint, language="es"  # Spanish
 )
 ```
 
@@ -293,9 +294,7 @@ from peft import LoraConfig, get_peft_model
 
 # Load base model
 model = VoxtralForConditionalGeneration.from_pretrained(
-    model_checkpoint,
-    torch_dtype=torch.bfloat16,
-    device_map="auto"
+    model_checkpoint, torch_dtype=torch.bfloat16, device_map="auto"
 )
 
 # Freeze the audio encoder
@@ -334,6 +333,7 @@ import evaluate
 
 wer_metric = evaluate.load("wer")
 
+
 def compute_wer(pred_texts, ref_texts):
     return wer_metric.compute(predictions=pred_texts, references=ref_texts)
 ```
@@ -343,16 +343,15 @@ Let's run inference on some test samples:
 ```python
 def transcribe(audio_array, sampling_rate=16000):
     inputs = processor(
-        audio=audio_array,
-        sampling_rate=sampling_rate,
-        return_tensors="pt"
+        audio=audio_array, sampling_rate=sampling_rate, return_tensors="pt"
     ).to(model.device)
-    
+
     with torch.no_grad():
         generated_ids = model.generate(**inputs, max_new_tokens=256)
-    
+
     transcription = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
     return transcription
+
 
 # Test on a few samples
 predictions = []
@@ -362,10 +361,10 @@ for i in range(min(10, len(common_voice["test"]))):
     sample = common_voice["test"][i]
     pred = transcribe(sample["audio"]["array"])
     ref = sample["text"]
-    
+
     predictions.append(pred)
     references.append(ref)
-    
+
     print(f"Reference: {ref}")
     print(f"Prediction: {pred}")
     print("-" * 50)
@@ -398,7 +397,7 @@ from transformers import pipeline
 pipe = pipeline(
     "automatic-speech-recognition",
     model="your-username/voxtral-spanish-asr",
-    device="cuda:0" if torch.cuda.is_available() else "cpu"
+    device="cuda:0" if torch.cuda.is_available() else "cpu",
 )
 
 # Transcribe audio
