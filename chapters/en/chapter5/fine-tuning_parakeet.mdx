@@ -1,6 +1,6 @@
 # Fine-tuning Parakeet for ASR
 
-In this section, we will explore how to fine-tune NVIDIA's Parakeet CTC model for Automatic Speech Recognition (ASR). Parakeet is a family of high-performance ASR models based on the FastConformer architecture, trained on over 64,000 hours of English speech data. We will fine-tune it on a conversational speech dataset using the Hugging Face `transformers` and `datasets` libraries.
+In this section, we will explore how to fine-tune NVIDIA's Parakeet CTC model for Automatic Speech Recognition (ASR) on a new language. Parakeet is a family of high-performance ASR models based on the FastConformer architecture, trained on over 64,000 hours of English speech data. We will fine-tune it on Spanish speech data to demonstrate how you can adapt this powerful English model to recognize speech in other languages.
 
 ## House-keeping
 
@@ -26,35 +26,44 @@ notebook_login()
 
 ## The Dataset
 
-For this example, we will use a subset of the LibriSpeech dataset for quick experimentation. In practice, you would use a larger dataset relevant to your domain.
+For this example, we will use the Spanish subset of the [Multilingual LibriSpeech (MLS)](https://huggingface.co/datasets/facebook/multilingual_librispeech) dataset. MLS is a large-scale multilingual corpus derived from LibriVox audiobooks, containing thousands of hours of transcribed speech in 8 languages.
 
 ```python
 from datasets import load_dataset, Audio
 
-dataset = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+mls_train = load_dataset(
+    "facebook/multilingual_librispeech", "spanish", split="train", streaming=True
+)
+seed, buffer_size = 42, 10_000
+mls_train = mls_train.shuffle(seed=seed, buffer_size=buffer_size)
+mls_test = load_dataset(
+    "facebook/multilingual_librispeech", "spanish", split="test", streaming=True
+)
 ```
 
-The dataset contains audio clips and the corresponding transcriptions. Let's take a look at an example:
+<Tip>
+    MLS supports 8 languages: German, Dutch, French, Spanish, Italian, Portuguese, Polish, and English.
+    Check the dataset card for more details: https://huggingface.co/datasets/facebook/multilingual_librispeech
+</Tip>
+
+We use streaming mode since MLS is a large dataset. Let's cast the audio to the correct sampling rate:
 
 ```python
-print(dataset[0])
-# {'file': '...', 'audio': {'path': '...', 'array': array([...]), 'sampling_rate': 16000}, 'text': '...'}
+mls_train = mls_train.cast_column("audio", Audio(sampling_rate=16000))
+mls_test = mls_test.cast_column("audio", Audio(sampling_rate=16000))
 ```
 
 ## Preprocessing
 
-First, we need to ensure the audio data matches the sampling rate expected by Parakeet (16kHz).
+Now let's load the processor:
 
 ```python
 from transformers import AutoProcessor
 
 processor = AutoProcessor.from_pretrained("nvidia/parakeet-ctc-1.1b")
-
-# Cast the audio column to the correct sampling rate
-dataset = dataset.cast_column(
-    "audio", Audio(sampling_rate=processor.feature_extractor.sampling_rate)
-)
 ```
+
+Since Parakeet was trained on English, its vocabulary may not cover all Spanish characters. However, the model uses a character-based tokenizer that can handle most Latin characters. For optimal results on languages with special characters, you might need to extend the vocabulary, but for Spanish the existing tokenizer works reasonably well.
 
 ### Data Collator
 
@@ -63,12 +72,12 @@ We need a data collator to process the audio and text inputs correctly. The Para
 ```python
 class ParakeetDataCollator:
     """Data collator for Parakeet CTC training."""
-    
+
     def __init__(self, processor):
         self.processor = processor
 
     def __call__(self, features):
-        texts = [f["text"] for f in features]
+        texts = [f["transcript"] for f in features]
         audios = [f["audio"]["array"] for f in features]
 
         # Process audio features and text labels
@@ -92,23 +101,27 @@ model = AutoModelForCTC.from_pretrained("nvidia/parakeet-ctc-1.1b")
 data_collator = ParakeetDataCollator(processor)
 
 training_args = TrainingArguments(
-    output_dir="parakeet-finetuned",
-    num_train_epochs=3,
+    output_dir="parakeet-spanish-finetuned",
+    max_steps=1000,  # Use max_steps for streaming datasets
     per_device_train_batch_size=2,
     gradient_accumulation_steps=4,
     learning_rate=5e-5,
     bf16=True,
     logging_steps=10,
+    eval_strategy="steps",
+    eval_steps=200,
     save_strategy="steps",
-    save_steps=50,
+    save_steps=200,
     remove_unused_columns=False,
-    report_to="none",
+    report_to="tensorboard",
+    push_to_hub=True,
 )
 
 trainer = Trainer(
     model=model,
     args=training_args,
-    train_dataset=dataset,
+    train_dataset=mls_train,
+    eval_dataset=mls_test,
     data_collator=data_collator,
 )
 
@@ -160,24 +173,28 @@ Now we can set up the `Trainer`:
 from transformers import TrainingArguments, Trainer
 
 training_args = TrainingArguments(
-    output_dir="parakeet-finetuned-lora",
-    num_train_epochs=3,
+    output_dir="parakeet-spanish-lora",
+    max_steps=1000,  # Use max_steps for streaming datasets
     per_device_train_batch_size=2,
     gradient_accumulation_steps=4,
     learning_rate=5e-5,
     bf16=True,
     logging_steps=10,
+    eval_strategy="steps",
+    eval_steps=200,
     save_strategy="steps",
-    save_steps=50,
+    save_steps=200,
     remove_unused_columns=False,
-    report_to="none",
+    report_to=None,
     ddp_find_unused_parameters=False,
+    push_to_hub=True,
 )
 
 trainer = Trainer(
     model=model,
     args=training_args,
-    train_dataset=dataset,
+    train_dataset=mls_train,
+    eval_dataset=mls_test,
     data_collator=data_collator,
 )
 
@@ -188,9 +205,9 @@ After training, save the model and push to the Hub:
 
 ```python
 trainer.save_model()
-processor.save_pretrained("parakeet-finetuned-lora")
+processor.save_pretrained("parakeet-spanish-lora")
 
-# Optionally push to Hub
+# Push to Hub
 trainer.push_to_hub()
 ```
 
@@ -199,41 +216,47 @@ trainer.push_to_hub()
 To evaluate your fine-tuned model, you can compute the Word Error Rate (WER):
 
 ```python
+import torch
 from jiwer import wer
 
 # Load your fine-tuned model
 from transformers import AutoModelForCTC, AutoProcessor
 
-model = AutoModelForCTC.from_pretrained("YOUR_USERNAME/parakeet-finetuned-lora")
-processor = AutoProcessor.from_pretrained("YOUR_USERNAME/parakeet-finetuned-lora")
+model = AutoModelForCTC.from_pretrained("YOUR_USERNAME/parakeet-spanish-lora")
+processor = AutoProcessor.from_pretrained("YOUR_USERNAME/parakeet-spanish-lora")
+
 
 # Transcribe test audio
 def transcribe(audio_array):
-    inputs = processor(
-        audio=audio_array,
-        sampling_rate=16000,
-        return_tensors="pt"
-    )
-    
+    inputs = processor(audio=audio_array, sampling_rate=16000, return_tensors="pt")
+
     with torch.no_grad():
         logits = model(**inputs.to(model.device)).logits
-    
+
     predicted_ids = torch.argmax(logits, dim=-1)
     transcription = processor.batch_decode(predicted_ids)
     return transcription[0]
 
-# Calculate WER on test set
+
+# Calculate WER on a subset of test samples
 predictions = []
 references = []
 
-for sample in test_dataset:
+for i, sample in enumerate(mls_test):
+    if i >= 100:  # Evaluate on 100 samples
+        break
     prediction = transcribe(sample["audio"]["array"])
-    predictions.append(prediction)
-    references.append(sample["text"])
+    predictions.append(prediction.lower())
+    references.append(sample["text"].lower())
 
 error_rate = wer(references, predictions)
 print(f"Word Error Rate: {error_rate:.2%}")
 ```
+
+<Tip>
+For Spanish and other languages, it's good practice to normalize the text before computing WER. 
+This includes lowercasing, removing punctuation, and handling special characters consistently.
+</Tip>
 
 ## Inference
 
@@ -244,15 +267,14 @@ import torch
 from transformers import AutoModelForCTC, AutoProcessor
 
 # Load your fine-tuned model
-model_id = "YOUR_USERNAME/parakeet-finetuned-lora"
+model_id = "YOUR_USERNAME/parakeet-spanish-lora"
 model = AutoModelForCTC.from_pretrained(model_id, device_map="cuda")
 processor = AutoProcessor.from_pretrained(model_id)
 
 # Load an audio file
-from datasets import Audio
 import librosa
 
-audio_array, sr = librosa.load("path/to/audio.wav", sr=16000)
+audio_array, sr = librosa.load("path/to/spanish_audio.wav", sr=16000)
 
 # Process and transcribe
 inputs = processor(audio=audio_array, sampling_rate=16000, return_tensors="pt")
@@ -267,40 +289,73 @@ transcription = processor.batch_decode(predicted_ids)[0]
 print(f"Transcription: {transcription}")
 ```
 
-## Using a Custom Dataset
+You can also test directly on samples from the dataset:
 
-If you want to use a different dataset, ensure it has:
+```python
+# Test on a sample from MLS
+sample = next(iter(mls_test))
+print(f"Reference: {sample['text']}")
 
-* An **`audio`** column (cast to `Audio(sampling_rate=16000)`), and
-* A **`text`** column (the reference transcription).
+transcription = transcribe(sample["audio"]["array"])
+print(f"Prediction: {transcription}")
+```
 
-Here's an example with Common Voice:
+## Using Other Languages
+
+The approach shown in this tutorial can be applied to any language available in Multilingual LibriSpeech. Here are examples for other languages:
 
 ```python
 from datasets import load_dataset, Audio
 
-# Load Common Voice dataset
-dataset = load_dataset("mozilla-foundation/common_voice_13_0", "en", split="train")
+# French
+french_data = load_dataset("facebook/multilingual_librispeech", "french", split="train")
 
-# Select only the columns we need and rename if necessary
-dataset = dataset.select_columns(["audio", "sentence"])
-dataset = dataset.rename_column("sentence", "text")
+# German
+german_data = load_dataset("facebook/multilingual_librispeech", "german", split="train")
 
-# Cast audio to 16kHz
-dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
+# Italian
+italian_data = load_dataset("facebook/multilingual_librispeech", "italian", split="train")
+
+# Polish
+polish_data = load_dataset("facebook/multilingual_librispeech", "polish", split="train")
+
+
+# For any language, prepare the data the same way:
+def prepare_dataset(dataset):
+    dataset = dataset.select_columns(["audio", "text"])
+    dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
+    return dataset
 ```
+
+MLS supports 8 languages: **German, Dutch, French, Spanish, Italian, Portuguese, Polish**, and **English**.
+
+For languages not in MLS or with non-Latin scripts (e.g., Arabic, Chinese, Japanese), you may need to consider:
+1. **Other datasets**: Use Common Voice or VoxPopuli for broader language coverage.
+2. **Vocabulary extension**: The Parakeet tokenizer is character-based but trained on English. You may need to extend it.
+3. **Phoneme-based approaches**: Convert text to phonemes using tools like `g2p` before training.
+4. **Alternative models**: Consider models pre-trained on multilingual data like Whisper for non-Latin scripts.
 
 ## Tips for Better Results
 
-1. **Use a larger dataset**: The dummy dataset used here is just for demonstration. Real fine-tuning benefits from thousands of hours of speech data.
+1. **Use more training data**: We used a small subset for demonstration. Real fine-tuning benefits from thousands of hours of speech data. The full Spanish MLS dataset contains over 900 hours of speech.
 
-2. **Adjust learning rate**: For LoRA fine-tuning, learning rates between 1e-5 and 5e-5 typically work well.
+2. **Adjust learning rate**: For LoRA fine-tuning, learning rates between 1e-5 and 5e-5 typically work well. For new languages, you might start with a lower rate (1e-5) to avoid catastrophic forgetting.
 
-3. **Increase LoRA rank**: If you're not seeing enough improvement, try increasing the LoRA rank (`r`) from 16 to 32 or 64.
+3. **Increase LoRA rank**: If you're not seeing enough improvement, try increasing the LoRA rank (`r`) from 16 to 32 or 64. This increases model capacity for learning new language patterns.
 
-4. **Domain-specific data**: For best results, fine-tune on data that matches your target domain (medical, legal, conversational, etc.).
+4. **Text normalization**: For non-English languages, ensure consistent text normalization (lowercase, punctuation removal, accent handling) during both training and evaluation.
 
-5. **Data augmentation**: Consider using speed perturbation, noise injection, or SpecAugment to improve robustness.
+5. **Data augmentation**: Consider using speed perturbation, noise injection, or SpecAugment to improve robustness, especially for low-resource languages.
+
+6. **Combine datasets**: For better coverage, combine multiple datasets for your target language (e.g., MLS + Common Voice + VoxPopuli).
+
+## Summary
+
+In this tutorial, we demonstrated how to fine-tune NVIDIA's Parakeet model on Spanish speech data from Multilingual LibriSpeech. The key takeaways are:
+
+- Parakeet can be effectively adapted to new languages through fine-tuning
+- LoRA enables memory-efficient training of the 1.1B parameter model
+- The same approach works for any language with available transcribed speech data
 
 Happy fine-tuning Parakeet! 🦜
 
