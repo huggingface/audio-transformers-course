@@ -59,7 +59,7 @@ mls_test = mls_test.cast_column("audio", Audio(sampling_rate=16000))
 
 ## Preprocessing
 
-Now let's load the processor:
+Now let's load the processor. One of its jobs is to prepare the audio before passing them to the model. For Parakeet, this feature extraction consists of padding and computing the Mel Spectrogram.
 
 ```python
 from transformers import AutoProcessor
