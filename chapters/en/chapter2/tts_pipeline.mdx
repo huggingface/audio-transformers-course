@@ -42,7 +42,7 @@ In a notebook, we can use the following code snippet to listen to the result:
 ```python
 from IPython.display import Audio
 
-Audio(output["audio"], rate=output["sampling_rate"])
+Audio(output["audio"].squeeze(), rate=output["sampling_rate"])
 ```
 
 The model that we're using with the pipeline, Bark, is actually multilingual, so we can easily substitute the initial 
@@ -51,7 +51,7 @@ text with a text in, say, French, and use the pipeline in the exact same way. It
 ```python
 fr_text = "Contrairement à une idée répandue, le nombre de points sur les élytres d'une coccinelle ne correspond pas à son âge, ni en nombre d'années, ni en nombre de mois. "
 output = pipe(fr_text)
-Audio(output["audio"], rate=output["sampling_rate"])
+Audio(output["audio"].squeeze(), rate=output["sampling_rate"])
 ```
 
 Not only is this model multilingual, it can also generate audio with non-verbal communications and singing. Here's how 
@@ -60,7 +60,7 @@ you can make it sing:
 ```python
 song = "♪ In the jungle, the mighty jungle, the ladybug was seen. ♪ "
 output = pipe(song)
-Audio(output["audio"], rate=output["sampling_rate"])
+Audio(output["audio"].squeeze(), rate=output["sampling_rate"])
 ```
 
 We'll dive deeper into Bark specifics in the later unit dedicated to Text-to-speech, and will also show how you can use 

@@ -35,7 +35,7 @@ Bir not defterinde sonucu dinlemek için aşağıdaki kod parçacığını kulla
 ```python
 from IPython.display import Audio
 
-Audio(output["audio"], rate=output["sampling_rate"])
+Audio(output["audio"].squeeze(), rate=output["sampling_rate"])
 ```
 
 Pipeline ile kullandığımız model Bark aslında çok dillidir, dolayısıyla ilk metni kolayca örneğin Fransızca bir metinle değiştirebiliriz ve boru hattını tamamen aynı şekilde kullanabiliriz. Dili tek başına anlayacaktır:
@@ -43,7 +43,7 @@ Pipeline ile kullandığımız model Bark aslında çok dillidir, dolayısıyla 
 ```python
 fr_text = "Contrairement à une idée répandue, le nombre de points sur les élytres d'une coccinelle ne correspond pas à son âge, ni en nombre d'années, ni en nombre de mois. "
 output = pipe(fr_text)
-Audio(output["audio"], rate=output["sampling_rate"])
+Audio(output["audio"].squeeze(), rate=output["sampling_rate"])
 ```
 
 Bu model sadece çok dilli olmakla kalmıyor, aynı zamanda sözsüz iletişim ve şarkı söyleme yoluyla da ses üretebiliyor. Şarkı söylemesini şu şekilde sağlayabilirsiniz:
@@ -51,7 +51,7 @@ Bu model sadece çok dilli olmakla kalmıyor, aynı zamanda sözsüz iletişim v
 ```python
 song = "♪ In the jungle, the mighty jungle, the ladybug was seen. ♪ "
 output = pipe(song)
-Audio(output["audio"], rate=output["sampling_rate"])
+Audio(output["audio"].squeeze(), rate=output["sampling_rate"])
 ```
 
 Metinden konuşmaya ayrılan sonraki ünitede Bark'ın ayrıntılarına daha derinlemesine gireceğiz ve ayrıca bu görev için diğer modelleri nasıl kullanabileceğinizi de göstereceğiz. Şimdi biraz müzik üretelim!

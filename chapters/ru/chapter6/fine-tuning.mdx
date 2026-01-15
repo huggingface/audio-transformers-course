@@ -34,8 +34,8 @@ notebook_login()
 
 ## Набор данных
 
-В данном примере мы возьмем подмножество голландского (`nl`) языка из датасета [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli).
-[VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli) - это обширный многоязычный речевой корпус, состоящий из данных,
+В данном примере мы возьмем подмножество голландского (`nl`) языка из датасета [VoxPopuli](https://huggingface.co/datasets/qmeeus/voxpopuli).
+[VoxPopuli](https://huggingface.co/datasets/qmeeus/voxpopuli) - это обширный многоязычный речевой корпус, состоящий из данных,
 полученных из записей мероприятий Европейского парламента 2009-2020 гг. Он содержит маркированные данные аудио-транскрипций для 15 европейских языков.
 Хотя мы будем использовать подмножество голландского языка, вы можете выбрать другое подмножество.
  
@@ -47,7 +47,7 @@ notebook_login()
 ```python
 from datasets import load_dataset, Audio
 
-dataset = load_dataset("facebook/voxpopuli", "nl", split="train")
+dataset = load_dataset("qmeeus/voxpopuli", "nl", split="train")
 len(dataset)
 ```
 
@@ -97,17 +97,15 @@ dataset[0]
   'array': array([ 4.27246094e-04,  1.31225586e-03,  1.03759766e-03, ...,
          -9.15527344e-05,  7.62939453e-04, -2.44140625e-04]),
   'sampling_rate': 16000},
- 'raw_text': 'Dat kan naar mijn gevoel alleen met een brede meerderheid die wij samen zoeken.',
- 'normalized_text': 'dat kan naar mijn gevoel alleen met een brede meerderheid die wij samen zoeken.',
+ 'text': 'dat kan naar mijn gevoel alleen met een brede meerderheid die wij samen zoeken.',
  'gender': 'female',
  'speaker_id': '1122',
  'is_gold_transcript': True,
  'accent': 'None'}
 ```
 
-Можно заметить, что примеры из датасета содержат признаки `raw_text` и `normalized_text`. При выборе признака
-в качестве входного текста важно знать, что в токенизаторе SpeechT5 нет токенов для чисел. В `normalized_text`
-числа записываются в виде текста. Таким образом, он лучше подходит, и в качестве входного текста следует использовать `normalized_text`.
+Примеры из датасета содержат признак `text`, который мы будем использовать в качестве входного текста. Важно знать, 
+что в токенизаторе SpeechT5 нет токенов для чисел, поэтому если ваш текст содержит числа, возможно, их придется записать в виде текста.
 
 Поскольку SpeechT5 обучалась на английском языке, она может не распознать некоторые символы в голландском наборе данных. Если
 оставить все как есть, то эти символы будут преобразованы в токены `<unk>`. Однако в голландском языке некоторые символы, например `à`, используются
@@ -121,7 +119,7 @@ dataset[0]
 
 ```py
 def extract_all_chars(batch):
-    all_text = " ".join(batch["normalized_text"])
+    all_text = " ".join(batch["text"])
     vocab = list(set(all_text))
     return {"vocab": [vocab], "all_text": [all_text]}
 
@@ -169,7 +167,7 @@ replacements = [
 
 def cleanup_text(inputs):
     for src, dst in replacements:
-        inputs["normalized_text"] = inputs["normalized_text"].replace(src, dst)
+        inputs["text"] = inputs["text"].replace(src, dst)
     return inputs
 
 
@@ -302,7 +300,7 @@ def prepare_dataset(example):
     audio = example["audio"]
 
     example = processor(
-        text=example["normalized_text"],
+        text=example["text"],
         audio_target=audio["array"],
         sampling_rate=audio["sampling_rate"],
         return_attention_mask=False,

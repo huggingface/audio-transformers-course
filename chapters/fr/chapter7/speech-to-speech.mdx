@@ -38,16 +38,16 @@ pipe = pipeline(
 )
 ```
 
-C'est très bien ! Pour tester notre système de STST, nous allons charger un échantillon audio dans une autre langue que l'anglais. Chargeons le premier exemple de la partie italienne (`it`) du jeu de données [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli) :
+C'est très bien ! Pour tester notre système de STST, nous allons charger un échantillon audio dans une autre langue que l'anglais. Chargeons le premier exemple de la partie italienne (`it`) du jeu de données [VoxPopuli](https://huggingface.co/datasets/qmeeus/voxpopuli) :
 
 ```python
 from datasets import load_dataset
 
-dataset = load_dataset("facebook/voxpopuli", "it", split="validation", streaming=True)
+dataset = load_dataset("qmeeus/voxpopuli", "it", split="validation", streaming=True)
 sample = next(iter(dataset))
 ```
 
-Pour écouter cet échantillon, nous pouvons soit le jouer en utilisant le *viewer* sur le *Hub* : [facebook/voxpopuli/viewer](https://huggingface.co/datasets/facebook/voxpopuli/viewer/it/validation?row=0)
+Pour écouter cet échantillon, nous pouvons soit le jouer en utilisant le *viewer* sur le *Hub* : [qmeeus/voxpopuli/viewer](https://huggingface.co/datasets/qmeeus/voxpopuli/viewer/it/validation?row=0)
 
 Ou le lire à l'aide de la fonction audio d'ipynb :
 
@@ -84,7 +84,7 @@ translate(sample["audio"].copy())
 Ok, et si nous comparons cela au texte source :
 
 ```python
-sample["raw_text"]
+sample["text"]
 ```
 
 ```

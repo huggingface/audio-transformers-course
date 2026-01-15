@@ -58,16 +58,16 @@ pipe = pipeline(
 ```
 
 Отлично! Для проверки нашей системы STST загрузим аудиопример на неанглийском языке. Загрузим первый пример из итальянской (`it`) части
-датасета [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli):
+датасета [VoxPopuli](https://huggingface.co/datasets/qmeeus/voxpopuli):
 
 ```python
 from datasets import load_dataset
 
-dataset = load_dataset("facebook/voxpopuli", "it", split="validation", streaming=True)
+dataset = load_dataset("qmeeus/voxpopuli", "it", split="validation", streaming=True)
 sample = next(iter(dataset))
 ```
 
-Чтобы прослушать этот пример, мы можем либо воспроизвести его с помощью средства просмотра набора данных на Hub: [facebook/voxpopuli/viewer](https://huggingface.co/datasets/facebook/voxpopuli/viewer/it/validation?row=0)
+Чтобы прослушать этот пример, мы можем либо воспроизвести его с помощью средства просмотра набора данных на Hub: [qmeeus/voxpopuli/viewer](https://huggingface.co/datasets/qmeeus/voxpopuli/viewer/it/validation?row=0)
 
 Или воспроизведение с помощью функции ipynb audio:
 
@@ -107,7 +107,7 @@ translate(sample["audio"].copy())
 Хорошо! Если мы сравним это с исходным текстом:
 
 ```python
-sample["raw_text"]
+sample["text"]
 ```
 ```
 'Penso che questo sia un passo in avanti importante nella costruzione di uno spazio giuridico di libertà di circolazione e di protezione dei diritti per le persone in Europa.'
