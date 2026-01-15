@@ -195,7 +195,7 @@ def build_notebook(fname, title, output_dir="."):
         ]
 
         # Install cell
-        installs = ["!pip install datasets evaluate transformers[sentencepiece]"]
+        installs = ["!pip install datasets torchcodec librosa soundfile evaluate transformers[sentencepiece]"]
         if section_name in sections_with_accelerate:
             installs.append("!pip install accelerate")
             installs.append("# To run the training on TPU, you will need to uncomment the followin line:")
