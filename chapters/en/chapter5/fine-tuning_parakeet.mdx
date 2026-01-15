@@ -26,7 +26,7 @@ from huggingface_hub import notebook_login
 notebook_login()
 ```
 
-## The Dataset
+## Loading the Dataset
 
 For this example, we will use the Spanish subset of the [Multilingual LibriSpeech (MLS)](https://huggingface.co/datasets/facebook/multilingual_librispeech) dataset. MLS is a large-scale multilingual corpus derived from LibriVox audiobooks, containing thousands of hours of transcribed speech in 8 languages.
 
@@ -44,7 +44,7 @@ mls_test = load_dataset(
 ```
 
 <Tip>
-    MLS supports 8 languages: German, Dutch, French, Spanish, Italian, Portuguese, Polish, and English.
+    MLS contains transcribed speech for 8 languages: German, Dutch, French, Spanish, Italian, Portuguese, Polish, and English.
     Check the dataset card for more details: https://huggingface.co/datasets/facebook/multilingual_librispeech
 </Tip>
 
@@ -93,7 +93,7 @@ class ParakeetDataCollator:
         return inputs
 ```
 
-## Training (Full Fine-tuning)
+## Training (Full Parameter Fine-tuning)
 
 For full fine-tuning, we simply load the model and train all parameters:
 
@@ -355,7 +355,7 @@ For languages not in MLS or with non-Latin scripts (e.g., Arabic, Chinese, Japan
 
 ## Summary
 
-In this tutorial, we demonstrated how to fine-tune NVIDIA's Parakeet model on Spanish speech data from Multilingual LibriSpeech. The key takeaways are:
+In this tutorial, we demonstrated how to fine-tune NVIDIA's Parakeet CTC model on Spanish speech data from Multilingual LibriSpeech. The key takeaways are:
 
 - Parakeet can be effectively adapted to new languages through fine-tuning
 - LoRA enables memory-efficient training of the 1.1B parameter model
