@@ -48,7 +48,9 @@ mls_test = load_dataset(
     Check the dataset card for more details: https://huggingface.co/datasets/facebook/multilingual_librispeech
 </Tip>
 
-We use streaming mode since MLS is a large dataset. Let's cast the audio to the correct sampling rate:
+We use [streaming mode](https://huggingface.co/blog/streaming-datasets) (streaming=True) since MLS is a large dataset.
+
+We will also cast the audio to the desired sampling rate:
 
 ```python
 mls_train = mls_train.cast_column("audio", Audio(sampling_rate=16000))
