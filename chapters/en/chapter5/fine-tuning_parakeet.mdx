@@ -1,4 +1,4 @@
-# Fine-tuning Parakeet for ASR
+# Fine-tuning Parakeet CTC (NVIDIA) and using LoRA for efficient finetuning
 
 In this section, we will explore how to fine-tune NVIDIA's [Parakeet CTC](https://huggingface.co/nvidia/parakeet-ctc-1.1b) model for Automatic Speech Recognition (ASR) on a new language. Parakeet is a family of high-performance ASR models based on the [FastConformer](https://huggingface.co/papers/2305.05084) architecture, trained on over 64,000 hours of English speech data. We will fine-tune it on Spanish speech data to demonstrate how you can adapt this powerful English model to recognize speech in other languages.
 
@@ -338,6 +338,8 @@ For languages not in MLS or with non-Latin scripts (e.g., Arabic, Chinese, Japan
 2. **Vocabulary extension**: The Parakeet tokenizer is character-based but trained on English. You may need to extend it.
 3. **Phoneme-based approaches**: Convert text to phonemes using tools like `g2p` before training.
 4. **Alternative models**: Consider models pre-trained on multilingual data like Whisper for non-Latin scripts.
+
+Finally, check out the [Hugging Face Hub](https://huggingface.co/datasets?modality=modality:audio) for more datasets to fine-tune on!
 
 ## Tips for Better Results
 
