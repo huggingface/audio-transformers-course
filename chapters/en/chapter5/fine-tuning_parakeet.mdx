@@ -1,6 +1,8 @@
 # Fine-tuning Parakeet for ASR
 
-In this section, we will explore how to fine-tune NVIDIA's Parakeet CTC model for Automatic Speech Recognition (ASR) on a new language. Parakeet is a family of high-performance ASR models based on the FastConformer architecture, trained on over 64,000 hours of English speech data. We will fine-tune it on Spanish speech data to demonstrate how you can adapt this powerful English model to recognize speech in other languages.
+In this section, we will explore how to fine-tune NVIDIA's [Parakeet CTC](https://huggingface.co/nvidia/parakeet-ctc-1.1b) model for Automatic Speech Recognition (ASR) on a new language. Parakeet is a family of high-performance ASR models based on the [FastConformer](https://huggingface.co/papers/2305.05084) architecture, trained on over 64,000 hours of English speech data. We will fine-tune it on Spanish speech data to demonstrate how you can adapt this powerful English model to recognize speech in other languages.
+
+While there exists a [multilingual Parakeet](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3) that supports 25 languages including Spanish, it uses a decoder not (yet) incorporated in Transformers. and cannot benefit from all the training goodies we will show below 🤗
 
 ## House-keeping
 
