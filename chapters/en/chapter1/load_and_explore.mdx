@@ -5,10 +5,10 @@ downloading and preparing datasets from all modalities including audio. The libr
 selection of machine learning datasets publicly available on Hugging Face Hub. Moreover, 🤗 Datasets includes multiple
 features tailored to audio datasets that simplify working with such datasets for both researchers and practitioners.
 
-To begin working with audio datasets, make sure you have the 🤗 Datasets library installed:
+To begin working with audio datasets, make sure you have the 🤗 Datasets library installed along with the audio dependencies:
 
 ```bash
-pip install datasets[audio]
+pip install datasets[audio] soundfile librosa torchcodec
 ```
 
 One of the key defining features of 🤗 Datasets is the ability to download and prepare a dataset in just one line of

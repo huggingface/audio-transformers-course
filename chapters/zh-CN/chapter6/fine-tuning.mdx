@@ -32,8 +32,8 @@ notebook_login()
 
 ## 数据集
 
-在这个示例中，我们将使用 [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli) 数据集的荷兰语（`nl`）子集。
-[VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli) 是一个大规模的多语言语音语料库，包含了 2009-2020 年欧洲议会事件的录音数据。
+在这个示例中，我们将使用 [VoxPopuli](https://huggingface.co/datasets/qmeeus/voxpopuli) 数据集的荷兰语（`nl`）子集。
+[VoxPopuli](https://huggingface.co/datasets/qmeeus/voxpopuli) 是一个大规模的多语言语音语料库，包含了 2009-2020 年欧洲议会事件的录音数据。
 它包含 15 种欧洲语言的带标签的音频-转写数据。虽然我们将使用荷兰语子集，但您可以自由选择其他子集。
 
 这是一个语音识别（ASR）数据集，所以，如前所述，它不是训练 TTS 模型的最佳选择。然而，对于这个练习来说，它已经足够好了。
@@ -43,7 +43,7 @@ notebook_login()
 ```python
 from datasets import load_dataset, Audio
 
-dataset = load_dataset("facebook/voxpopuli", "nl", split="train")
+dataset = load_dataset("qmeeus/voxpopuli", "nl", split="train")
 len(dataset)
 ```
 
@@ -93,16 +93,15 @@ dataset[0]
   'array': array([ 4.27246094e-04,  1.31225586e-03,  1.03759766e-03, ...,
          -9.15527344e-05,  7.62939453e-04, -2.44140625e-04]),
   'sampling_rate': 16000},
- 'raw_text': 'Dat kan naar mijn gevoel alleen met een brede meerderheid die wij samen zoeken.',
- 'normalized_text': 'dat kan naar mijn gevoel alleen met een brede meerderheid die wij samen zoeken.',
+ 'text': 'dat kan naar mijn gevoel alleen met een brede meerderheid die wij samen zoeken.',
  'gender': 'female',
  'speaker_id': '1122',
  'is_gold_transcript': True,
  'accent': 'None'}
 ```
 
-您可能会注意到数据包含 `raw_text` 和 `normalized_text` 特征。在决定使用哪个特征作为文本输入时，需要注意的是 SpeechT5 分词器没有任何数字的词元。
-在 `normalized_text` 中，数字被写成文本。因此，它更合适，我们应该使用 `normalized_text` 作为输入文本。
+数据集包含一个 `text` 特征，我们将使用它作为文本输入。需要注意的是，SpeechT5 分词器没有任何数字的词元，
+因此如果您的文本包含数字，您可能需要将它们写成文本形式。
 
 因为 SpeechT5 是在英语上训练的，它可能无法识别荷兰语数据集中的某些字符。如果保持原样，这些字符将被转换为 `<unk>` 词元。
 然而，在荷兰语中，某些字符如 `à` 用于强调音节。为了保留文本的含义，我们可以将此字符替换为普通的 `a`。
@@ -112,7 +111,7 @@ dataset[0]
 
 ```py
 def extract_all_chars(batch):
-    all_text = " ".join(batch["normalized_text"])
+    all_text = " ".join(batch["text"])
     vocab = list(set(all_text))
     return {"vocab": [vocab], "all_text": [all_text]}
 
@@ -281,7 +280,7 @@ def prepare_dataset(example):
     audio = example["audio"]
 
     example = processor(
-        text=example["normalized_text"],
+        text=example["text"],
         audio_target=audio["array"],
         sampling_rate=audio["sampling_rate"],
         return_attention_mask=False,

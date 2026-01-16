@@ -31,8 +31,8 @@ notebook_login()
 
 ## Le jeu de données
 
-Pour cet exemple, nous prendrons le sous-ensemble en néerlandais (`nl`) du jeu de données [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli).
-[VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli) est un corpus de parole multilingue à grande échelle composé de données provenant d'enregistrements d'événements du Parlement européen de 2009 à 2020.
+Pour cet exemple, nous prendrons le sous-ensemble en néerlandais (`nl`) du jeu de données [VoxPopuli](https://huggingface.co/datasets/qmeeus/voxpopuli).
+[VoxPopuli](https://huggingface.co/datasets/qmeeus/voxpopuli) est un corpus de parole multilingue à grande échelle composé de données provenant d'enregistrements d'événements du Parlement européen de 2009 à 2020.
 Il contient des données de transcription audio étiquetées pour 15 langues européennes. Nous utiliserons le sous-ensemble néerlandais, mais vous pouvez choisir un autre sous-ensemble. 
  
 Il s'agit d'un jeu de données de reconnaissance automatique de la parole, donc comme mentionné précédemment, ce n'est pas l'option la plus appropriée pour entraîner des modèles TTS. Cependant, il sera suffisant pour cet exercice. 
@@ -42,7 +42,7 @@ Chargeons les données :
 ```python
 from datasets import load_dataset, Audio
 
-dataset = load_dataset("facebook/voxpopuli", "nl", split="train")
+dataset = load_dataset("qmeeus/voxpopuli", "nl", split="train")
 len(dataset)
 ```
 
@@ -90,15 +90,14 @@ dataset[0]
   'array': array([ 4.27246094e-04,  1.31225586e-03,  1.03759766e-03, ...,
          -9.15527344e-05,  7.62939453e-04, -2.44140625e-04]),
   'sampling_rate': 16000},
- 'raw_text': 'Dat kan naar mijn gevoel alleen met een brede meerderheid die wij samen zoeken.',
- 'normalized_text': 'dat kan naar mijn gevoel alleen met een brede meerderheid die wij samen zoeken.',
+ 'text': 'dat kan naar mijn gevoel alleen met een brede meerderheid die wij samen zoeken.',
  'gender': 'female',
  'speaker_id': '1122',
  'is_gold_transcript': True,
  'accent': 'None'}
 ```
 
-Vous remarquerez que les exemples du jeu de données contiennent les caractéristiques `raw_text` et `normalized_text`. Lorsque vous décidez quelle caractéristique utiliser comme entrée de texte, il est important de savoir que le *tokenizer* de SpeechT5 n'a pas de *tokens* pour les nombres. Dans `normalized_text`, les nombres sont écrits sous forme textuel. Il s'agit donc d'une meilleure option, et nous devrions utiliser `normalized_text` comme texte d'entrée.
+Les exemples du jeu de données contiennent une caractéristique `text` que nous utiliserons comme entrée de texte. Il est important de savoir que le *tokenizer* de SpeechT5 n'a pas de *tokens* pour les nombres, donc si votre texte contient des nombres, vous devrez peut-être les écrire sous forme textuelle.
 
 Comme SpeechT5 a été entraîné sur la langue anglaise, il se peut qu'il ne reconnaisse pas certains caractères dans le jeu de données néerlandais. 
 S'ils sont laissés tels quels, ces caractères seront convertis en tokens `<unk>`. Cependant, en néerlandais, certains caractères comme `à` sont utilisés pour souligner les syllabes. Afin de préserver le sens du texte, nous pouvons remplacer ce caractère par un `a` normal.
@@ -109,7 +108,7 @@ Assurez-vous de mettre `batched=True` et `batch_size=-1` dans `dataset.map()` af
 
 ```py
 def extract_all_chars(batch):
-    all_text = " ".join(batch["normalized_text"])
+    all_text = " ".join(batch["text"])
     vocab = list(set(all_text))
     return {"vocab": [vocab], "all_text": [all_text]}
 
@@ -275,7 +274,7 @@ def prepare_dataset(example):
     audio = example["audio"]
 
     example = processor(
-        text=example["normalized_text"],
+        text=example["text"],
         audio_target=audio["array"],
         sampling_rate=audio["sampling_rate"],
         return_attention_mask=False,

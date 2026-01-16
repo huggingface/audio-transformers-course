@@ -62,16 +62,16 @@ pipe = pipeline(
 ```
 
 Great! To test our STST system, we'll load an audio sample in a non-English language. Let's load the first example of the
-Italian (`it`) split of the [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli) dataset:
+Italian (`it`) split of the [VoxPopuli](https://huggingface.co/datasets/qmeeus/voxpopuli) dataset:
 
 ```python
 from datasets import load_dataset
 
-dataset = load_dataset("facebook/voxpopuli", "it", split="validation", streaming=True)
+dataset = load_dataset("qmeeus/voxpopuli", "it", split="validation", streaming=True)
 sample = next(iter(dataset))
 ```
 
-To listen to this sample, we can either play it using the dataset viewer on the Hub: [facebook/voxpopuli/viewer](https://huggingface.co/datasets/facebook/voxpopuli/viewer/it/validation?row=0)
+To listen to this sample, we can either play it using the dataset viewer on the Hub: [qmeeus/voxpopuli/viewer](https://huggingface.co/datasets/qmeeus/voxpopuli/viewer/it/validation?row=0)
 
 Or playback using the ipynb audio feature:
 
@@ -113,7 +113,7 @@ translate(sample["audio"].copy())
 Alright! If we compare this to the source text:
 
 ```python
-sample["raw_text"]
+sample["text"]
 ```
 ```
 'Penso che questo sia un passo in avanti importante nella costruzione di uno spazio giuridico di libertà di circolazione e di protezione dei diritti per le persone in Europa.'
