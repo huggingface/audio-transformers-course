@@ -1,7 +1,7 @@
 # Speech-to-speech translation
 
 Speech-to-speech translation (STST or S2ST) is a relatively new spoken language processing task. It involves translating 
-speech from one langauge into speech in a **different** language:
+speech from one language into speech in a **different** language:
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/s2st.png" alt="Diagram of speech to speech translation">
@@ -12,9 +12,9 @@ language into another, we translate **speech** from one language into another. S
 multilingual communication, enabling speakers in different languages to communicate with one another through the medium 
 of speech.
 
-Suppose you want to communicate with another individual across a langauge barrier. Rather 
+Suppose you want to communicate with another individual across a language barrier. Rather 
 than writing the information that you want to convey and then translating it to text in the target language, you 
-can speak it directly and have a STST system convert your spoken speech into the target langauge. The recipient can then
+can speak it directly and have a STST system convert your spoken speech into the target language. The recipient can then
 respond by speaking back at the STST system, and you can listen to their response. This is a more natural way of communicating 
 compared to text-based machine translation.
 
@@ -39,7 +39,7 @@ text-to-speech systems can be coupled together to yield a new STST model without
 
 In the remainder of this Unit, we'll focus on creating a STST system that translates speech from any language X to speech
 in English. The methods covered can be extended to STST systems that translate from any language X to any 
-langauge Y, but we leave this as an extension to the reader and provide pointers where applicable. We further divide up the 
+language Y, but we leave this as an extension to the reader and provide pointers where applicable. We further divide up the 
 task of STST into its two constituent components: ST and TTS. We'll finish by piecing them together to build a Gradio 
 demo to showcase our system.
 
@@ -147,7 +147,7 @@ vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
 <Tip>
     Here we're using SpeechT5 checkpoint trained specifically for English TTS. Should you wish to translate into a language 
     other than English, either swap the checkpoint for a SpeechT5 TTS model fine-tuned on your language of choice, or 
-    use an MMS TTS checkpoint pre-trained in your target langauge.
+    use an MMS TTS checkpoint pre-trained in your target language.
 </Tip>
 
 As with the Whisper model, we'll place the SpeechT5 model and vocoder on our GPU accelerator device if we have one:
@@ -250,7 +250,7 @@ This will launch a Gradio demo similar to the one running on the Hugging Face Sp
 
 You can [duplicate](https://huggingface.co/spaces/course-demos/speech-to-speech-translation?duplicate=true) this demo and adapt
 it to use a different Whisper checkpoint, a different TTS checkpoint, or relax the constraint of outputting English 
-speech and follow the tips provide for translating into a langauge of your choice!
+speech and follow the tips provide for translating into a language of your choice!
 
 ## Going forwards
 
