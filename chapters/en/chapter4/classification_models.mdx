@@ -66,17 +66,26 @@ classifier = pipeline(
 
 Finally, we can pass a sample to the classification pipeline to make a prediction:
 ```python
-classifier(minds[0]["audio"])
+classifier(minds[0]["audio"]["array"])
 ```
 **Output:**
 ```
 [
-    {"score": 0.9631525278091431, "label": "pay_bill"},
-    {"score": 0.02819698303937912, "label": "freeze"},
-    {"score": 0.0032787492964416742, "label": "card_issues"},
-    {"score": 0.0019414445850998163, "label": "abroad"},
-    {"score": 0.0008378693601116538, "label": "high_value_payment"},
-]
+    {'score': 0.9950760006904602, 'label': 'app_error'},
+    {'score': 0.0014388968702405691, 'label': 'address'},
+    {'score': 0.0013526437105610967, 'label': 'high_value_payment'},
+    {'score': 0.0007368802325800061, 'label': 'card_issues'},
+    {'score': 0.0003506040957290679, 'label': 'abroad'},
+    {'score': 0.00026461994275450706, 'label': 'freeze'},
+    {'score': 0.00022453334531746805, 'label': 'atm_limit'},
+    {'score': 0.00016122774104587734, 'label': 'direct_debit'},
+    {'score': 0.0001418517204001546, 'label': 'joint_account'},
+    {'score': 9.185839735437185e-05, 'label': 'latest_transactions'},
+    {'score': 8.669486123835668e-05, 'label': 'balance'},
+    {'score': 6.246731209103018e-05, 'label': 'pay_bill'},
+    {'score': 9.615295311959926e-06, 'label': 'business_loan'},
+    {'score': 2.0461820895434357e-06, 'label': 'cash_deposit'}
+ ]
 ```
 
 Great! We've identified that the intent of the call was paying a bill, with probability 96%. You can imagine this kind of
