@@ -33,7 +33,7 @@ Finally, we launch the Gradio demo using the function we've just defined:
 import gradio as gr
 
 demo = gr.Interface(
-    fn=classify_audio, inputs=gr.Audio(type="filepath"), outputs=gr.outputs.Label()
+    fn=classify_audio, inputs=gr.Audio(type="filepath"), outputs=gr.Label()
 )
 demo.launch(debug=True)
 ```
