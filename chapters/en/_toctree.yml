@@ -96,6 +96,8 @@
     title: Pre-trained models for text-to-speech
   - local: chapter6/fine-tuning
     title: Fine-tuning SpeechT5
+  - local: chapter6/fine-tuning-dia
+    title: Fine-tuning Dia for conversational TTS
   - local: chapter6/evaluation
     title: Evaluating text-to-speech models
   - local: chapter6/hands_on
