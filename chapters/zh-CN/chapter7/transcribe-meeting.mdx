@@ -1,0 +1,198 @@
+# 会议转录
+
+在本节中，我们将使用Whisper模型为两位或多位说话者之间的对话或会议生成转录内容。然后，我们会结合一个**说话人分离**模型，用于预测“谁在什么时候说话”。通过将Whisper转录的时间戳与说话人分离模型的时间戳进行匹配，我们可以生成一份端到端的会议转录，为每位说话者准确标注起止时间。这就是你在网络上常见的会议转录服务（如 [Otter.ai](https://otter.ai)）的基础版本。
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/diarization_transcription.png">
+ </div>
+
+## 说话人分离
+
+说话人分离（speaker diarization）是指从未标注的音频中预测“谁在什么时候说话”。这样一来，我们可以为每段发言预测开始与结束时间，精确对应每位说话者的说话时机。
+
+🤗 Transformers目前尚未在库中内置说话人分离模型，但Hub上已有可直接使用的检查点。本节中我们将使用[pyannote.audio](https://github.com/pyannote/pyannote-audio)提供的预训练模型。首先，我们需要安装相关工具包：
+
+```bash
+pip install --upgrade pyannote.audio
+```
+
+太棒了！该模型的权重托管在Hugging Face Hub上。访问前需要同意说话人分离模型的使用条款：[pyannote/speaker-diarization](https://huggingface.co/pyannote/speaker-diarization)，随后还需同意分割模型的使用条款：[pyannote/segmentation](https://huggingface.co/pyannote/segmentation)。
+
+完成之后，我们就可以在本地加载预训练的说话人分离流水线：
+
+```python
+from pyannote.audio import Pipeline
+
+diarization_pipeline = Pipeline.from_pretrained(
+    "pyannote/speaker-diarization@2.1", use_auth_token=True
+)
+```
+
+我们来试试用一个示例音频测试该流水线。为此，我们将加载[LibriSpeech ASR](https://huggingface.co/datasets/librispeech_asr)数据集中一个由两位说话者拼接而成的音频样本：
+
+```python
+from datasets import load_dataset
+
+concatenated_librispeech = load_dataset(
+    "sanchit-gandhi/concatenated_librispeech", split="train", streaming=True
+)
+sample = next(iter(concatenated_librispeech))
+```
+
+我们可以播放这段音频来听听效果：
+
+```python
+from IPython.display import Audio
+
+Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
+```
+
+很酷！我们可以清晰地听出有两位说话者，在大约15秒的位置发生了转换。现在我们将这段音频传入分离模型，获取每位说话者的起止时间。请注意，pyannote.audio要求输入为形状为(channels, seq_len)的PyTorch张量，因此在运行模型前需要进行转换：
+
+```python
+import torch
+
+input_tensor = torch.from_numpy(sample["audio"]["array"][None, :]).float()
+outputs = diarization_pipeline(
+    {"waveform": input_tensor, "sample_rate": sample["audio"]["sampling_rate"]}
+)
+
+outputs.for_json()["content"]
+```
+
+```text
+[{'segment': {'start': 0.4978125, 'end': 14.520937500000002},
+  'track': 'B',
+  'label': 'SPEAKER_01'},
+ {'segment': {'start': 15.364687500000002, 'end': 21.3721875},
+  'track': 'A',
+  'label': 'SPEAKER_00'}]
+```
+
+效果相当不错！我们可以看到，模型预测第一位说话者的发言持续至14.5秒左右，第二位说话者则从15.4秒开始。接下来我们要进行语音转录了！
+
+## 语音转录
+
+这是本单元中第三次使用Whisper模型来完成语音转录任务。本节我们加载[Whisper Base](https://huggingface.co/openai/whisper-base)检查点，该模型体积小巧，能够在保持合理转录精度的同时提供不错的推理速度。和之前一样，你也可以自由选择其他Hub上的语音识别模型，比如Wav2Vec2、MMS ASR或其他Whisper模型：
+
+```python
+from transformers import pipeline
+
+asr_pipeline = pipeline(
+    "automatic-speech-recognition",
+    model="openai/whisper-base",
+)
+```
+
+现在我们来获取示例音频的转录内容，同时返回每段音频的起止时间戳。你还记得在第5单元中，为了启用Whisper的时间戳预测功能，我们需要传入参数`return_timestamps=True`：
+
+```python
+asr_pipeline(
+    sample["audio"].copy(),
+    generate_kwargs={"max_new_tokens": 256},
+    return_timestamps=True,
+)
+```
+
+```text
+{
+    "text": " The second and importance is as follows. Sovereignty may be defined to be the right of making laws. In France, the king really exercises a portion of the sovereign power, since the laws have no weight. He was in a favored state of mind, owing to the blight his wife's action threatened to cast upon his entire future.",
+    "chunks": [
+        {"timestamp": (0.0, 3.56), "text": " The second and importance is as follows."},
+        {
+            "timestamp": (3.56, 7.84),
+            "text": " Sovereignty may be defined to be the right of making laws.",
+        },
+        {
+            "timestamp": (7.84, 13.88),
+            "text": " In France, the king really exercises a portion of the sovereign power, since the laws have",
+        },
+        {"timestamp": (13.88, 15.48), "text": " no weight."},
+        {
+            "timestamp": (15.48, 19.44),
+            "text": " He was in a favored state of mind, owing to the blight his wife's action threatened to",
+        },
+        {"timestamp": (19.44, 21.28), "text": " cast upon his entire future."},
+    ],
+}
+```
+
+好了！我们看到每段转录文本都带有开始和结束时间戳，而说话人在15.48秒处发生了切换。现在我们就可以将这个转录结果与说话人分离模型的时间戳结合起来，得到最终的会议转录了。
+
+## Speechbox
+
+为了生成最终的转录结果，我们需要将说话人分离模型的时间戳与Whisper模型的时间戳对齐。说话人分离模型预测第一位说话者在14.5秒结束，第二位在15.4秒开始。而Whisper模型预测的片段边界分别为13.88、15.48和19.44秒。由于两个模型的时间戳并不完全匹配，我们需要找到最接近14.5和15.4秒的文本片段边界，并据此按说话人进行切分。具体来说，我们通过最小化两组时间戳之间的绝对距离，来找出最合适的对齐方式。
+
+幸运的是，我们可以使用🤗 Speechbox工具包来完成这个对齐过程。首先，从主分支安装`speechbox`：
+
+```bash
+pip install git+https://github.com/huggingface/speechbox
+```
+
+接着，我们通过传入ASR模型和说话人分离模型，实例化组合流水线[`ASRDiarizationPipeline`](https://github.com/huggingface/speechbox/tree/main#asr-with-speaker-diarization)：
+
+```python
+from speechbox import ASRDiarizationPipeline
+
+pipeline = ASRDiarizationPipeline(
+    asr_pipeline=asr_pipeline, diarization_pipeline=diarization_pipeline
+)
+```
+
+<Tip>
+
+你也可以直接使用Hub上的模型ID调用预训练版本的<code>ASRDiarizationPipeline</code>：
+<p><code>pipeline = ASRDiarizationPipeline.from_pretrained("openai/whisper-base")</code></p>
+
+</Tip>
+
+将音频输入该组合流水线，看看输出结果如何：
+
+```python
+pipeline(sample["audio"].copy())
+```
+
+```text
+[{'speaker': 'SPEAKER_01',
+  'text': ' The second and importance is as follows. Sovereignty may be defined to be the right of making laws. In France, the king really exercises a portion of the sovereign power, since the laws have no weight.',
+  'timestamp': (0.0, 15.48)},
+ {'speaker': 'SPEAKER_00',
+  'text': " He was in a favored state of mind, owing to the blight his wife's action threatened to cast upon his entire future.",
+  'timestamp': (15.48, 21.28)}]
+```
+
+太棒了！第一位说话者的发言时间为0到15.48秒，第二位说话者为15.48到21.28秒，并分别对应各自的转录文本。
+
+我们可以通过定义两个辅助函数来让时间戳的格式更美观一些。第一个函数将时间戳元组格式化为字符串，并保留指定的小数位数。第二个函数将说话人ID、时间戳和文本组合成一行，并将不同说话人分行展示，方便阅读：
+
+```python
+def tuple_to_string(start_end_tuple, ndigits=1):
+    return str((round(start_end_tuple[0], ndigits), round(start_end_tuple[1], ndigits)))
+
+
+def format_as_transcription(raw_segments):
+    return "\n\n".join(
+        [
+            chunk["speaker"] + " " + tuple_to_string(chunk["timestamp"]) + chunk["text"]
+            for chunk in raw_segments
+        ]
+    )
+```
+
+我们再次运行流水线，并使用刚刚定义的格式化函数美化输出：
+
+```python
+outputs = pipeline(sample["audio"].copy())
+
+format_as_transcription(outputs)
+```
+
+```text
+SPEAKER_01 (0.0, 15.5) The second and importance is as follows. Sovereignty may be defined to be the right of making laws.
+In France, the king really exercises a portion of the sovereign power, since the laws have no weight.
+
+SPEAKER_00 (15.5, 21.3) He was in a favored state of mind, owing to the blight his wife's action threatened to cast upon
+his entire future.
+```
+
+就这样！我们已经成功完成了音频的说话人分离与文本转录，并返回了按说话人分段的完整转录内容。尽管我们使用的是最小距离算法来对齐时间戳，这一方法在实际中效果非常好。如果你想进一步探索更复杂的对齐策略，不妨查看`ASRDiarizationPipeline`的源码：[speechbox/diarize.py](https://github.com/huggingface/speechbox/blob/96d2d1a180252d92263f862a1cd25a48860f1aed/src/speechbox/diarize.py#L12)。
