@@ -1,0 +1,33 @@
+# 实战练习
+
+是时候亲手操作一些音频模型，应用你迄今为止所学的内容了。本练习是完成本课程并获得结业证书所需的四个实践任务之一。
+
+以下是练习说明：在本单元中，我们演示了如何在`marsyas/gtzan`数据集上微调一个HuBERT模型以进行音乐分类，示例中达到了83%的准确率。你的任务是进一步提升该模型的准确率。
+
+你可以自由选择任何你认为适合音频分类的模型（可在[🤗 Hub](https://huggingface.co/models)上查找），并继续使用相同的数据集[`marsyas/gtzan`](https://huggingface.co/datasets/marsyas/gtzan)来构建你自己的分类器。
+
+目标是使用你的分类器在该数据集上达到87%的准确率。你可以继续使用相同的模型并调整训练超参数，或者选择完全不同的模型，由你决定！
+
+为了确保该结果计入结业证书评估，请务必像本单元所示将模型上传到Hub，并在训练结束时添加如下`**kwargs`参数：
+
+```python
+kwargs = {
+    "dataset_tags": "marsyas/gtzan",
+    "dataset": "GTZAN",
+    "model_name": f"{model_name}-finetuned-gtzan",
+    "finetuned_from": model_id,
+    "tasks": "audio-classification",
+}
+
+trainer.push_to_hub(**kwargs)
+```
+
+以下是一些可能对你完成本练习有帮助的资源：
+
+* [Transformers文档中的音频分类任务指南](https://huggingface.co/docs/transformers/tasks/audio_classification)
+* [HuBERT模型文档](https://huggingface.co/docs/transformers/model_doc/hubert)
+* [M-CTC-T模型文档](https://huggingface.co/docs/transformers/model_doc/mctct)
+* [Audio Spectrogram Transformer文档](https://huggingface.co/docs/transformers/model_doc/audio-spectrogram-transformer)
+* [Wav2Vec2模型文档](https://huggingface.co/docs/transformers/model_doc/wav2vec2)
+
+你也可以为自己的模型构建一个演示应用，并分享到 Discord。如果有任何问题，欢迎在#audio-study-group频道发帖讨论。

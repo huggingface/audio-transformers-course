@@ -1,0 +1,495 @@
+# 微调音乐分类模型
+
+在本节中，我们将逐步演示如何微调一个仅包含编码器的Transformer模型以完成音乐分类任务。我们将使用一个轻量级模型和一个相对较小的数据集，这意味着你可以在任何消费级GPU上完整运行整个代码，包括Google Colab免费版中提供的T4 16GB GPU。本节还包含了一些实用建议，供你在显存有限的设备上出现内存问题时参考。
+
+## 数据集
+
+为了训练我们的模型，我们将使用[GTZAN](https://huggingface.co/datasets/marsyas/gtzan)数据集，这是一个广泛使用的音乐风格分类数据集，包含1000首歌曲。每首歌曲都是30秒的片段，涵盖从Disco到金属在内的10种音乐风格。我们可以通过🤗 Datasets中的`load_dataset()`函数从Hugging Face Hub加载这些音频文件及其对应标签：
+
+```python
+from datasets import load_dataset
+
+gtzan = load_dataset("marsyas/gtzan", "all")
+gtzan
+```
+
+**输出：**
+```out
+Dataset({
+    features: ['file', 'audio', 'genre'],
+    num_rows: 999
+})
+```
+
+<Tip warning={true}>
+
+GTZAN中的一个录音文件已损坏，因此在数据集中被移除。所以总样本数是999而不是1000。
+
+</Tip>
+
+GTZAN没有预定义的验证集，因此我们需要自己创建一个。由于数据集中每种风格的样本数量是均衡的，我们可以使用`train_test_split()`方法快速创建一个90/10的训练/验证划分：
+
+```python
+gtzan = gtzan["train"].train_test_split(seed=42, shuffle=True, test_size=0.1)
+gtzan
+```
+
+**输出：**
+```out
+DatasetDict({
+    train: Dataset({
+        features: ['file', 'audio', 'genre'],
+        num_rows: 899
+    })
+    test: Dataset({
+        features: ['file', 'audio', 'genre'],
+        num_rows: 100
+    })
+})
+```
+
+很好，现在我们已经有了训练集和验证集，来看一个音频样本的具体内容：
+
+```python
+gtzan["train"][0]
+```
+
+**输出：**
+```out
+{
+    "file": "~/.cache/huggingface/datasets/downloads/extracted/fa06ce46130d3467683100aca945d6deafb642315765a784456e1d81c94715a8/genres/pop/pop.00098.wav",
+    "audio": {
+        "path": "~/.cache/huggingface/datasets/downloads/extracted/fa06ce46130d3467683100aca945d6deafb642315765a784456e1d81c94715a8/genres/pop/pop.00098.wav",
+        "array": array(
+            [
+                0.10720825,
+                0.16122437,
+                0.28585815,
+                ...,
+                -0.22924805,
+                -0.20629883,
+                -0.11334229,
+            ],
+            dtype=float32,
+        ),
+        "sampling_rate": 22050,
+    },
+    "genre": 7,
+}
+```
+
+正如我们在[第1单元](../chapter1/audio_data)中看到的，音频文件以一维NumPy数组的形式表示，数组中的每个值代表音频在某个时间点的振幅。该数据集的采样率是22,050 Hz，意味着每秒有22,050个采样值。在使用采样率不同的预训练模型时，我们需要注意进行采样率转换，确保输入格式匹配。此外，`genre` 以整数形式表示，是一种**类别标签（class label）**，也正是模型预测时所采用的输出格式。我们可以使用 `genre` 特征的 `int2str()` 方法将这些整数标签映射为可读的类别名称：
+
+```python
+id2label_fn = gtzan["train"].features["genre"].int2str
+id2label_fn(gtzan["train"][0]["genre"])
+```
+
+**输出：**
+```out
+'pop'
+```
+
+这个标签看起来没问题，与音频文件名一致。接下来我们使用 Gradio 的 `Blocks` API 构建一个简单的界面，来试听更多样本：
+
+```python
+import gradio as gr
+
+
+def generate_audio():
+    example = gtzan["train"].shuffle()[0]
+    audio = example["audio"]
+    return (
+        audio["sampling_rate"],
+        audio["array"],
+    ), id2label_fn(example["genre"])
+
+
+with gr.Blocks() as demo:
+    with gr.Column():
+        for _ in range(4):
+            audio, label = generate_audio()
+            output = gr.Audio(audio, label=label)
+
+demo.launch(debug=True)
+```
+
+<iframe src="https://course-demos-gtzan-samples.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
+从这些样本中，我们确实能听出风格的不同，那Transformer模型是否也能做到呢？让我们训练一个模型来验证一下。第一步是选一个合适的预训练模型。一起来看看该怎么做吧。
+
+## 选择音频分类的预训练模型
+
+首先，我们需要为音频分类任务选一个合适的预训练模型。在这个领域，预训练通常是在大量未标注音频数据上完成的，比如[LibriSpeech](https://huggingface.co/datasets/librispeech_asr)和[Voxpopuli](https://huggingface.co/datasets/facebook/voxpopuli)。最方便的方式是在Hugging Face Hub上使用“Audio Classification”任务筛选器（上一节已介绍）。虽然Wav2Vec2和HuBERT非常流行，但我们将使用一个名为**DistilHuBERT**的模型。它是[HuBERT](https://huggingface.co/docs/transformers/model_doc/hubert)的轻量版，训练速度提升约73%，但在性能上几乎没有损失。
+
+<iframe src="https://autoevaluate-leaderboards.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
+## 从音频到机器学习特征
+
+## 数据预处理
+
+与自然语言处理中的分词类似，音频和语音模型也需要将输入编码为模型可处理的格式。在🤗 Transformers中，这种从原始音频到模型输入格式的转换由模型的**特征提取器（feature extractor）**完成。与分词器（Tokenizer）类似，🤗 Transformers提供了`AutoFeatureExtractor`类，它可以根据所用模型自动选择正确的特征提取器。为了了解我们该如何处理音频文件，我们先从预训练的DistilHuBERT模型中初始化特征提取器开始：
+
+```python
+from transformers import AutoFeatureExtractor
+
+model_id = "ntu-spml/distilhubert"
+feature_extractor = AutoFeatureExtractor.from_pretrained(
+    model_id, do_normalize=True, return_attention_mask=True
+)
+```
+
+由于模型和数据集的采样率不同，我们需要先将音频重新采样至16,000Hz，然后再传入特征提取器。首先可以通过特征提取器来获取模型所需的采样率：
+
+```python
+sampling_rate = feature_extractor.sampling_rate
+sampling_rate
+```
+
+**输出：**
+```out
+16000
+```
+
+接着，我们使用🤗 Datasets提供的`Audio`特征和`cast_column()`方法重新采样整个数据集：
+
+```python
+from datasets import Audio
+
+gtzan = gtzan.cast_column("audio", Audio(sampling_rate=sampling_rate))
+```
+
+我们现在可以检查训练集中的第一个样本是否已被正确重采样为16kHz。🤗 Datasets会在加载每个样本时**动态重采样**：
+
+```python
+gtzan["train"][0]
+```
+
+**输出：**
+```out
+{
+    "file": "~/.cache/huggingface/datasets/downloads/extracted/fa06ce46130d3467683100aca945d6deafb642315765a784456e1d81c94715a8/genres/pop/pop.00098.wav",
+    "audio": {
+        "path": "~/.cache/huggingface/datasets/downloads/extracted/fa06ce46130d3467683100aca945d6deafb642315765a784456e1d81c94715a8/genres/pop/pop.00098.wav",
+        "array": array(
+            [
+                0.0873509,
+                0.20183384,
+                0.4790867,
+                ...,
+                -0.18743178,
+                -0.23294401,
+                -0.13517427,
+            ],
+            dtype=float32,
+        ),
+        "sampling_rate": 16000,
+    },
+    "genre": 7,
+}
+```
+
+太好了！我们可以看到采样率已经被下采样为16kHz。由于采样点减少，数组中的振幅值也发生了变化，现在大约每1.5个原始采样点只保留了1个。
+
+Wav2Vec2和HuBERT等模型的一个显著特点是，它们直接接受表示语音信号原始波形的float类型数组作为输入。这与其他模型（如Whisper）不同，后者在输入前需要将原始音频波形预处理为声谱图格式。
+
+我们提到过，音频数据是用一维数组表示的，因此它已经具备模型所需的格式，也就是在离散时间步上的一组连续输入值。那么，特征提取器的作用是什么呢？
+
+虽然音频数据的结构正确，但它的数值范围没有任何限制。为了使模型运行更稳定，我们希望所有输入的动态范围保持一致。这可以确保不同样本在训练时具有相似的激活值和梯度，有助于模型收敛并提升训练稳定性。
+
+为此，我们需要对音频数据进行归一化处理，即将每个样本缩放为零均值、单位方差的形式，这一过程称为特征缩放（feature scaling）。这正是特征提取器的功能所在。
+
+我们可以将特征提取器应用到第一个样本上，来看它的具体表现。首先，计算原始音频数据的均值和方差：
+
+```python
+import numpy as np
+
+sample = gtzan["train"][0]["audio"]
+
+print(f"Mean: {np.mean(sample['array']):.3}, Variance: {np.var(sample['array']):.3}")
+```
+
+**输出：**
+```out
+Mean: 0.000185, Variance: 0.0493
+```
+
+我们可以看到，均值已经非常接近0，但方差约为0.05。如果样本的方差更大，可能会导致模型出现问题，因为这意味着音频数据的动态范围很小，从而使不同特征难以区分。接下来我们使用特征提取器，看看处理后的输出结果：
+
+```python
+inputs = feature_extractor(sample["array"], sampling_rate=sample["sampling_rate"])
+
+print(f"inputs keys: {list(inputs.keys())}")
+
+print(
+    f"Mean: {np.mean(inputs['input_values']):.3}, Variance: {np.var(inputs['input_values']):.3}"
+)
+```
+
+**输出：**
+```out
+inputs keys: ['input_values', 'attention_mask']
+Mean: -4.53e-09, Variance: 1.0
+```
+
+很好！特征提取器返回了一个包含两个键的字典：`input_values`和`attention_mask`。其中，`input_values`是我们将传递给HuBERT模型的预处理音频输入；[`attention_mask`](https://huggingface.co/docs/transformers/glossary#attention-mask)则用于**批量**处理音频输入时，指示哪些位置是由于输入长度不一而添加的填充。
+
+我们可以看到，现在的均值已经非常接近0，方差则恰好为1！这正是我们在将音频样本输入HuBERT模型之前所期望的数据格式。
+
+<Tip warning={true}>
+
+注意我们将音频数据的采样率传给了特征提取器。这是一个好习惯，因为特征提取器会在底层进行检查，确保音频的采样率与模型所期望的一致。如果两者不一致，我们就需要自行进行上采样或下采样处理。
+
+</Tip>
+
+太棒了！现在我们已经掌握了如何处理重采样后的音频数据，接下来只需定义一个函数，将这一处理过程应用到数据集中所有样本上。由于我们预期每段音频时长为30秒，对于更长的片段，可以使用特征提取器的`max_length`和`truncation`参数进行截断处理：
+
+```python
+max_duration = 30.0
+
+
+def preprocess_function(examples):
+    audio_arrays = [x["array"] for x in examples["audio"]]
+    inputs = feature_extractor(
+        audio_arrays,
+        sampling_rate=feature_extractor.sampling_rate,
+        max_length=int(feature_extractor.sampling_rate * max_duration),
+        truncation=True,
+        return_attention_mask=True,
+    )
+    return inputs
+```
+
+定义好函数后，我们可以使用[`.map()`方法](https://huggingface.co/docs/datasets/v2.14.0/en/package_reference/main_classes#datasets.Dataset.map)将其应用到整个数据集。`.map()`支持批量处理，我们通过设置`batched=True`来启用这一功能。默认的批处理大小为1000，但为了确保在Google Colab免费版中内存占用保持在合理范围内，我们将其减小为100：
+
+<!--- TODO(SG): revert to multiprocessing when bug in datasets is fixed
+Since audio datasets can be quite
+slow to process, it is usually a good idea to use multiprocessing. We can do this by passing the `num_proc` argument to
+`map()` and we'll use Python's `psutil` module to determine the number of CPU cores on the system:
+--->
+
+```python
+gtzan_encoded = gtzan.map(
+    preprocess_function,
+    remove_columns=["audio", "file"],
+    batched=True,
+    batch_size=100,
+    num_proc=1,
+)
+gtzan_encoded
+```
+
+**输出：**
+```out
+DatasetDict({
+    train: Dataset({
+        features: ['genre', 'input_values','attention_mask'],
+        num_rows: 899
+    })
+    test: Dataset({
+        features: ['genre', 'input_values','attention_mask'],
+        num_rows: 100
+    })
+})
+```
+
+<Tip warning={true}>
+
+如果在执行以上代码时设备内存（RAM）耗尽，可以通过调整批处理参数来降低内存峰值占用。特别是以下两个参数可以进行修改：
+
+* `batch_size`：默认值为1000，但我们上面设置为100。如果仍然报错，可以再减半为50
+* `writer_batch_size`：默认值为1000。可尝试先降低为500，如果仍不行，则继续减半为250
+
+</Tip>
+
+
+为了简化训练流程，我们在处理过程中移除了`audio`和`file`字段。现在数据集中，`input_values`字段包含经过特征提取器编码后的音频数据，`attention_mask`字段是一个由0和1组成的二进制掩码，用于标识音频输入中的填充部分，而`genre`字段则包含对应的标签（或称目标值）。为了让`Trainer`正确处理这些类别标签，我们需要将`genre`字段重命名为`label`：
+
+```python
+gtzan_encoded = gtzan_encoded.rename_column("genre", "label")
+```
+
+最后一步是从数据集中获取标签映射。这一映射关系允许我们在整数ID（如`7`）与可读标签（如`"pop"`）之间相互转换。通过这种方式，我们可以将模型输出的整数类别ID转化为人类可读的格式，使其能够应用于各种下游任务。我们可以使用`int2str()`方法来实现这一点：
+
+```python
+id2label = {
+    str(i): id2label_fn(i)
+    for i in range(len(gtzan_encoded["train"].features["label"].names))
+}
+label2id = {v: k for k, v in id2label.items()}
+
+id2label["7"]
+```
+
+```out
+'pop'
+```
+
+好了，现在我们已经准备好用于训练的数据集了！接下来我们将学习如何在该数据集上训练一个音乐风格分类模型。
+
+## 微调模型
+
+为了微调模型，我们将使用🤗 Transformers中的`Trainer`类。正如我们在其他章节中看到的，`Trainer`是一个高级API，专为处理最常见的训练场景而设计。在本节中，我们将用它在GTZAN数据集上微调模型。为此，我们首先需要加载一个适用于该任务的模型。我们可以使用`AutoModelForAudioClassification`类来完成这一操作，它会自动为我们的预训练DistilHuBERT模型添加合适的分类头。下面我们来实例化这个模型：
+
+```python
+from transformers import AutoModelForAudioClassification
+
+num_labels = len(id2label)
+
+model = AutoModelForAudioClassification.from_pretrained(
+    model_id,
+    num_labels=num_labels,
+    label2id=label2id,
+    id2label=id2label,
+)
+```
+
+我们强烈建议你在训练过程中将模型检查点直接上传到[Hugging Face Hub](https://huggingface.co/)。Hub 提供以下功能：
+- 集成版本控制：确保训练过程中不会丢失模型检查点。
+- TensorBoard 日志：方便你跟踪训练过程中的关键指标。
+- 模型卡片：用于记录模型的用途与设计细节。
+- 社区支持：方便分享与协作，拥抱开源社区的力量！🤗
+
+将笔记本连接至Hub也很简单，只需在提示时输入你的Hub认证令牌。你可以在[这里](https://huggingface.co/settings/tokens)找到你的令牌：
+
+```python
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+**输出：**
+```bash
+Login successful
+Your token has been saved to /root/.huggingface/token
+```
+
+下一步是定义训练参数，包括批次大小、梯度累积步数、训练轮数和学习率等：
+
+```python
+from transformers import TrainingArguments
+
+model_name = model_id.split("/")[-1]
+batch_size = 8
+gradient_accumulation_steps = 1
+num_train_epochs = 10
+
+training_args = TrainingArguments(
+    f"{model_name}-finetuned-gtzan",
+    evaluation_strategy="epoch",
+    save_strategy="epoch",
+    learning_rate=5e-5,
+    per_device_train_batch_size=batch_size,
+    gradient_accumulation_steps=gradient_accumulation_steps,
+    per_device_eval_batch_size=batch_size,
+    num_train_epochs=num_train_epochs,
+    warmup_ratio=0.1,
+    logging_steps=5,
+    load_best_model_at_end=True,
+    metric_for_best_model="accuracy",
+    fp16=True,
+    push_to_hub=True,
+)
+```
+
+<Tip warning={true}>
+
+这里我们设置了`push_to_hub=True`，以便在训练过程中自动将微调后的检查点上传至Hub。如果你不希望上传，可以将其设置为`False`。
+
+</Tip>
+
+接下来我们定义评估指标。由于GTZAN是一个均衡数据集，我们将使用准确率（accuracy）作为评估指标，并通过🤗 Evaluate库加载它：
+
+```python
+import evaluate
+import numpy as np
+
+metric = evaluate.load("accuracy")
+
+
+def compute_metrics(eval_pred):
+    """Computes accuracy on a batch of predictions"""
+    predictions = np.argmax(eval_pred.predictions, axis=1)
+    return metric.compute(predictions=predictions, references=eval_pred.label_ids)
+```
+
+现在所有准备工作都已就绪！我们可以实例化`Trainer`并开始训练模型：
+
+```python
+from transformers import Trainer
+
+trainer = Trainer(
+    model,
+    training_args,
+    train_dataset=gtzan_encoded["train"],
+    eval_dataset=gtzan_encoded["test"],
+    tokenizer=feature_extractor,
+    compute_metrics=compute_metrics,
+)
+
+trainer.train()
+```
+
+<Tip warning={true}>
+
+根据你所用的GPU不同，训练开始时可能会遇到CUDA“内存不足”错误。如果出现此问题，可以逐步减小`batch_size`，并使用[`gradient_accumulation_steps`](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.TrainingArguments.gradient_accumulation_steps)参数进行补偿。
+
+</Tip>
+
+**输出：**
+```out
+| Training Loss | Epoch | Step | Validation Loss | Accuracy |
+|:-------------:|:-----:|:----:|:---------------:|:--------:|
+| 1.7297        | 1.0   | 113  | 1.8011          | 0.44     |
+| 1.24          | 2.0   | 226  | 1.3045          | 0.64     |
+| 0.9805        | 3.0   | 339  | 0.9888          | 0.7      |
+| 0.6853        | 4.0   | 452  | 0.7508          | 0.79     |
+| 0.4502        | 5.0   | 565  | 0.6224          | 0.81     |
+| 0.3015        | 6.0   | 678  | 0.5411          | 0.83     |
+| 0.2244        | 7.0   | 791  | 0.6293          | 0.78     |
+| 0.3108        | 8.0   | 904  | 0.5857          | 0.81     |
+| 0.1644        | 9.0   | 1017 | 0.5355          | 0.83     |
+| 0.1198        | 10.0  | 1130 | 0.5716          | 0.82     |
+```
+
+整个训练大约耗时1小时，具体取决于你的GPU或Google Colab分配给你的资源。最终模型在验证集上的最高准确率达到了83% -- 对于仅用899条训练样本、训练10轮的情况来说，这个结果相当不错！我们还可以通过增加训练轮数、引入正则化（如dropout），或将每个30秒的音频样本切分为多个15秒段，从而进一步提升效果。
+
+那么这个模型的表现相比其他音乐分类系统如何呢？🤔你可以前往[autoevaluate排行榜](https://huggingface.co/spaces/autoevaluate/leaderboards?dataset=marsyas%2Fgtzan&only_verified=0&task=audio-classification&config=all&split=train&metric=accuracy)，该排行榜按任务和数据集对模型进行分类，并按准确率排序。
+
+当我们将训练结果上传至Hub时，也可以选择将模型自动提交至排行榜。只需设置一些关键词参数（kwargs），就可以实现。你可以根据自己的数据集、语言和模型名进行修改：
+
+```python
+kwargs = {
+    "dataset_tags": "marsyas/gtzan",
+    "dataset": "GTZAN",
+    "model_name": f"{model_name}-finetuned-gtzan",
+    "finetuned_from": model_id,
+    "tasks": "audio-classification",
+}
+```
+
+现在可以将训练结果上传到Hugging Face Hub了。为此，只需执行 `.push_to_hub` 命令：
+
+```python
+trainer.push_to_hub(**kwargs)
+```
+
+这会将训练日志和模型权重保存在`"your-username/distilhubert-finetuned-gtzan"`路径下。以本例为例，可以查看[`sanchit-gandhi/distilhubert-finetuned-gtzan`](https://huggingface.co/sanchit-gandhi/distilhubert-finetuned-gtzan)。
+
+## 分享模型
+
+现在你可以通过Hub上的模型链接与他人共享这个模型。他们只需通过模型标识符（如`"your-username/distilhubert-finetuned-gtzan"`）加载模型，即可直接在`pipeline()`中使用。例如，加载[`"sanchit-gandhi/distilhubert-finetuned-gtzan"`](https://huggingface.co/sanchit-gandhi/distilhubert-finetuned-gtzan)的模型：
+
+```python
+from transformers import pipeline
+
+pipe = pipeline(
+    "audio-classification", model="sanchit-gandhi/distilhubert-finetuned-gtzan"
+)
+```
+
+## 总结
+
+在本节中，我们详细讲解了如何使用DistilHuBERT模型完成音乐分类任务的微调。虽然我们聚焦于GTZAN数据集和音乐分类，但这里的流程同样适用于其他音频分类任务--脚本几乎无需更改即可用于语音关键词识别、语言识别等任务。你只需要替换数据集即可。如果你还想在其他音频分类任务中微调Hugging Face Hub上的模型，欢迎查阅🤗 Transformers仓库中的[更多示例](https://github.com/huggingface/transformers/tree/main/examples/pytorch/audio-classification)。
+
+下一节中，我们将基于刚刚训练好的模型构建一个可在Hugging Face Hub上分享的音乐分类演示。
