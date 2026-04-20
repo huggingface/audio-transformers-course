@@ -79,6 +79,8 @@
     title: Evaluation and metrics for speech recognition
   - local: chapter5/fine-tuning
     title: How to fine-tune an ASR system with the Trainer API
+  - local: chapter5/fine-tuning_parakeet
+    title: Fine-tuning Parakeet
   - local: chapter5/demo
     title: Building a demo
   - local: chapter5/hands_on
