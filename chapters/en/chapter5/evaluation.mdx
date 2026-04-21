@@ -257,7 +257,7 @@ orthographic text and evaluating on normalised text to get the best of both worl
 
 Alright! We've covered three topics so far in this Unit: pre-trained models, dataset selection and evaluation.
 Let's have some fun and put them together in one end-to-end example 🚀 We're going to set ourselves up for the next
-section on fine-tuning by evaluating the pre-trained Whisper model on the Common Voice 13 Dhivehi test set. We'll use
+section on fine-tuning by evaluating the pre-trained Whisper model on the Common Voice 17 Dhivehi test set. We'll use
 the WER number we get as a _baseline_ for our fine-tuning run, or a target number that we'll try and beat 🥊
 
 First, we'll load the pre-trained Whisper model using the `pipeline()` class. This process will be extremely familiar by now!
@@ -283,8 +283,8 @@ pipe = pipeline(
 )
 ```
 
-Next, we'll load the Dhivehi test split of Common Voice 13. You'll remember from the previous section that the Common
-Voice 13 is *gated*, meaning we had to agree to the dataset terms of use before gaining access to the dataset. We can
+Next, we'll load the Dhivehi test split of Common Voice 17. You'll remember from the previous section that the Common
+Voice 17 is *gated*, meaning we had to agree to the dataset terms of use before gaining access to the dataset. We can
 now link our Hugging Face account to our notebook, so that we have access to the dataset from the machine we're currently
 using.
 
@@ -305,13 +305,13 @@ preparing it automatically on your notebook:
 from datasets import load_dataset
 
 common_voice_test = load_dataset(
-    "mozilla-foundation/common_voice_13_0", "dv", split="test"
+    "mozilla-foundation/common_voice_17_0", "dv", split="test"
 )
 ```
 
 <Tip>
     If you face an authentication issue when loading the dataset, ensure that you have accepted the dataset's terms of use
-    on the Hugging Face Hub through the following link: https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
+    on the Hugging Face Hub through the following link: https://huggingface.co/datasets/mozilla-foundation/common_voice_17_0
 </Tip>
 
 Evaluating over an entire dataset can be done in much the same way as over a single example - all we have to do is **loop**
