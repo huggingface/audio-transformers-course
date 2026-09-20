@@ -4,7 +4,7 @@
 
 在深入了解音频Transformer的细节和微调（fine-tuning）之前，我们先来看看如何使用🤗 Transformers和现成的预训练模型，在几行代码中构建一个音频分类器。
 
-我们使用和前几个单元相同的[MINDS-14](https://huggingface.co/datasets/PolyAI/minds14) 数据集。回忆一下，MINDS-14数据集的内容是许多不同语言和方言的使用者向一个网银系统提问的录音。其标签包含了`intent_class`，记录了该次对话的目的。dataset that you have explored
+我们使用和前几个单元相同的[MINDS-14](https://huggingface.co/datasets/PolyAI/minds14) 数据集。回忆一下，MINDS-14数据集的内容是许多不同语言和方言的使用者向一个网银系统提问的录音。其标签包含了`intent_class`，记录了该次对话的目的，（数据集是我们之前了解过的）
 
 和之前一样，我们先加载`en-AU`子集来测试我们的pipeline，将其上采样至音频模型常见的16千赫兹采样率。
 
