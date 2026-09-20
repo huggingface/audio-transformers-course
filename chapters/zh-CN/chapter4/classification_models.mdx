@@ -1,0 +1,224 @@
+# 音频分类的预训练模型
+
+Hugging Face Hub上托管着超过500个用于音频分类的预训练模型。在本节中，我们将介绍几种常见的音频分类任务，并为每种任务推荐合适的预训练模型。借助`pipeline()`类，切换不同的模型和任务变得非常简单。一旦掌握了如何为一个模型使用`pipeline()`，你就可以在Hub上对任意模型复用，无需修改代码！这让基于`pipeline()`的实验流程变得非常高效，使你能够快速选出最适合自己需求的预训练模型。
+
+在开始讲解各类音频分类任务之前，我们先快速回顾一下在音频分类中常用的Transformer架构。标准的音频分类架构是基于任务本质设计的：我们希望将一段音频输入序列（即音频数组）转换为一个类别标签。编码器模型（encoder-only）首先将音频输入序列通过Transformer模块映射为一系列隐藏状态表示，然后对这些隐藏状态取平均，并将结果输入线性分类层，最终输出一个类别标签。因此，音频分类任务通常偏好使用**仅包含编码器的模型**。
+
+仅含解码器的模型（decoder-only）会为任务引入不必要的复杂度，因为它们假设输出是一个**序列**（而不仅是单一类别），因此会生成多个输出。这导致推理速度变慢，不适合用在音频分类中。同样地，编码器-解码器模型（encoder-decoder）也因为类似原因很少使用。这种架构选择与NLP中的任务是类似的：像[BERT](https://huggingface.co/blog/bert-101)这样的编码器模型适用于序列分类任务，而像GPT这样的解码器模型则用于文本生成任务。
+
+现在我们已经回顾了音频分类中常用的Transformer架构，让我们开始介绍音频分类的几种子任务，以及最受欢迎的模型！
+
+## 🤗 Transformers安装说明
+
+截至目前，音频分类所需的一些最新更新仅包含在🤗 Transformers仓库的`main`分支中，还未发布到PyPi。为了确保本地环境具备这些更新，我们需要通过以下命令从`main`分支安装Transformers：
+
+```
+pip install git+https://github.com/huggingface/transformers
+```
+
+## 关键词识别
+
+关键词识别（Keyword Spotting，KWS）是指从语音中识别出特定关键词。可识别的关键词集合即为分类任务的标签集合。因此，在使用预训练的关键词识别模型时，你应确保目标关键词与模型的预训练标签匹配。下面我们将介绍两个关键词识别的数据集和模型。
+
+### Minds-14
+
+我们将使用上一单元中提到的[MINDS-14](https://huggingface.co/datasets/PolyAI/minds14)数据集。如果你还记得，MINDS-14包含用户向电子银行系统提问的语音数据，涵盖多种语言和方言，并为每条录音提供了`intent_class`标签，用于标注通话意图。
+
+```python
+from datasets import load_dataset
+
+minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+```
+
+我们将加载模型[`anton-l/xtreme_s_xlsr_300m_minds14`](https://huggingface.co/anton-l/xtreme_s_xlsr_300m_minds14)。这是一个基于MINDS-14微调约50轮的XLS-R模型，在所有语言上的评估准确率约为90%。
+
+```python
+from transformers import pipeline
+
+classifier = pipeline(
+    "audio-classification",
+    model="anton-l/xtreme_s_xlsr_300m_minds14",
+)
+```
+
+最后，我们将一条样本输入到分类pipeline中进行预测：
+```python
+classifier(minds[0]["audio"])
+```
+**输出：**
+```
+[
+    {"score": 0.9631525278091431, "label": "pay_bill"},
+    {"score": 0.02819698303937912, "label": "freeze"},
+    {"score": 0.0032787492964416742, "label": "card_issues"},
+    {"score": 0.0019414445850998163, "label": "abroad"},
+    {"score": 0.0008378693601116538, "label": "high_value_payment"},
+]
+```
+
+太棒了！我们识别出该通话的意图是“支付账单”，预测概率为96%。你可以想象，这种关键词识别系统可以作为自动化呼叫中心的第一道流程，根据用户的请求对通话进行分类，并提供相应的上下文支持。
+
+### Speech Commands
+
+Speech Commands是一个口语单词数据集，用于评估音频分类模型在简单命令词上的表现。数据集包含15个关键词类别、1个静音类别以及1个未知类别用于包括误报。15个关键词都是单词，通常用于端侧设备上以控制基础任务或启动其他进程。
+
+与你的手机上持续运行的类似模型相同，这里并非单个命令词，而是与你设备相关的“唤醒词”，例如"Hey Google"或"Hey Siri"。当音频分类模型检测到这些唤醒词后，它会触发手机开始监听麦克风，并通过语音识别模型转写你的语音。
+
+音频分类模型通常比语音识别模型小得多也轻量得多，参数量往往只有几百万，而语音识别模型可能有数亿参数。因此，音频分类模型可以在设备上持续运行而不至于耗尽电量。只有在检测到唤醒词时，较大的语音识别模型才会被启动，之后再次关闭。我们将在下一单元介绍用于语音识别的Transformer模型，学完之后你就具备构建语音唤醒助手所需的工具。
+
+像Hugging Face Hub上的任何数据集一样，我们无需下载或占用内存就能先大致了解它包含的音频数据。前往Hub上的Speech Commands数据集卡片：[https://huggingface.co/datasets/speech\_commands](https://huggingface.co/datasets/speech_commands)，可以使用Dataset Viewer浏览该数据集的前100个样本，收听音频文件并查看其他元数据：
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/speech_commands.png" alt="Diagram of datasets viewer.">
+ </div>
+
+Dataset Preview是体验音频数据集的绝佳方式，你可以在Hub上选取任意数据集，滚动查看不同子集与切分的样本并收听音频，从而评估它是否适合你的需求。一旦选定数据集，加载数据并开始使用就非常简单。
+
+我们就来实际操作一下，使用流式模式加载Speech Commands数据集的一个样本：
+
+```python
+speech_commands = load_dataset(
+    "speech_commands", "v0.02", split="validation", streaming=True
+)
+sample = next(iter(speech_commands))
+```
+
+下面加载一个在Speech Commands上微调的官方[Audio Spectrogram Transformer](https://huggingface.co/docs/transformers/model_doc/audio-spectrogram-transformer)模型文件，模型名称为`"MIT/ast-finetuned-speech-commands-v2"`：
+
+```python
+classifier = pipeline(
+    "audio-classification", model="MIT/ast-finetuned-speech-commands-v2"
+)
+classifier(sample["audio"].copy())
+```
+**输出：**
+```
+[{'score': 0.9999892711639404, 'label': 'backward'},
+ {'score': 1.7504888774055871e-06, 'label': 'happy'},
+ {'score': 6.703040185129794e-07, 'label': 'follow'},
+ {'score': 5.805884484288981e-07, 'label': 'stop'},
+ {'score': 5.614546694232558e-07, 'label': 'up'}]
+```
+
+很好！看起来该样本以极高概率包含单词“backward”。我们可以播放这段音频来验证：
+```
+from IPython.display import Audio
+
+Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
+```
+
+你或许会好奇我们是如何为这些示例选择预训练模型的。事实上，为你的数据集与任务寻找预训练模型非常直接。首先前往Hugging Face Hub的“Models”标签页：[https://huggingface.co/models](https://huggingface.co/models)
+
+这会展示Hub上的全部模型，并按最近30天的下载量排序：
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/all_models.png">
+ </div>
+
+你会注意到左侧有诸多筛选选项，可以按任务、库、数据集等过滤模型。向下滚动，在音频任务中选择“Audio Classification”：
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/by_audio_classification.png">
+ </div>
+
+现在看到的是Hub上500多个音频分类模型的子集。为了进一步缩小范围，可以按数据集筛选。点击“Datasets”，在搜索框中输入“speech\_commands”。当你开始输入时，`speech_commands`选项会出现在搜索框下方。点击它即可将模型过滤为在Speech Commands上微调过的音频分类模型：
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/by_speech_commands.png">
+ </div>
+
+很好！我们可以看到针对该数据集与任务共有6个可用的预训练模型。你会认出其中第一个正是我们刚刚使用的Audio Spectrogram Transformer的模型文件。我们挑选模型的过程就是在Hub上这样逐步过滤得到的。
+
+## 语言识别
+
+语言识别（Language Identification，LID）是从音频样本中在一组候选语言里判断其所说语言的任务。LID常作为许多语音处理流程中的重要组成部分。例如，给定一段未知语言的音频，LID模型可以先判断其中的语言，然后选择在该语言上训练的语音识别模型来转写音频。
+
+### FLEURS
+
+FLEURS（Few-shot Learning Evaluation of Universal Representations of Speech）是一个用于评估语音识别系统的数据集，覆盖102种语言，其中包含大量被视为“低资源”的语言。前往Hub上的数据集卡片查看并探索这些语言：[google/fleurs](https://huggingface.co/datasets/google/fleurs)。你能找到你的母语吗？如果没有，哪一种是最接近的语言？
+
+我们使用流式模式加载FLEURS数据集验证集的一个样本：
+
+```python
+fleurs = load_dataset("google/fleurs", "all", split="validation", streaming=True)
+sample = next(iter(fleurs))
+```
+
+太棒了！现在我们可以加载音频分类模型了。这里我们使用一个在FLEURS上微调的[Whisper](https://arxiv.org/pdf/2212.04356.pdf)版本，该模型目前是Hub上表现最好的LID模型之一
+
+```python
+classifier = pipeline(
+    "audio-classification", model="sanchit-gandhi/whisper-medium-fleurs-lang-id"
+)
+```
+
+将音频传入分类器得到预测：
+```python
+classifier(sample["audio"])
+```
+**输出：**
+```
+[{'score': 0.9999330043792725, 'label': 'Afrikaans'},
+ {'score': 7.093023668858223e-06, 'label': 'Northern-Sotho'},
+ {'score': 4.269149485480739e-06, 'label': 'Icelandic'},
+ {'score': 3.2661141631251667e-06, 'label': 'Danish'},
+ {'score': 3.2580724109720904e-06, 'label': 'Cantonese Chinese'}]
+```
+
+可以看到模型以极高概率（接近1）判断这段音频为阿非利卡语（Afrikaans）。FLEURS覆盖了非常广泛的语言集合，可能的类别标签包括北索托语（Northern-Sotho）、冰岛语（Icelandic）、丹麦语（Danish）、粤语（Cantonese Chinese）等。你可以在这里查看完整的语言列表：[google/fleurs](https://huggingface.co/datasets/google/fleurs)。
+
+试试看吧！你还能在Hub上找到哪些FLEURS的LID模型文件？它们底层使用了哪些Transformer模型？
+
+## 零样本音频分类（Zero-Shot Audio Classification）
+
+在传统音频分类范式中，模型从一组**预先定义**的类别中进行预测。这对迁移使用预训练模型带来限制，因为预训练模型的标签集合必须与下游任务匹配。以LID为例，模型必须在其训练用到的102种语言里选择其一。如果下游任务需要110种语言，那么其中8种将无法被预测，必须重新训练才能覆盖完整标签空间，从而限制了迁移学习的效果。
+
+零样本音频分类的思路是，将一个在带标注样本上训练好的音频分类模型扩展为能够对**未见过的类别**进行分类。我们来看看如何实现这一点！
+
+目前，🤗 Transformers支持一种用于零样本音频分类的模型：[CLAP模型](https://huggingface.co/docs/transformers/model_doc/clap)。CLAP是一个同时接收音频与文本输入的Transformer模型，用于计算二者之间的**相似度**。如果输入的文本与音频语义强相关，相似度会高；如果完全无关，相似度会低。
+
+我们可以通过向模型输入一段音频和多个候选标签文本来实现零样本分类。模型会为每个候选标签返回一个相似度分数，我们选择分数最高者作为预测结果。
+
+来看一个示例，使用[Environmental Speech Challenge(ESC)](https://huggingface.co/datasets/ashraq/esc50)数据集的一段音频：
+
+```python
+dataset = load_dataset("ashraq/esc50", split="train", streaming=True)
+audio_sample = next(iter(dataset))["audio"]["array"]
+```
+
+接下来定义候选标签，它们构成可能的分类集合。模型会为我们定义的每个标签返回一个分类概率。这意味着我们需要**先验**地知道任务的可能标签集合，使正确标签包含在其中并能被赋予有效概率。注意可以传入完整标签集合，或我们认为包含正确标签的一个子集。传入完整集合更全面，但由于分类空间更大，通常会降低分类准确率；若我们有合理的先验，使用子集往往更实用：
+
+```python
+candidate_labels = ["Sound of a dog", "Sound of vacuum cleaner"]
+```
+
+将两者一并输入模型，找出与音频输入**最相似**的候选标签：
+
+```python
+classifier = pipeline(
+    task="zero-shot-audio-classification", model="laion/clap-htsat-unfused"
+)
+classifier(audio_sample, candidate_labels=candidate_labels)
+```
+**输出：**
+```
+[{'score': 0.9997242093086243, 'label': 'Sound of a dog'}, {'score': 0.0002758323971647769, 'label': 'Sound of vacuum cleaner'}]
+```
+
+很好！模型几乎可以确定这是“狗的声音”，概率为99.96%，我们就采纳这个预测。播放音频验证一下（别把音量开太大，以免被突然的声音吓到！）：
+
+```python
+Audio(audio_sample, rate=16000)
+```
+
+完美！正是狗叫声🐕，与模型预测一致。你可以尝试使用不同的音频样本和候选标签进行测试。你能给出一组在ESC数据集上具有良好泛化能力的标签集合吗？提示：思考一下可以从哪里找到ESC的可能声音类别，据此来构造你的标签！
+
+你可能会问，为什么不把零样本音频分类用于**所有**音频分类任务？看起来只要先验地定义合适的标签集合，就能对任意任务进行预测，从而绕过“下游任务标签必须匹配预训练标签”的限制。关键在于零样本流程所用的CLAP模型：CLAP是在**通用**音频分类数据上预训练的，类似ESC中的环境声音，而不是专门的语音数据，如LID任务中那样。如果给它英语与西班牙语的语音，CLAP能识别它们都是语音🗣️，但无法像专门的LID模型那样区分语言。
+
+## 接下来做什么？
+
+本节我们覆盖了多种音频分类任务，并介绍了可以从Hugging Face Hub下载、只需少量代码就能通过`pipeline()`使用的相关数据集与模型。这些任务包括关键词识别、语言识别以及零样本音频分类。
+
+但如果我们想做点**新的**呢？我们已经广泛涉及语音处理任务，但这只是音频分类的一个方面。另一个热门方向是**音乐**。虽然音乐与语音有本质差异，但许多我们已经掌握的原则同样适用于音乐。
+
+接下来的章节将手把手带你使用🤗 Transformers在音乐分类任务上微调一个Transformer模型。完成后，你将得到一个可直接接入`pipeline()`的微调checkpoint，以与本节中处理语音相同的方式来分类歌曲！
