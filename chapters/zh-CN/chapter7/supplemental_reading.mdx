@@ -1,0 +1,17 @@
+# 补充阅读
+
+本单元整合了前面各单元中的多个组件，介绍了语音到语音翻译（speech-to-speech translation）、语音助手（voice assistants）以及说话人分离（speaker diarization）等新任务。为了方便阅读，以下拓展资料按这三个任务分类整理：
+
+语音到语音翻译：
+* [Meta AI：使用离散单元实现STST](https://ai.facebook.com/blog/advancing-direct-speech-to-speech-modeling-with-discrete-units/)：一种基于编码器-解码器模型的端到端STST方法
+* [Meta AI：闽南语直接语音翻译](https://ai.facebook.com/blog/ai-translation-hokkien/)：基于编码器-两阶段解码器模型的STST方法，支持低资源语言
+* [Google：利用无监督与弱监督数据改进STST](https://arxiv.org/abs/2203.13339)：提出使用无监督与弱监督数据训练直接STST模型的方法，并对Transformer架构作出改进
+* [Google：Translatotron-2](https://google-research.github.io/lingvo-lab/translatotron2/)：支持保留说话人音色的端到端语音翻译系统
+
+语音助手：
+* [Amazon：精准唤醒词检测](https://www.amazon.science/publications/accurate-detection-of-wake-word-start-and-end-using-a-cnn)：一种低延迟、适用于设备端应用的唤醒词检测方法
+* [Google：RNN-Transducer架构](https://arxiv.org/pdf/1811.06621.pdf)：对CTC架构进行改进以支持流式设备端语音识别
+
+会议转录：
+* [Hervé Bredin：pyannote.audio技术报告](https://huggingface.co/pyannote/speaker-diarization/blob/main/technical_report_2.1.pdf)：介绍`pyannote.audio`说话人分离流水线背后的核心技术原理
+* [Max Bain等：Whisper X](https://arxiv.org/pdf/2303.00747.pdf)：一种结合Whisper模型实现高精度词级时间戳的方法

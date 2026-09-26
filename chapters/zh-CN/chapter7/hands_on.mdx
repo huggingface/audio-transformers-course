@@ -1,0 +1,20 @@
+# 实战练习
+
+在本单元中，我们整合了前六个单元学到的内容，构建了三个集成音频应用。正如你所体验到的，借助本课程掌握的基础技能，构建复杂一点的音频工具完全是可以实现的。
+
+本次实践任务将基于本单元中的一个应用，并对其进行一些多语言扩展🌍。你的目标是从本单元第一节的[级联式语音翻译Gradio示例](https://huggingface.co/spaces/course-demos/speech-to-speech-translation)出发，修改它以支持**非英语**目标语言的语音翻译。也就是说，示例程序应能将语言X的语音输入，翻译成语言Y的语音输出，且Y不能是英语。你可以通过点击[此处复制](https://huggingface.co/spaces/course-demos/speech-to-speech-translation?duplicate=true)将模板克隆到你在Hugging Face上的命名空间下。无需使用GPU加速器——免费的CPU服务就已足够🤗。不过请确保你的示例项目设置为**公开**，这样我们才能访问并进行评估。
+
+关于如何更新语音翻译函数以实现多语言翻译的技巧可参考[语音到语音翻译](speech-to-speech)一节。按照该说明，你应该可以将示例程序更新为支持从语言X语音到语言Y文本的翻译任务，这已完成一半目标！
+
+要将语言Y的文本合成成语言Y的语音（即多语言语音合成），你需要使用一个多语言TTS模型检查点。为此，你可以使用上一个实践练习中自己微调的SpeechT5模型，或者使用一个预训练的多语言TTS检查点。有两个推荐选项：一个是[sanchit-gandhi/speecht5\_tts\_vox\_nl](https://huggingface.co/sanchit-gandhi/speecht5_tts_vox_nl)，它是在[VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli)数据集的荷兰语子集上微调的SpeechT5模型；另一个是MMS TTS检查点（详见[语音合成的预训练模型](../chapter6/pre-trained_models)一节）。
+
+<Tip>
+
+在我们的测试中，对于荷兰语（Dutch），MMS TTS检查点效果优于微调后的SpeechT5模型。但你可能会发现自己微调的模型在某些语言上表现更佳。如果你决定使用MMS TTS检查点，需要修改demo的<a href="https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/a03175878f522df7445290d5508bfb5c5178f787/requirements.txt#L2">requirements.txt</a>文件，以安装该分支的<code>transformers</code>：
+<p><code>git+https://github.com/hollance/transformers.git@6900e8ba6532162a8613d2270ec2286c3f58f57b</code></p>
+
+</Tip>
+
+你的程序应接收一个音频文件作为输入，并输出一个音频文件作为结果，其函数接口需匹配模板demo中的[`speech_to_speech_translation`](https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/3946ba6705a6632a63de8672ac52a482ab74b3fc/app.py#L35)。因此，我们建议你保留主函数`speech_to_speech_translation`不变，仅根据需要更新[`translate`](https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/a03175878f522df7445290d5508bfb5c5178f787/app.py#L24)和[`synthesise`](https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/a03175878f522df7445290d5508bfb5c5178f787/app.py#L29)两个函数。
+
+构建好Gradio demo后，你可以提交它以供评估。访问Space [audio-course-u7-assessment](https://huggingface.co/spaces/huggingface-course/audio-course-u7-assessment)，并在提示时提供你项目的repository id。该Space会自动发送一个音频样本到你的demo，并检测返回的音频是否为非英语语种。如果通过测试，你的名字旁边会在[总进度页面](https://huggingface.co/spaces/MariaK/Check-my-progress-Audio-Course)上显示一个绿色对勾✅。
