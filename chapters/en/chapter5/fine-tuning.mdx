@@ -1,6 +1,6 @@
 # Fine-tuning the ASR model
 
-In this section, we'll cover a step-by-step guide on fine-tuning Whisper for speech recognition on the Common Voice 13
+In this section, we'll cover a step-by-step guide on fine-tuning Whisper for speech recognition on the Common Voice 17
 dataset. We'll use the 'small' version of the model and a relatively lightweight dataset, enabling you to run fine-tuning
 fairly quickly on any 16GB+ GPU with low disk space requirements, such as the 16GB T4 GPU provided in the Google Colab free
 tier.
@@ -41,12 +41,12 @@ Your token has been saved to /root/.huggingface/token
 
 ## Load Dataset
 
-[Common Voice 13](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0) contains approximately ten
+[Common Voice 17](https://huggingface.co/datasets/mozilla-foundation/common_voice_17_0) contains approximately ten
 hours of labelled Dhivehi data, three of which is held-out test data. This is extremely little data for fine-tuning, so
 we'll be relying on leveraging the extensive multilingual ASR knowledge acquired by Whisper during pre-training for the
 low-resource Dhivehi language.
 
-Using 🤗 Datasets, downloading and preparing data is extremely simple. We can download and prepare the Common Voice 13
+Using 🤗 Datasets, downloading and preparing data is extremely simple. We can download and prepare the Common Voice 17
 splits in just one line of code. Since Dhivehi is very low-resource, we'll combine the `train` and `validation` splits
 to give approximately seven hours of training data. We'll use the three hours of `test` data as our held-out test set:
 
@@ -56,10 +56,10 @@ from datasets import load_dataset, DatasetDict
 common_voice = DatasetDict()
 
 common_voice["train"] = load_dataset(
-    "mozilla-foundation/common_voice_13_0", "dv", split="train+validation"
+    "mozilla-foundation/common_voice_17_0", "dv", split="train+validation"
 )
 common_voice["test"] = load_dataset(
-    "mozilla-foundation/common_voice_13_0", "dv", split="test"
+    "mozilla-foundation/common_voice_17_0", "dv", split="test"
 )
 
 print(common_voice)
@@ -81,7 +81,7 @@ DatasetDict({
 
 <Tip>
     You can change the language identifier from `"dv"` to a language identifier of your choice. To see all possible languages
-    in Common Voice 13, check out the dataset card on the Hugging Face Hub: https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
+    in Common Voice 17, check out the dataset card on the Hugging Face Hub: https://huggingface.co/datasets/mozilla-foundation/common_voice_17_0
 </Tip>
 
 Most ASR datasets only provide input audio samples (`audio`) and the corresponding transcribed text (`sentence`).
@@ -514,8 +514,8 @@ model name accordingly:
 
 ```python
 kwargs = {
-    "dataset_tags": "mozilla-foundation/common_voice_13_0",
-    "dataset": "Common Voice 13",  # a 'pretty' name for the training dataset
+    "dataset_tags": "mozilla-foundation/common_voice_17_0",
+    "dataset": "Common Voice 17",  # a 'pretty' name for the training dataset
     "language": "dv",
     "model_name": "Whisper Small Dv - Sanchit Gandhi",  # a 'pretty' name for your model
     "finetuned_from": "openai/whisper-small",
@@ -532,7 +532,7 @@ trainer.push_to_hub(**kwargs)
 This will save the training logs and model weights under `"your-username/the-name-you-picked"`. For this example, check
 out the upload at `sanchit-gandhi/whisper-small-dv`.
 
-While the fine-tuned model yields satisfactory results on the Common Voice 13 Dhivehi test data, it is by no means optimal.
+While the fine-tuned model yields satisfactory results on the Common Voice 17 Dhivehi test data, it is by no means optimal.
 The purpose of this guide is to demonstrate how to fine-tune an ASR model using the 🤗 Trainer for multilingual speech
 recognition.
 
@@ -559,7 +559,7 @@ pipe = pipeline("automatic-speech-recognition", model="sanchit-gandhi/whisper-sm
 ## Conclusion
 
 In this section, we covered a step-by-step guide on fine-tuning the Whisper model for speech recognition 🤗 Datasets,
-Transformers and the Hugging Face Hub. We first loaded the Dhivehi subset of the Common Voice 13 dataset and pre-processed
+Transformers and the Hugging Face Hub. We first loaded the Dhivehi subset of the Common Voice 17 dataset and pre-processed
 it by computing log-mel spectrograms and tokenising the text. We then defined a data collator, evaluation metric and
 training arguments, before using the 🤗 Trainer to train and evaluate our model. We finished by uploading the fine-tuned
 model to the Hugging Face Hub, and showcased how to share and use it with the `pipeline()` class.
