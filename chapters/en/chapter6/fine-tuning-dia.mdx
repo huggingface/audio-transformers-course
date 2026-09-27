@@ -1,0 +1,429 @@
+# Fine-tuning Dia for Text-to-Speech
+
+In this section, we'll cover how to fine-tune Dia, a powerful conversational text-to-speech model from Nari Labs, 
+for generating speech in a new language or domain. Dia is specifically designed for dialogue and conversational 
+speech synthesis, making it ideal for applications like voice assistants, audiobook narration, and interactive agents.
+
+We'll fine-tune Dia on a French conversational dataset to demonstrate how you can adapt this model to generate 
+natural-sounding speech in a new language.
+
+## What is Dia?
+
+Dia is a state-of-the-art text-to-speech model designed specifically for conversational speech synthesis. Unlike 
+traditional TTS models that focus on single-speaker narration, Dia excels at generating natural dialogue with 
+multiple speakers.
+
+Key features of Dia:
+- **Multi-speaker support**: Native support for multiple speakers in a conversation using speaker tags (`[S1]`, `[S2]`, etc.)
+- **Natural dialogue**: Trained on conversational data for realistic turn-taking and prosody
+- **High-quality audio**: Generates 44.1kHz audio with natural-sounding speech
+- **Conditional generation**: Can generate audio conditioned on both text and audio context
+
+## Prepare Environment
+
+First, let's install the required dependencies:
+
+```bash
+pip install transformers datasets accelerate bitsandbytes
+```
+
+<Tip warning={true}>
+Dia requires significant GPU memory. We recommend at least 24GB of VRAM for comfortable fine-tuning. 
+For smaller GPUs, consider using 8-bit optimization with bitsandbytes as shown in this tutorial.
+</Tip>
+
+Log in to your Hugging Face account:
+
+```python
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+## Load the Dataset
+
+For this tutorial, we'll use a French conversational dataset. You can adapt this to any language by choosing 
+an appropriate dataset.
+
+For multilingual TTS fine-tuning, you have several options:
+1. **Multilingual LibriSpeech (MLS)**: Contains read speech in multiple languages
+2. **Common Voice**: Crowd-sourced speech data in many languages
+3. **VoxPopuli**: European Parliament recordings in multiple languages
+4. **Custom datasets**: Your own conversational speech data
+
+Let's load a conversational dataset. We'll use the DailyTalk dataset as our base and adapt it:
+
+```python
+from datasets import load_dataset, Audio
+
+# Load dataset
+dataset = load_dataset("eustlb/dailytalk-conversations-grouped", split="train")
+
+print(f"Dataset size: {len(dataset)} examples")
+print(dataset[0])
+```
+
+**Output:**
+```
+Dataset size: ...
+{'audio': {...}, 'speaker_ids': [0, 1, 0, 1], 'texts': ['Hello!', 'Hi there!', ...]}
+```
+
+Dia requires audio at 44.1kHz sampling rate. Let's ensure our audio is properly formatted:
+
+```python
+dataset = dataset.cast_column("audio", Audio(sampling_rate=44_100))
+```
+
+For a quick training demonstration, let's use a subset of the data:
+
+```python
+# Use a subset for faster training
+dataset = dataset.select(range(min(1000, len(dataset))))
+```
+
+## Load the Model and Processor
+
+Now let's load the Dia model and processor:
+
+```python
+import torch
+from transformers import AutoProcessor, DiaForConditionalGeneration
+
+model_checkpoint = "nari-labs/Dia-1.6B-0626"
+
+processor = AutoProcessor.from_pretrained(model_checkpoint)
+
+# Load model with 8-bit quantization for memory efficiency
+model = DiaForConditionalGeneration.from_pretrained(model_checkpoint)
+
+# Move to GPU
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = model.to(device)
+```
+
+## Understanding Dia's Input Format
+
+Dia uses a special format for multi-speaker conversations. Each speaker is identified by a tag like `[S1]`, `[S2]`, etc. 
+The model expects text in this format:
+
+```
+[S1] Hello! How are you today? [S2] I'm doing great, thanks for asking! [S1] That's wonderful to hear.
+```
+
+This format allows Dia to:
+- Generate different voice characteristics for each speaker
+- Maintain consistent speaker identity throughout the conversation
+- Handle natural turn-taking in dialogue
+
+## Define the Data Collator
+
+The data collator prepares batches of data for training. For Dia, we need to:
+1. Format the text with speaker tags
+2. Process both audio and text through the processor
+3. Create labels with padding tokens masked
+
+```python
+class DiaDataCollator:
+    """Pads & tensorises text (+ speaker tags) and audio, sets -100 where labels are PAD."""
+
+    def __init__(self, processor, text_column="text"):
+        self.processor = processor
+        self.text_column = text_column
+        self.pad_id = processor.tokenizer.pad_token_id
+
+    def __call__(self, features):
+        audios = []
+        texts = []
+
+        for f in features:
+            # Format text with speaker tags
+            grouped_text = ""
+            for speaker_id, text in zip(f["speaker_ids"], f["texts"]):
+                grouped_text += f"[S{speaker_id + 1}] {text} "
+            texts.append(grouped_text.strip())
+            audios.append(f["audio"]["array"])
+
+        # Process through Dia processor
+        proc_out = self.processor(
+            audio=audios,
+            text=texts,
+            generation=False,
+            output_labels=True,
+            padding=True,
+            return_tensors="pt",
+        )
+
+        # Mask padding tokens in labels
+        proc_out["labels"][proc_out["labels"] == self.pad_id] = -100
+
+        return proc_out
+```
+
+<Tip>
+If your dataset has a simpler format with single-speaker utterances, you can simplify the collator 
+to just add a single speaker tag: `[S1] {text}`
+</Tip>
+
+Initialize the data collator:
+
+```python
+data_collator = DiaDataCollator(processor)
+```
+
+## Training Configuration
+
+Let's set up the training arguments. Dia is a large model, so we'll use gradient accumulation and 
+8-bit optimization to manage memory:
+
+```python
+from transformers import TrainingArguments
+
+training_args = TrainingArguments(
+    output_dir="./dia-finetuned-french",
+    per_device_train_batch_size=2,
+    gradient_accumulation_steps=4,
+    learning_rate=1e-5,
+    lr_scheduler_type="cosine",
+    warmup_steps=200,
+    num_train_epochs=3,
+    bf16=True,
+    logging_steps=10,
+    save_steps=100,
+    remove_unused_columns=False,
+    report_to=["tensorboard"],
+    optim="adamw_bnb_8bit",  # 8-bit optimizer for memory efficiency
+    push_to_hub=True,
+)
+```
+
+## Training with the Trainer API
+
+Now we can set up the Trainer and start training:
+
+```python
+from transformers import Trainer
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=dataset,
+    data_collator=data_collator,
+)
+
+# Start training
+trainer.train()
+```
+
+Training will take several hours depending on your GPU and dataset size. Monitor the loss to ensure 
+the model is learning effectively.
+
+## Memory Optimization Tips
+
+If you encounter out-of-memory errors, try these strategies:
+
+### 1. Reduce Batch Size and Increase Gradient Accumulation
+
+```python
+training_args = TrainingArguments(
+    per_device_train_batch_size=1,  # Reduced from 2
+    gradient_accumulation_steps=8,  # Increased to compensate
+    # ... other args
+)
+```
+
+### 2. Use Gradient Checkpointing
+
+```python
+model.gradient_checkpointing_enable()
+```
+
+### 3. Filter Long Audio Samples
+
+Long audio samples consume more memory. Filter them out:
+
+```python
+def filter_long_audio(example, max_seconds=30):
+    audio_length = len(example["audio"]["array"]) / example["audio"]["sampling_rate"]
+    return audio_length <= max_seconds
+
+
+dataset = dataset.filter(filter_long_audio)
+```
+
+## Inference with Your Fine-tuned Model
+
+After training, you can generate speech with your fine-tuned model:
+
+```python
+def generate_speech(text, speaker_id=1):
+    """Generate speech from text using the fine-tuned model."""
+
+    # Format with speaker tag
+    formatted_text = f"[S{speaker_id}] {text}"
+
+    # Process input
+    inputs = processor(text=formatted_text, return_tensors="pt").to(device)
+
+    # Generate audio codes
+    with torch.no_grad():
+        output = model.generate(**inputs, max_new_tokens=2048)
+
+    # Decode to audio
+    audio = processor.decode(output[0])
+
+    return audio
+
+
+# Example usage
+text = "Bonjour! Comment allez-vous aujourd'hui?"
+audio = generate_speech(text)
+```
+
+Play the generated audio:
+
+```python
+from IPython.display import Audio
+
+Audio(audio, rate=44100)
+```
+
+## Multi-Speaker Dialogue Generation
+
+Dia's strength lies in generating natural dialogue with multiple speakers:
+
+```python
+def generate_dialogue(dialogue_text):
+    """
+    Generate multi-speaker dialogue.
+
+    Args:
+        dialogue_text: Text formatted with speaker tags, e.g.:
+                      "[S1] Hello! [S2] Hi there! [S1] How are you?"
+    """
+    inputs = processor(text=dialogue_text, return_tensors="pt").to(device)
+
+    with torch.no_grad():
+        output = model.generate(**inputs, max_new_tokens=4096)
+
+    audio = processor.decode(output[0])
+    return audio
+
+
+# Example: Generate a conversation
+conversation = """
+[S1] Bonjour! Je suis ravi de vous rencontrer.
+[S2] Bonjour! Le plaisir est partagé. Comment allez-vous?
+[S1] Très bien, merci. Et vous?
+"""
+
+audio = generate_dialogue(conversation)
+Audio(audio, rate=44100)
+```
+
+## Saving and Sharing the Model
+
+After training, save your model and push it to the Hugging Face Hub:
+
+```python
+# Save locally
+trainer.save_model()
+processor.save_pretrained("./dia-finetuned-french")
+
+# Push to Hub
+trainer.push_to_hub()
+```
+
+## Using Your Fine-tuned Model
+
+Once your model is on the Hub, others can use it:
+
+```python
+from transformers import AutoProcessor, DiaForConditionalGeneration
+
+# Load your fine-tuned model
+processor = AutoProcessor.from_pretrained("your-username/dia-finetuned-french")
+model = DiaForConditionalGeneration.from_pretrained("your-username/dia-finetuned-french")
+
+# Generate speech
+inputs = processor(text="[S1] Bonjour le monde!", return_tensors="pt")
+output = model.generate(**inputs)
+audio = processor.decode(output[0])
+```
+
+## Adapting to Other Languages
+
+To fine-tune Dia for a different language:
+
+1. **Find a suitable dataset**: Look for conversational speech data in your target language
+2. **Adapt the data collator**: Modify the speaker tag formatting if needed
+3. **Consider phoneme-based preprocessing**: For languages with different orthography
+
+For example, to use VoxPopuli for German:
+
+```python
+from datasets import load_dataset
+
+# Load German VoxPopuli data
+dataset = load_dataset("facebook/voxpopuli", "de", split="train")
+dataset = dataset.cast_column("audio", Audio(sampling_rate=44_100))
+
+
+# Simplify for single-speaker TTS
+def prepare_single_speaker(example):
+    return {
+        "audio": example["audio"],
+        "speaker_ids": [0],
+        "texts": [example["normalized_text"]],
+    }
+
+
+dataset = dataset.map(prepare_single_speaker)
+```
+
+## Evaluation
+
+Evaluating TTS models is challenging as it involves subjective quality assessment. Common approaches include:
+
+1. **Mean Opinion Score (MOS)**: Human evaluation of naturalness (1-5 scale)
+2. **Mel Cepstral Distortion (MCD)**: Measures spectral distance from reference audio
+3. **Word Error Rate (WER)**: Transcribe generated audio and compare to input text
+
+For a quick quality check, listen to generated samples:
+
+```python
+# Generate samples from test texts
+test_texts = [
+    "[S1] Ceci est un test de synthèse vocale.",
+    "[S1] La météo est belle aujourd'hui.",
+    "[S2] Je suis d'accord, il fait très beau!",
+]
+
+for text in test_texts:
+    audio = generate_speech(text.replace("[S1] ", "").replace("[S2] ", ""))
+    print(f"Text: {text}")
+    display(Audio(audio, rate=44100))
+```
+
+## Summary
+
+In this tutorial, we covered:
+
+1. **Introduction to Dia**: Understanding the multi-speaker TTS model architecture
+2. **Data Preparation**: Loading and formatting conversational speech data
+3. **Speaker Tag Format**: Using `[S1]`, `[S2]` tags for multi-speaker dialogue
+4. **Custom Data Collator**: Processing audio and text for Dia training
+5. **Memory-Efficient Training**: Using 8-bit optimization and gradient accumulation
+6. **Inference**: Generating single-speaker and multi-speaker dialogue
+7. **Multilingual Adaptation**: Tips for fine-tuning on different languages
+
+Dia's conversational focus makes it particularly suitable for applications requiring natural dialogue, 
+such as voice assistants, audiobook narration, and interactive characters in games.
+
+## Next Steps
+
+- Fine-tune on your own conversational dataset
+- Experiment with different training hyperparameters
+- Try generating longer dialogues with more speakers
+- Combine with ASR models for end-to-end voice cloning
+- Explore speaker embeddings for voice customization
