@@ -64,9 +64,16 @@ classifier = pipeline(
 )
 ```
 
+To ensure the audio matches the model's expected input, we first configure the audio column to resample the data from 8kHz to 16kHz.
+```python
+from datasets import Audio
+
+minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
+```
+
 Finally, we can pass a sample to the classification pipeline to make a prediction:
 ```python
-classifier(minds[0]["audio"])
+classifier(minds[0]["audio"]["array"])
 ```
 **Output:**
 ```
