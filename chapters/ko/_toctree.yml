@@ -33,6 +33,8 @@
     title: 파이프라인을 이용한 오디오 분류
   - local: chapter2/asr_pipeline
     title: 파이프라인을 이용한 자동 음성 인식
+  - local: chapter2/tts_pipeline
+    title: (번역 중) Audio generation with a pipeline
   - local: chapter2/hands_on
     title: 실습 과제
 
@@ -51,6 +53,77 @@
     quiz: 3
   - local: chapter3/supplemental_reading
     title: 보충자료 및 리소스
+
+- title: (번역 중) Unit 4. Build a music genre classifier
+  sections:
+  - local: chapter4/introduction
+    title: (번역 중) What you'll learn and what you'll build
+  - local: chapter4/classification_models
+    title: (번역 중) Pre-trained models for audio classification
+  - local: chapter4/fine-tuning
+    title: (번역 중) Fine-tuning a model for music classification
+  - local: chapter4/demo
+    title: (번역 중) Build a demo with Gradio
+  - local: chapter4/hands_on
+    title: (번역 중) Hands-on exercise
+
+- title: (번역 중) Unit 5. Automatic Speech Recognition
+  sections:
+  - local: chapter5/introduction
+    title: (번역 중) What you'll learn and what you'll build
+  - local: chapter5/asr_models
+    title: (번역 중) Pre-trained models for speech recognition
+  - local: chapter5/choosing_dataset
+    title: (번역 중) Choosing a dataset
+  - local: chapter5/evaluation
+    title: (번역 중) Evaluation and metrics for speech recognition
+  - local: chapter5/fine-tuning
+    title: (번역 중) How to fine-tune an ASR system with the Trainer API
+  - local: chapter5/demo
+    title: (번역 중) Building a demo
+  - local: chapter5/hands_on
+    title: (번역 중) Hands-on exercise
+  - local: chapter5/supplemental_reading
+    title: (번역 중) Supplemental reading and resources
+#
+- title: (번역 중) Unit 6. From text to speech
+  sections:
+  - local: chapter6/introduction
+    title: (번역 중) What you'll learn and what you'll build
+  - local: chapter6/tts_datasets
+    title: (번역 중) Text-to-speech datasets
+  - local: chapter6/pre-trained_models
+    title: (번역 중) Pre-trained models for text-to-speech
+  - local: chapter6/fine-tuning
+    title: (번역 중) Fine-tuning SpeechT5
+  - local: chapter6/evaluation
+    title: (번역 중) Evaluating text-to-speech models
+  - local: chapter6/hands_on
+    title: (번역 중) Hands-on exercise
+  - local: chapter6/supplemental_reading
+    title: (번역 중) Supplemental reading and resources
+
+- title: (번역 중) Unit 7. Putting it all together
+  sections:
+  - local: chapter7/introduction
+    title: (번역 중) What you'll learn and what you'll build
+  - local: chapter7/speech-to-speech
+    title: (번역 중) Speech-to-speech translation
+  - local: chapter7/voice-assistant
+    title: (번역 중) Creating a voice assistant
+  - local: chapter7/transcribe-meeting
+    title: (번역 중) Transcribe a meeting
+  - local: chapter7/hands_on
+    title: (번역 중) Hands-on exercise
+  - local: chapter7/supplemental_reading
+    title: (번역 중) Supplemental reading and resources
+
+- title: (번역 중) Unit 8. Finish line
+  sections:
+  - local: chapter8/introduction
+    title: (번역 중) Congratulations!
+  - local: chapter8/certification
+    title: (번역 중) Get your certificate of completion
 
 - title: 코스 이벤트
   sections:
