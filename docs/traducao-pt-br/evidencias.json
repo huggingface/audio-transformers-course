@@ -71,7 +71,11 @@
     "url": "https://github.com/prof-ramos/audio-transformers-course/pull/1",
     "draft": true,
     "branch": "codex/traducao-pt-br-unidades-0-3",
-    "description_update": "prepared_locally_connector_unavailable"
+    "description_update": "published_for_967d836_followup_prepared_locally",
+    "description_publication_evidence": {
+      "commit": "967d8369c3bb19c6dc9aba905d3b9fafc271bbf1",
+      "source": "User delegation: authorized origin-thread connector updated exact body and read it back; not independently fetched in this execution."
+    }
   },
   "local_evidence_directory": "/workspace/.onboarding/audio-transformers-course/validation",
   "local_formula_rendering": {
@@ -123,5 +127,21 @@
     "www.youtube.com": 403,
     "course-demos-song-classifier.hf.space": 403,
     "network_policy_changed": false
+  },
+  "repository_instructions_audit": {
+    "head": "967d8369c3bb19c6dc9aba905d3b9fafc271bbf1",
+    "agents_files_found": 0,
+    "non_title_index_fields": "identical",
+    "requirements": "satisfied",
+    "pip_check": "passed",
+    "scoped_style_files": 50,
+    "scoped_style_hashes_unchanged": true,
+    "quality": "passed",
+    "complete_invariants": "passed",
+    "pt_br_in_both_workflows": true,
+    "reference_main_unchanged": true,
+    "remote_ci_verified": false,
+    "upstream_issue_coordination_verified": false,
+    "report": "conformidade-repo.md"
   }
 }
