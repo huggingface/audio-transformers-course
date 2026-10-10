@@ -1,0 +1,139 @@
+<!-- DISABLE-FRONTMATTER-SECTIONS -->
+
+# Confira sua compreensão do conteúdo do curso
+
+### 1. O que é um vocoder?
+
+<Question
+	choices={[
+		{
+			text: "Uma rede neural adicional que transforma o espectrograma de saída de um transformer em uma forma de onda.",
+			explain: "Correto! ",
+			correct: true
+		},
+		{
+			text: "Um tipo de camada transformer responsável por criar embeddings de áudio.",
+			explain: ""
+		},
+		{
+			text: "Uma rede neural adicional que pré-processa o áudio de fala para remover ruído de fundo.",
+			explain: "",
+		}
+	]}
+/>
+
+### 2. Wav2Vec2 é um exemplo de
+
+<Question
+	choices={[
+		{
+			text: "Arquitetura Seq2Seq",
+			explain: ""
+		},
+		{
+			text: "Arquitetura CNN",
+			explain: ""
+		},
+		{
+			text: "Arquitetura CTC",
+			explain: "Correto!",
+			correct: true
+		}
+	]}
+/>
+
+### 3. Qual é a função do token em branco no algoritmo CTC?
+
+<Question
+	choices={[
+		{
+			text: "O token em branco indica as separações entre as palavras da frase.",
+			explain: ""
+		},
+		{
+			text: "O token em branco é um token previsto que estabelece um limite entre grupos de caracteres e permite filtrar os caracteres repetidos.",
+			explain: "Correto!",
+			correct: true
+		},
+		{
+			text: "O token em branco é usado para sons que não correspondem a tokens do vocabulário, de forma semelhante ao token &lt;UNK&gt; para elementos desconhecidos.",
+			explain: ""
+		}
+	]}
+/>
+
+### 4. Qual das afirmações sobre modelos CTC é FALSA?
+
+<Question
+	choices={[
+		{
+			text: "Modelos CTC usam apenas o codificador da arquitetura transformer.",
+			explain: ""
+		},
+		{
+			text: "Wav2Vec2 e HuBERT usam exatamente a mesma arquitetura, mas são treinados de formas diferentes.",
+			explain: ""
+		},
+		{
+			text: "Modelos CTC tendem a apresentar o melhor desempenho em reconhecimento de fala, em comparação com outras arquiteturas.",
+			explain: "Correto!",
+			correct: true
+		}
+	]}
+/>
+
+### 5. Whisper é um exemplo de
+
+<Question
+	choices={[
+		{
+			text: "Arquitetura Seq2Seq",
+			explain: "Correto!",
+			correct: true
+		},
+		{
+			text: "Arquitetura CNN",
+			explain: ""
+		},
+		{
+			text: "Arquitetura CTC",
+			explain: ""
+		}
+	]}
+/>
+
+### 6. Qual é a maneira mais simples de classificar áudio?
+
+<Question
+	choices={[
+		{
+			text: "Usar transformers com codificador e decodificador sobre a forma de onda do áudio.",
+			explain: ""
+		},
+		{
+			text: "Usar espectrogramas e tratar a tarefa como um problema de classificação de imagens.",
+			explain: "Correto!",
+			correct: true
+		},
+		{
+			text: "Transformar um modelo CTC em um classificador de áudio de uso geral, mudando os rótulos e treinando-o com uma função de perda de entropia cruzada convencional.",
+			explain: ""
+		}
+	]}
+/>
+
+### 7. Verdadeiro ou falso? Ao tratar espectrogramas como imagens para classificação, técnicas de aumento de dados de imagens, como deslocamento, recorte ou redimensionamento, sempre serão benéficas.
+
+<Question
+	choices={[
+		{
+			text: "Verdadeiro",
+			explain: ""
+		},
+		{
+			text: "Falso",
+			explain: "Correto!",
+			correct: true
+		}
+	]}
+/>

@@ -1,4 +1,4 @@
-- title: Unidade 0. Bem vindo ao Curso!
+- title: Unidade 0. Boas-vindas ao curso!
   sections:
   - local: chapter0/introduction
     title: O que esperar deste curso
@@ -14,13 +14,42 @@
   - local: chapter1/audio_data
     title: Introdução aos dados de áudio
   - local: chapter1/load_and_explore
-    title: Carregue e explore um dataset de áudio
+    title: Carregue e explore um conjunto de dados de áudio
   - local: chapter1/preprocessing
-    title: Pré-processamento do dados de áudio
+    title: Pré-processamento dos dados de áudio
   - local: chapter1/streaming
     title: Streaming de dados de áudio
   - local: chapter1/quiz
-    title: Quiz
+    title: Questionário
     quiz: 1
   - local: chapter1/supplemental_reading
-    title: Leitura e material adicional
+    title: Leituras e recursos adicionais
+
+- title: Unidade 2. Uma introdução às aplicações de áudio
+  sections:
+  - local: chapter2/introduction
+    title: Um panorama das aplicações de áudio
+  - local: chapter2/audio_classification_pipeline
+    title: Classificação de áudio com um pipeline
+  - local: chapter2/asr_pipeline
+    title: Reconhecimento automático de fala com um pipeline
+  - local: chapter2/tts_pipeline
+    title: Geração de áudio com um pipeline
+  - local: chapter2/hands_on
+    title: Exercício prático
+
+- title: Unidade 3. Arquiteturas de transformers para áudio
+  sections:
+  - local: chapter3/introduction
+    title: Revisão dos modelos transformer
+  - local: chapter3/ctc
+    title: Arquiteturas CTC
+  - local: chapter3/seq2seq
+    title: Arquiteturas Seq2Seq
+  - local: chapter3/classification
+    title: Arquiteturas de classificação de áudio
+  - local: chapter3/quiz
+    title: Questionário
+    quiz: 3
+  - local: chapter3/supplemental_reading
+    title: Leituras e recursos adicionais

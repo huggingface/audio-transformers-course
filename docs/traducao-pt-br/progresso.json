@@ -1,0 +1,617 @@
+{
+  "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+  "goal": "GOAL_TRADUCAO_PT_BR.md",
+  "sections": [
+    {
+      "path": "chapter0/introduction",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter0/get_ready",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter0/community",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter1/introduction",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter1/audio_data",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "pendente",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter1/load_and_explore",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "pendente",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter1/preprocessing",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "pendente",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter1/streaming",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "pendente",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter1/quiz",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "alternativas_e_feedback": "aprovado"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter1/supplemental_reading",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter2/introduction",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter2/audio_classification_pipeline",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "pendente",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter2/asr_pipeline",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "pendente",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter2/tts_pipeline",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "pendente",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter2/hands_on",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter3/introduction",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "pendente",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter3/ctc",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "pendente",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter3/seq2seq",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "pendente",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter3/classification",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "pendente",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter3/quiz",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "alternativas_e_feedback": "aprovado"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter3/supplemental_reading",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente"
+      },
+      "notes": [
+        "Verificação final pendente; serviços externos não validados."
+      ]
+    },
+    {
+      "path": "chapter4/introduction",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter4/classification_models",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter4/fine-tuning",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter4/demo",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter4/hands_on",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter5/introduction",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter5/asr_models",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter5/choosing_dataset",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter5/evaluation",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter5/fine-tuning",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter5/demo",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter5/hands_on",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter5/supplemental_reading",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter6/introduction",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter6/tts_datasets",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter6/pre-trained_models",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter6/fine-tuning",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter6/evaluation",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter6/hands_on",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter6/supplemental_reading",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter7/introduction",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter7/speech-to-speech",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter7/voice-assistant",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter7/transcribe-meeting",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter7/hands_on",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter7/supplemental_reading",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter8/introduction",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "chapter8/certification",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    },
+    {
+      "path": "events/introduction",
+      "state": "pendente",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {},
+      "notes": []
+    }
+  ],
+  "summary": {
+    "total": 50,
+    "traduzidas_e_revisadas_textualmente": 21,
+    "verificadas_finalmente": 0,
+    "pendentes_de_traducao": 29,
+    "next": "chapter4/introduction"
+  }
+}

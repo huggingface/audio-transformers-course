@@ -1,0 +1,79 @@
+# Geração de áudio com um pipeline
+
+A geração de áudio abrange diversas tarefas que produzem uma saída de áudio. Aqui, vamos estudar a geração de fala, também conhecida como "text-to-speech", e a geração de música. Na síntese de fala a partir de texto, um modelo transforma um trecho de texto em fala realista, permitindo aplicações como assistentes virtuais, ferramentas de acessibilidade para pessoas com deficiência visual e audiolivros personalizados. A geração de música, por sua vez, permite a expressão criativa e é usada principalmente nas indústrias de entretenimento e desenvolvimento de jogos.
+
+Em 🤗 Transformers, há um pipeline que atende às duas tarefas. Ele se chama `"text-to-audio"` e, por conveniência, também tem o nome alternativo `"text-to-speech"`. Usaremos ambos aqui; você pode escolher o que melhor descreve sua tarefa.
+
+Vamos ver como usar esse pipeline para gerar narração de textos e música com poucas linhas de código.
+
+Esse pipeline é uma novidade de 🤗 Transformers, introduzida na versão 4.32. Portanto, atualize a biblioteca para a versão mais recente para acessar o recurso:
+
+```bash
+pip install --upgrade transformers
+```
+
+## Geração de fala
+
+Vamos começar pela síntese de fala a partir de texto. Assim como na classificação de áudio e no reconhecimento automático de fala, primeiro precisamos definir o pipeline. Usaremos um pipeline de síntese de fala, pois ele descreve melhor nossa tarefa, com o checkpoint [`suno/bark-small`](https://huggingface.co/suno/bark-small):
+
+```python
+from transformers import pipeline
+
+pipe = pipeline("text-to-speech", model="suno/bark-small")
+```
+
+A próxima etapa é simplesmente passar um texto ao pipeline. Todo o pré-processamento acontece automaticamente:
+
+```python
+text = "Ladybugs have had important roles in culture and religion, being associated with luck, love, fertility and prophecy. "
+output = pipe(text)
+```
+
+Em um notebook, podemos usar o trecho a seguir para ouvir o resultado:
+
+```python
+from IPython.display import Audio
+
+Audio(output["audio"].squeeze(), rate=output["sampling_rate"])
+```
+
+Bark, o modelo usado nesse pipeline, é multilíngue. Podemos substituir o texto inicial por um texto em francês, por exemplo, e usar o pipeline da mesma maneira. O modelo identificará o idioma por conta própria:
+
+```python
+fr_text = "Contrairement à une idée répandue, le nombre de points sur les élytres d'une coccinelle ne correspond pas à son âge, ni en nombre d'années, ni en nombre de mois. "
+output = pipe(fr_text)
+Audio(output["audio"].squeeze(), rate=output["sampling_rate"])
+```
+
+Além de ser multilíngue, o modelo pode gerar sons de comunicação não verbal e canto. Veja como fazê-lo cantar:
+
+```python
+song = "♪ In the jungle, the mighty jungle, the ladybug was seen. ♪ "
+output = pipe(song)
+Audio(output["audio"].squeeze(), rate=output["sampling_rate"])
+```
+
+Na unidade dedicada à síntese de fala, estudaremos os detalhes do Bark e mostraremos como usar outros modelos nessa tarefa. Agora, vamos gerar música!
+
+## Geração de música
+
+Como antes, começaremos instanciando um pipeline. Para gerar música, definiremos um pipeline de texto para áudio e o inicializaremos com o checkpoint pré-treinado [`facebook/musicgen-small`](https://huggingface.co/facebook/musicgen-small).
+
+```python
+music_pipe = pipeline("text-to-audio", model="facebook/musicgen-small")
+```
+
+Vamos criar uma descrição textual da música que queremos gerar:
+
+```python
+text = "90s rock song with electric guitar and heavy drums"
+```
+
+Podemos controlar o comprimento da saída gerada passando ao modelo o parâmetro adicional `max_new_tokens`.
+
+```python
+forward_params = {"max_new_tokens": 512}
+
+output = music_pipe(text, forward_params=forward_params)
+Audio(output["audio"][0], rate=output["sampling_rate"])
+```

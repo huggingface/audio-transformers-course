@@ -1,0 +1,111 @@
+# Arquiteturas CTC
+
+CTC, ou classificação temporal conexionista (Connectionist Temporal Classification), é uma técnica usada com transformers que têm apenas codificador para reconhecimento automático de fala. Exemplos desses modelos são **Wav2Vec2**, **HuBERT** e **M-CTC-T**.
+
+Um transformer com apenas codificador é o tipo mais simples de transformer, pois usa somente essa parte do modelo. O codificador lê a sequência de entrada, a forma de onda do áudio, e a transforma em uma sequência de estados ocultos, também conhecidos como embeddings de saída.
+
+Em um modelo CTC, aplicamos um mapeamento linear adicional à sequência de estados ocultos para prever rótulos de classes. Os rótulos são os **caracteres do alfabeto**, como a, b, c etc. Assim, podemos prever qualquer palavra no idioma de destino com uma pequena cabeça de classificação, pois o vocabulário precisa conter apenas 26 caracteres e alguns tokens especiais.
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/wav2vec2-ctc.png" alt="Codificador transformer com uma cabeça CTC sobre a saída">
+</div>
+
+Até aqui, isso é muito semelhante ao que fazemos em NLP com um modelo como BERT: um transformer com apenas codificador transforma tokens de texto em uma sequência de estados ocultos, e aplicamos um mapeamento linear para prever um rótulo de classe para cada estado.
+
+O problema é que, na fala, não conhecemos o **alinhamento** entre a entrada de áudio e a saída de texto. Sabemos que a ordem da fala é igual à ordem da transcrição, o chamado alinhamento monotônico, mas não sabemos como cada caractere da transcrição se alinha ao áudio. É aí que entra o algoritmo CTC.
+
+<Tip>
+💡 Em modelos de NLP, o vocabulário costuma conter milhares de tokens que representam não só caracteres individuais, mas também partes de palavras ou palavras inteiras. Para CTC, um vocabulário pequeno funciona melhor, e geralmente tentamos mantê-lo abaixo de 50 caracteres. Não diferenciamos maiúsculas e minúsculas, então basta usar apenas uma delas. Os números são escritos por extenso: por exemplo, `"20"` vira `"twenty"`. Além das letras, precisamos de pelo menos um token separador de palavras, o espaço, e um token de preenchimento. Como em NLP, o token de preenchimento permite combinar vários exemplos em um lote, mas também é previsto pelo modelo nos silêncios. Em inglês, é útil manter o caractere `'`, pois `"it's"` e `"its"` têm significados muito diferentes.
+</Tip>
+
+## Cadê meu alinhamento?
+
+O reconhecimento automático de fala, ou ASR, recebe áudio como entrada e produz texto como saída. Podemos prever o texto de algumas maneiras:
+
+- Como caracteres individuais.
+- Como fonemas.
+- Como tokens de palavras.
+
+Um modelo ASR é treinado com um conjunto de pares `(audio, text)`, em que o texto é uma transcrição do arquivo de áudio feita por uma pessoa. Em geral, o conjunto não contém informações de tempo que indiquem onde cada palavra ou sílaba ocorre no áudio. Como não podemos contar com essas informações no treinamento, não sabemos como alinhar as sequências de entrada e saída.
+
+Suponha que a entrada seja um arquivo de áudio de um segundo. No **Wav2Vec2**, o modelo primeiro subamostra a entrada com o codificador convolucional de características, produzindo uma sequência mais curta de estados ocultos, com um vetor a cada 20 milissegundos de áudio. Para um segundo, enviamos uma sequência de 50 estados ocultos ao codificador transformer. Os segmentos extraídos se sobrepõem parcialmente: embora um vetor seja produzido a cada 20 ms, cada estado oculto representa 25 ms de áudio.
+
+O codificador transformer prevê uma representação de características para cada estado oculto, produzindo uma sequência de 50 saídas. Cada saída tem 768 dimensões. Nesse exemplo, a sequência de saída do codificador tem, portanto, formato `(768, 50)`. Como cada previsão cobre 25 ms, menos que a duração de um fonema, faz sentido prever fonemas ou caracteres individuais, mas não palavras inteiras. CTC funciona melhor com um vocabulário pequeno, então preveremos caracteres.
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/cnn-feature-encoder.png" alt="A forma de onda é transformada em uma sequência mais curta de estados ocultos">
+</div>
+
+Para prever texto, uma camada linear, a "cabeça CTC", mapeia cada saída de 768 dimensões do codificador para os rótulos de caracteres. O modelo prevê um tensor de logits com formato `(50, 32)`, em que 32 é a quantidade de tokens do vocabulário. Como fazemos uma previsão para cada elemento da sequência de características, temos 50 previsões de caracteres para cada segundo de áudio.
+
+Se simplesmente previrmos um caractere a cada 20 ms, porém, a saída pode se parecer com isto:
+
+```text
+BRIIONSAWWSOMEETHINGCLOSETOPANICONHHISOPPONENT'SSFAACEWHENTHEMANNFINALLLYRREECOGGNNIIZEDHHISSERRRRORR ...
+```
+
+O resultado lembra um pouco o inglês, mas muitos caracteres estão repetidos. O modelo precisa produzir *alguma coisa* para cada 20 ms de áudio da entrada. Se um caractere se estende por mais de 20 ms, ele aparece várias vezes na saída. Não há como evitar isso, especialmente porque não conhecemos os tempos da transcrição durante o treinamento. CTC permite filtrar essas repetições.
+
+Na prática, a sequência prevista também contém muitos tokens de preenchimento, quando o modelo não sabe exatamente o que o som representa ou nos espaços vazios entre caracteres. Removemos esses tokens do exemplo para facilitar a leitura. A sobreposição parcial dos segmentos de áudio é outro motivo para as repetições na saída.
+
+## O algoritmo CTC
+
+O elemento central do algoritmo CTC é um token especial, geralmente chamado de **token em branco** (blank token). Ele é um dos tokens que o modelo pode prever e faz parte do vocabulário. Neste exemplo, é representado por `_`. Esse token estabelece um limite entre grupos de caracteres.
+
+A saída completa de um modelo CTC pode ser assim:
+
+```text
+B_R_II_O_N_||_S_AWW_|||||_S_OMEE_TH_ING_||_C_L_O_S_E||TO|_P_A_N_I_C_||_ON||HHI_S||_OP_P_O_N_EN_T_'SS||_F_AA_C_E||_W_H_EN||THE||M_A_NN_||||_F_I_N_AL_LL_Y||||_RREE_C_O_GG_NN_II_Z_ED|||HHISS|||_ER_RRR_ORR||||
+```
+
+O token `|` é o separador de palavras. No exemplo, usamos `|` em vez de espaço para tornar os limites entre palavras mais visíveis, mas sua função é a mesma.
+
+O caractere em branco do CTC permite filtrar os caracteres repetidos. Observe a última palavra da sequência prevista, `_ER_RRR_ORR`. Sem o token em branco, ela seria assim:
+
+```text
+ERRRRORR
+```
+
+Se simplesmente removêssemos os caracteres repetidos, obteríamos `EROR`, que não é a grafia correta. Com o token em branco, podemos remover as repetições dentro de cada grupo. Assim:
+
+```text
+_ER_RRR_ORR
+```
+
+vira:
+
+```text
+_ER_R_OR
+```
+
+Depois removemos o token em branco `_` para obter a palavra final:
+
+```text
+ERROR
+```
+
+Aplicando essa lógica ao texto inteiro, inclusive aos tokens `|`, e substituindo os `|` restantes por espaços, a saída final decodificada por CTC é:
+
+```text
+BRION SAW SOMETHING CLOSE TO PANIC ON HIS OPPONENT'S FACE WHEN THE MAN FINALLY RECOGNIZED HIS ERROR
+```
+
+O modelo prevê um token, um caractere, para cada 20 ms de áudio parcialmente sobreposto da forma de onda de entrada. Isso gera muitas repetições. Graças ao token em branco do CTC, podemos removê-las sem destruir a grafia correta das palavras. É uma maneira simples e prática de resolver o problema de alinhar o texto de saída com o áudio de entrada.
+
+<Tip>
+💡 No Wav2Vec2, o token em branco do CTC é o mesmo token de preenchimento, `<pad>`. O modelo prevê muitos desses tokens, por exemplo, quando não há um caractere claro para os 20 ms atuais de áudio. Usar o mesmo token para preenchimento e para o branco do CTC simplifica a decodificação e ajuda a manter o vocabulário pequeno.
+</Tip>
+
+É fácil adicionar CTC a um codificador transformer: sua sequência de saída passa por uma camada linear que projeta as características acústicas no vocabulário. O modelo é treinado com uma função de perda CTC específica.
+
+Uma desvantagem de CTC é produzir palavras que *soam* corretas, mas cuja *grafia* está errada. A cabeça CTC considera caracteres individuais, não palavras inteiras. Uma maneira de melhorar as transcrições é usar um modelo de linguagem externo, que funciona essencialmente como um corretor ortográfico sobre a saída CTC.
+
+## Qual é a diferença entre Wav2Vec2, HuBERT, M-CTC-T e outros modelos?
+
+Todos os modelos CTC baseados em transformers têm arquiteturas muito semelhantes: usam o codificador transformer, sem decodificador, com uma cabeça CTC sobre a saída. Suas arquiteturas têm mais semelhanças do que diferenças.
+
+Uma diferença entre Wav2Vec2 e M-CTC-T é que o primeiro trabalha com formas de onda brutas, enquanto o segundo recebe espectrogramas mel. Os modelos também foram treinados para finalidades diferentes. M-CTC-T, por exemplo, foi treinado para reconhecimento multilíngue de fala e tem uma cabeça CTC relativamente grande, com caracteres chineses além de outros alfabetos.
+
+Wav2Vec2 e HuBERT usam exatamente a mesma arquitetura, mas são treinados de maneiras muito diferentes. O pré-treinamento do Wav2Vec2 se assemelha à modelagem de linguagem mascarada do BERT, pois prevê unidades de fala para partes mascaradas do áudio. HuBERT leva essa inspiração mais longe: aprende a prever "unidades discretas de fala", análogas aos tokens de uma frase, permitindo tratar a fala com técnicas estabelecidas de NLP.
+
+Os modelos destacados aqui não são os únicos modelos CTC baseados em transformers. Há muitos outros, e agora você sabe que todos funcionam de maneira semelhante.

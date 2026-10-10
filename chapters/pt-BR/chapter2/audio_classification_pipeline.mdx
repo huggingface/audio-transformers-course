@@ -1,0 +1,65 @@
+# Classificação de áudio com um pipeline
+
+Classificar áudio significa atribuir um ou mais rótulos a uma gravação com base em seu conteúdo. Os rótulos podem corresponder a categorias de som, como música, fala ou ruído, ou a categorias mais específicas, como canto de pássaros ou som de motores de carros.
+
+Antes de estudar o funcionamento dos transformers para áudio mais populares e de fazer o ajuste fino de um modelo próprio, vamos ver como usar um modelo pré-treinado pronto para classificação de áudio com poucas linhas de código de 🤗 Transformers.
+
+Usaremos o mesmo conjunto [MINDS-14](https://huggingface.co/datasets/PolyAI/minds14) que você explorou na unidade anterior. Como vimos, ele contém gravações de pessoas fazendo perguntas a um sistema de banco eletrônico em vários idiomas e dialetos, e cada gravação tem um campo `intent_class`. Podemos classificar as gravações pela intenção da chamada.
+
+Como antes, vamos carregar o subconjunto `en-AU` para experimentar o pipeline e aumentar sua taxa de amostragem para 16 kHz, a taxa exigida pela maioria dos modelos de fala.
+
+```py
+from datasets import load_dataset
+from datasets import Audio
+
+minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
+```
+
+Para classificar uma gravação em um conjunto de classes, podemos usar o pipeline `audio-classification` de 🤗 Transformers. Neste caso, precisamos de um modelo com ajuste fino para classificação de intenções, especificamente no conjunto MINDS-14. Felizmente, o Hub tem um modelo que faz exatamente isso! Vamos carregá-lo com a função `pipeline()`:
+
+```py
+from transformers import pipeline
+
+classifier = pipeline(
+    "audio-classification",
+    model="anton-l/xtreme_s_xlsr_300m_minds14",
+)
+```
+
+Esse pipeline espera os dados de áudio em um array NumPy e cuida de todo o pré-processamento do áudio bruto. Vamos escolher um exemplo para testá-lo:
+
+```py
+example = minds[0]
+```
+
+Como vimos na estrutura do conjunto, o áudio bruto é armazenado em um array NumPy no campo `["audio"]["array"]`. Vamos passá-lo diretamente ao `classifier`:
+
+```py
+classifier(example["audio"]["array"])
+```
+
+**Saída:**
+```out
+[
+    {"score": 0.9631525278091431, "label": "pay_bill"},
+    {"score": 0.02819698303937912, "label": "freeze"},
+    {"score": 0.0032787492964416742, "label": "card_issues"},
+    {"score": 0.0019414445850998163, "label": "abroad"},
+    {"score": 0.0008378693601116538, "label": "high_value_payment"},
+]
+```
+
+O modelo está bastante confiante de que a pessoa queria informações sobre como pagar sua conta. Vamos conferir o rótulo real desse exemplo:
+
+```py
+id2label = minds.features["intent_class"].int2str
+id2label(example["intent_class"])
+```
+
+**Saída:**
+```out
+"pay_bill"
+```
+
+Ótimo! O rótulo previsto está correto! Tivemos a sorte de encontrar um modelo que classifica exatamente os rótulos de que precisamos. Em muitas tarefas de classificação, porém, as classes do modelo pré-treinado não correspondem exatamente às que você precisa distinguir. Nesse caso, você pode fazer o ajuste fino do modelo para adaptá-lo ao seu conjunto de rótulos. Aprenderemos como fazer isso nas próximas unidades. Agora, vamos conhecer outra tarefa muito comum no processamento de fala: o _reconhecimento automático de fala_.
