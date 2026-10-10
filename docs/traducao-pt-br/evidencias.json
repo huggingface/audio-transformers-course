@@ -15,9 +15,21 @@
     "http_200": 50,
     "page_errors": [],
     "visual_layout_inspected": 50,
-    "detailed_visual_text": "partial_on_long_pages",
+    "detailed_visual_text": 50,
     "images": 38,
-    "images_loaded": 0
+    "images_loaded": 0,
+    "detailed_visual_followup": {
+      "pages": 33,
+      "readable_tiles": 117,
+      "panels_inspected": 30,
+      "media_not_validated": true
+    },
+    "tip_rendering_followup": {
+      "routes": 6,
+      "status": "passed",
+      "code_and_list_markup": "HTML accepted by renderer",
+      "page_errors": []
+    }
   },
   "internal_links": {
     "checked_unique": 242,
@@ -104,5 +116,12 @@
       505
     ],
     "matches_english_fences": true
+  },
+  "goal_outcome": "blocked",
+  "external_probes": {
+    "huggingface.co": 403,
+    "www.youtube.com": 403,
+    "course-demos-song-classifier.hf.space": 403,
+    "network_policy_changed": false
   }
 }

@@ -67,7 +67,7 @@ DatasetDict({
 ```
 
 <Tip>
-    Você pode trocar `"dv"` pelo identificador do idioma que escolher. Para ver todos os idiomas do Common Voice 13, consulte a ficha no Hub: https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
+    Você pode trocar <code>&#34;dv&#34;</code> pelo identificador do idioma que escolher. Para ver todos os idiomas do Common Voice 13, consulte a ficha no Hub: https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
 </Tip>
 
 A maioria dos conjuntos ASR fornece apenas amostras de áudio (`audio`) e o texto transcrito correspondente (`sentence`). Common Voice inclui metadados adicionais, como `accent` e `locale`, que podemos desconsiderar para ASR. Para manter o notebook o mais genérico possível, usaremos apenas o áudio e o texto no ajuste fino, descartando esses metadados:
@@ -382,7 +382,7 @@ training_args = Seq2SeqTrainingArguments(
 ```
 
 <Tip>
-    Se não quiser enviar checkpoints ao Hub, defina `push_to_hub=False`.
+    Se não quiser enviar checkpoints ao Hub, defina <code>push_to_hub=False</code>.
 </Tip>
 
 Passamos os argumentos ao 🤗 Trainer com modelo, conjunto de dados, agrupador e função `compute_metrics`:

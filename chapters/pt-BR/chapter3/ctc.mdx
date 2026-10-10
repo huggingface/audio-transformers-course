@@ -15,7 +15,7 @@ Até aqui, isso é muito semelhante ao que fazemos em NLP com um modelo como BER
 O problema é que, na fala, não conhecemos o **alinhamento** entre a entrada de áudio e a saída de texto. Sabemos que a ordem da fala é igual à ordem da transcrição, o chamado alinhamento monotônico, mas não sabemos como cada caractere da transcrição se alinha ao áudio. É aí que entra o algoritmo CTC.
 
 <Tip>
-💡 Em modelos de NLP, o vocabulário costuma conter milhares de tokens que representam não só caracteres individuais, mas também partes de palavras ou palavras inteiras. Para CTC, um vocabulário pequeno funciona melhor, e geralmente tentamos mantê-lo abaixo de 50 caracteres. Não diferenciamos maiúsculas e minúsculas, então basta usar apenas uma delas. Os números são escritos por extenso: por exemplo, `"20"` vira `"twenty"`. Além das letras, precisamos de pelo menos um token separador de palavras, o espaço, e um token de preenchimento. Como em NLP, o token de preenchimento permite combinar vários exemplos em um lote, mas também é previsto pelo modelo nos silêncios. Em inglês, é útil manter o caractere `'`, pois `"it's"` e `"its"` têm significados muito diferentes.
+💡 Em modelos de NLP, o vocabulário costuma conter milhares de tokens que representam não só caracteres individuais, mas também partes de palavras ou palavras inteiras. Para CTC, um vocabulário pequeno funciona melhor, e geralmente tentamos mantê-lo abaixo de 50 caracteres. Não diferenciamos maiúsculas e minúsculas, então basta usar apenas uma delas. Os números são escritos por extenso: por exemplo, <code>&#34;20&#34;</code> vira <code>&#34;twenty&#34;</code>. Além das letras, precisamos de pelo menos um token separador de palavras, o espaço, e um token de preenchimento. Como em NLP, o token de preenchimento permite combinar vários exemplos em um lote, mas também é previsto pelo modelo nos silêncios. Em inglês, é útil manter o caractere <code>&#39;</code>, pois <code>&#34;it&#39;s&#34;</code> e <code>&#34;its&#34;</code> têm significados muito diferentes.
 </Tip>
 
 ## Cadê meu alinhamento?
@@ -93,7 +93,7 @@ BRION SAW SOMETHING CLOSE TO PANIC ON HIS OPPONENT'S FACE WHEN THE MAN FINALLY R
 O modelo prevê um token, um caractere, para cada 20 ms de áudio parcialmente sobreposto da forma de onda de entrada. Isso gera muitas repetições. Graças ao token em branco do CTC, podemos removê-las sem destruir a grafia correta das palavras. É uma maneira simples e prática de resolver o problema de alinhar o texto de saída com o áudio de entrada.
 
 <Tip>
-💡 No Wav2Vec2, o token em branco do CTC é o mesmo token de preenchimento, `&lt;pad&gt;`. O modelo prevê muitos desses tokens, por exemplo, quando não há um caractere claro para os 20 ms atuais de áudio. Usar o mesmo token para preenchimento e para o branco do CTC simplifica a decodificação e ajuda a manter o vocabulário pequeno.
+💡 No Wav2Vec2, o token em branco do CTC é o mesmo token de preenchimento, <code>&lt;pad&gt;</code>. O modelo prevê muitos desses tokens, por exemplo, quando não há um caractere claro para os 20 ms atuais de áudio. Usar o mesmo token para preenchimento e para o branco do CTC simplifica a decodificação e ajuda a manter o vocabulário pequeno.
 </Tip>
 
 É fácil adicionar CTC a um codificador transformer: sua sequência de saída passa por uma camada linear que projeta as características acústicas no vocabulário. O modelo é treinado com uma função de perda CTC específica.

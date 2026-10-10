@@ -185,7 +185,7 @@ No exemplo, `n_mels` é a quantidade de bandas mel a gerar. Essas bandas definem
 Assim como em um espectrograma comum, é habitual expressar a intensidade dos componentes de frequência mel em decibéis. O resultado é chamado de **espectrograma log-mel**, pois a conversão para decibéis envolve uma operação logarítmica. O exemplo usa `librosa.power_to_db()`, porque `librosa.feature.melspectrogram()` cria um espectrograma de potência.
 
 <Tip>
-💡 Nem todos os espectrogramas mel são iguais! Há duas escalas mel de uso comum, "htk" e "slaney", e é possível usar o espectrograma de amplitude em vez do de potência. A conversão para log-mel nem sempre calcula decibéis de fato: pode simplesmente aplicar `log`. Portanto, se um modelo de aprendizado de máquina espera um espectrograma mel como entrada, confira se você está calculando-o da mesma maneira.
+💡 Nem todos os espectrogramas mel são iguais! Há duas escalas mel de uso comum, "htk" e "slaney", e é possível usar o espectrograma de amplitude em vez do de potência. A conversão para log-mel nem sempre calcula decibéis de fato: pode simplesmente aplicar <code>log</code>. Portanto, se um modelo de aprendizado de máquina espera um espectrograma mel como entrada, confira se você está calculando-o da mesma maneira.
 </Tip>
 
 Criar um espectrograma mel é uma operação com perda de informação, pois envolve filtrar o sinal. Recuperar uma forma de onda a partir dele é mais difícil do que a partir de um espectrograma comum, porque é necessário estimar as frequências descartadas. Por isso, modelos de aprendizado de máquina, como o vocoder HiFiGAN, são necessários para produzir uma forma de onda a partir de um espectrograma mel.

@@ -293,8 +293,10 @@ DatasetDict({
 
 <Tip warning={true}>
     Se a RAM do dispositivo se esgotar ao executar esse código, ajuste os parâmetros de lote para reduzir o pico de uso. Em particular:
-    * `batch_size`: o padrão é 1000, mas usamos 100 acima. Tente reduzir pela metade novamente, para 50.
-    * `writer_batch_size`: o padrão é 1000. Tente 500 e, se não funcionar, reduza pela metade novamente, para 250.
+<ul>
+<li><code>batch_size</code>: o padrão é 1000, mas usamos 100 acima. Tente reduzir pela metade novamente, para 50.</li>
+<li><code>writer_batch_size</code>: o padrão é 1000. Tente 500 e, se não funcionar, reduza pela metade novamente, para 250.</li>
+</ul>
 </Tip>
 
 Para simplificar o treinamento, removemos as colunas `audio` e `file`. A coluna `input_values` contém o áudio codificado; `attention_mask` é uma máscara binária de zeros e uns indicando o preenchimento; `genre` contém os rótulos, ou alvos. Para que `Trainer` processe os rótulos, precisamos renomear `genre` para `label`:
@@ -389,7 +391,7 @@ training_args = TrainingArguments(
 
 <Tip warning={true}>
 
-    Definimos `push_to_hub=True` para enviar automaticamente os checkpoints ajustados durante o treinamento. Se não quiser enviá-los ao Hub, use `False`.
+    Definimos <code>push_to_hub=True</code> para enviar automaticamente os checkpoints ajustados durante o treinamento. Se não quiser enviá-los ao Hub, use <code>False</code>.
 
 </Tip>
 
@@ -427,7 +429,7 @@ trainer.train()
 
 <Tip warning={true}>
 
-Dependendo da GPU, você pode encontrar um erro CUDA de falta de memória, `"out-of-memory"`, ao iniciar o treinamento. Nesse caso, reduza `batch_size` progressivamente pela metade e use [`gradient_accumulation_steps`](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.TrainingArguments.gradient_accumulation_steps) para compensar.
+Dependendo da GPU, você pode encontrar um erro CUDA de falta de memória, <code>out-of-memory</code>, ao iniciar o treinamento. Nesse caso, reduza <code>batch_size</code> progressivamente pela metade e use [<code>gradient_accumulation_steps</code>](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.TrainingArguments.gradient_accumulation_steps) para compensar.
 
 </Tip>
 
