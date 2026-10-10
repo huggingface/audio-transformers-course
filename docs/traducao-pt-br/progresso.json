@@ -1,0 +1,1139 @@
+{
+  "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+  "goal": "GOAL_TRADUCAO_PT_BR.md",
+  "sections": [
+    {
+      "path": "chapter0/introduction",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter0/get_ready",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter0/community",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter1/introduction",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter1/audio_data",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter1/load_and_explore",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter1/preprocessing",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter1/streaming",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter1/quiz",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "alternativas_e_feedback": "aprovado",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter1/supplemental_reading",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter2/introduction",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter2/audio_classification_pipeline",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter2/asr_pipeline",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter2/tts_pipeline",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter2/hands_on",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter3/introduction",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter3/ctc",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter3/seq2seq",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter3/classification",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter3/quiz",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "alternativas_e_feedback": "aprovado",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter3/supplemental_reading",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter4/introduction",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout geral inspecionado em screenshot; mídias externas não validadas.",
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter4/classification_models",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout geral inspecionado em screenshot; mídias externas não validadas.",
+        "Inspeção detalhada de todas as áreas da página longa ainda pendente.",
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter4/fine-tuning",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout geral inspecionado em screenshot; mídias externas não validadas.",
+        "Inspeção detalhada de todas as áreas da página longa ainda pendente.",
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter4/demo",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout geral inspecionado em screenshot; mídias externas não validadas.",
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter4/hands_on",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout geral inspecionado em screenshot; mídias externas não validadas.",
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter5/introduction",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout geral inspecionado em screenshot; mídias externas não validadas.",
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter5/asr_models",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "pendente_original"
+      },
+      "notes": [
+        "Layout geral inspecionado em screenshot; mídias externas não validadas.",
+        "Inspeção detalhada de todas as áreas da página longa ainda pendente.",
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter5/choosing_dataset",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout geral inspecionado em screenshot; mídias externas não validadas.",
+        "Inspeção detalhada de todas as áreas da página longa ainda pendente.",
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter5/evaluation",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado",
+        "formulas_visuais": "aprovado_apos_correcao_css_local"
+      },
+      "notes": [
+        "Layout geral inspecionado em screenshot; mídias externas não validadas.",
+        "Inspeção detalhada de todas as áreas da página longa ainda pendente.",
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter5/fine-tuning",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout geral inspecionado em screenshot; mídias externas não validadas.",
+        "Inspeção detalhada de todas as áreas da página longa ainda pendente.",
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter5/demo",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout geral inspecionado em screenshot; mídias externas não validadas.",
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter5/hands_on",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout geral inspecionado em screenshot; mídias externas não validadas.",
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter5/supplemental_reading",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout geral inspecionado em screenshot; mídias externas não validadas.",
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter6/introduction",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter6/tts_datasets",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter6/pre-trained_models",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter6/fine-tuning",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter6/evaluation",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter6/hands_on",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter6/supplemental_reading",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter7/introduction",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter7/speech-to-speech",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter7/voice-assistant",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter7/transcribe-meeting",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter7/hands_on",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter7/supplemental_reading",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter8/introduction",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "chapter8/certification",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    },
+    {
+      "path": "events/introduction",
+      "state": "em_revisao",
+      "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+      "checks": {
+        "traducao": "concluida",
+        "revisao_comparativa": "concluida",
+        "revisao_linguistica": "concluida",
+        "invariantes": "aprovado",
+        "build": "aprovado",
+        "rota_http": "200",
+        "inspecao_visual_texto": "realizada",
+        "links_externos": "pendente",
+        "midias_externas": "pendente",
+        "inspecao_visual_layout": "realizada",
+        "ancoras_internas": "aprovado",
+        "links_internos": "aprovado"
+      },
+      "notes": [
+        "Layout inspecionado; links e serviços externos permanecem pendentes por bloqueio de rede."
+      ]
+    }
+  ],
+  "summary": {
+    "total": 50,
+    "traduzidas_e_revisadas_textualmente": 50,
+    "verificadas_finalmente": 0,
+    "pendentes_de_traducao": 0,
+    "next": "verificacao_final_de_midias_e_links_externos",
+    "rotas_http_200": 50,
+    "layouts_inspecionados": 50,
+    "textos_renderizados_inspecionados": 50,
+    "goal_outcome": "blocked"
+  }
+}

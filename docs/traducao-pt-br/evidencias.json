@@ -1,0 +1,160 @@
+{
+  "reference_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+  "date_utc": "2026-10-10",
+  "coverage": {
+    "sections": 50,
+    "translated_and_textually_reviewed": 50,
+    "pending_translation": 0,
+    "final_verification": "pending"
+  },
+  "quality": "passed",
+  "doc_builder_pt_br": "passed",
+  "complete_invariants": "passed",
+  "translation_validator_output": "No missing sections - translation complete!",
+  "browser": {
+    "http_200": 50,
+    "page_errors": [],
+    "visual_layout_inspected": 50,
+    "detailed_visual_text": 50,
+    "images": 38,
+    "images_loaded": 0,
+    "detailed_visual_followup": {
+      "pages": 33,
+      "readable_tiles": 117,
+      "panels_inspected": 30,
+      "media_not_validated": true
+    },
+    "tip_rendering_followup": {
+      "routes": 6,
+      "status": "passed",
+      "code_and_list_markup": "HTML accepted by renderer",
+      "page_errors": []
+    }
+  },
+  "internal_links": {
+    "checked_unique": 242,
+    "missing_routes": [
+      {
+        "source": "chapter5/asr_models",
+        "target": "http://localhost:5173/chapter5/hf-internal-testing/librispeech_asr_dummy"
+      },
+      {
+        "source": "chapter5/asr_models",
+        "target": "http://localhost:5173/chapter5/facebook/wav2vec2-base-100h"
+      }
+    ],
+    "missing_anchors": []
+  },
+  "quizzes": {
+    "questions": 14,
+    "alternatives": 41,
+    "all_feedback_checks_passed": true
+  },
+  "notebooks": {
+    "count": 21,
+    "nbformat_schema": "passed",
+    "code_and_recorded_outputs": "passed",
+    "ml_cells_executed": false
+  },
+  "reviewer": "Same translator, separate comparative and linguistic passes; not an independent review.",
+  "external_validation": "blocked_by_network_policy",
+  "onboarding": {
+    "runtime": "running",
+    "draft_fields_saved": [
+      "install_script",
+      "start_skill"
+    ],
+    "requires_publish": true,
+    "fresh_snapshot_restore_verified": false
+  },
+  "pull_request": {
+    "url": "https://github.com/prof-ramos/audio-transformers-course/pull/1",
+    "draft": true,
+    "branch": "codex/traducao-pt-br-unidades-0-3",
+    "description_update": "published_for_967d836_followup_prepared_locally",
+    "description_publication_evidence": {
+      "commit": "967d8369c3bb19c6dc9aba905d3b9fafc271bbf1",
+      "source": "User delegation: authorized origin-thread connector updated exact body and read it back; not independently fetched in this execution."
+    }
+  },
+  "local_evidence_directory": "/workspace/.onboarding/audio-transformers-course/validation",
+  "local_formula_rendering": {
+    "after_restart": true,
+    "status": 200,
+    "local_fonts": true,
+    "formulas": [
+      {
+        "position": "absolute",
+        "width": "1px",
+        "html": true
+      },
+      {
+        "position": "absolute",
+        "width": "1px",
+        "html": true
+      },
+      {
+        "position": "absolute",
+        "width": "1px",
+        "html": true
+      },
+      {
+        "position": "absolute",
+        "width": "1px",
+        "html": true
+      }
+    ]
+  },
+  "preservation": {
+    "english_and_other_languages": "unchanged",
+    "course_dependencies_and_lockfiles": "unchanged",
+    "goal_file_during_continuation": "unchanged"
+  },
+  "git_diff_check": {
+    "status": "inherited_whitespace",
+    "path": "chapters/pt-BR/chapter6/fine-tuning.mdx",
+    "lines": [
+      406,
+      422,
+      498,
+      505
+    ],
+    "matches_english_fences": true
+  },
+  "goal_outcome": "blocked",
+  "external_probes": {
+    "huggingface.co": 403,
+    "www.youtube.com": 403,
+    "course-demos-song-classifier.hf.space": 403,
+    "network_policy_changed": false
+  },
+  "repository_instructions_audit": {
+    "head": "967d8369c3bb19c6dc9aba905d3b9fafc271bbf1",
+    "agents_files_found": 0,
+    "non_title_index_fields": "identical",
+    "requirements": "satisfied",
+    "pip_check": "passed",
+    "scoped_style_files": 50,
+    "scoped_style_hashes_unchanged": true,
+    "quality": "passed",
+    "complete_invariants": "passed",
+    "pt_br_in_both_workflows": true,
+    "reference_main_unchanged": true,
+    "remote_ci_verified": false,
+    "upstream_issue_coordination_verified": false,
+    "report": "conformidade-repo.md"
+  },
+  "upstream_submission": {
+    "repository": "huggingface/audio-transformers-course",
+    "issue": 173,
+    "issue_url": "https://github.com/huggingface/audio-transformers-course/issues/173",
+    "issue_read": "public_github_html",
+    "base_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+    "head": "prof-ramos:codex/traducao-pt-br-unidades-0-3",
+    "body_file": "descricao-upstream.md",
+    "created": false,
+    "create_error": "Post https://api.github.com/graphql: Forbidden",
+    "required_followup": "Authorized GitHub connector: recheck duplicate head, then create draft PR using prepared body",
+    "media_scope": "External media are owned upstream; blocked inspection remains a documented limitation, not a requirement to modify their services"
+  }
+}

@@ -1,0 +1,23 @@
+# Exercício prático
+
+Nesta unidade, exploramos os desafios do ajuste fino de modelos ASR, reconhecendo o tempo e os recursos necessários para ajustar um modelo como Whisper, mesmo um checkpoint pequeno, em um novo idioma. Para oferecer uma experiência prática, criamos um exercício que permite percorrer o processo usando um conjunto menor. O objetivo principal é conhecer o procedimento, sem exigir resultados prontos para produção. Definimos intencionalmente uma meta acessível, para que você possa alcançá-la mesmo com recursos limitados.
+
+Veja as instruções:
+
+* Ajuste o modelo `”openai/whisper-tiny”` no subconjunto em inglês americano ("en-US") de `”PolyAI/minds14”`.
+* Use os primeiros **450 exemplos para treinamento** e os demais para avaliação. Defina `num_proc=1` no pré-processamento com `.map`, para que o modelo seja enviado corretamente para avaliação.
+* Avalie com `wer` e `wer_ortho`, como descrito nesta unidade. Entretanto, *não* converta as métricas em porcentagens multiplicando por 100. Por exemplo, se WER for 42%, esperamos o valor 0.42 neste exercício.
+
+Depois do ajuste fino, envie o modelo ao 🤗 Hub com os seguintes `kwargs`:
+
+```
+kwargs = {
+     "dataset_tags": "PolyAI/minds14",
+    "finetuned_from": "openai/whisper-tiny",
+    "tasks": "automatic-speech-recognition",
+}
+```
+
+Você será aprovado se a WER normalizada (`wer`) for menor que **0.37**.
+
+Crie uma demonstração do modelo e compartilhe-a no Discord! Se tiver dúvidas, publique-as no canal #audio-study-group.

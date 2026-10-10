@@ -1,0 +1,330 @@
+# Métricas de avaliação para ASR
+
+Se você conhece a [distância de Levenshtein](https://en.wikipedia.org/wiki/Levenshtein_distance) de NLP, as métricas de avaliação de sistemas de reconhecimento de fala serão familiares! Caso contrário, não se preocupe: veremos as explicações do início ao fim para que conheça as diferentes métricas e entenda seu significado.
+
+Ao avaliar esses sistemas, comparamos suas previsões às transcrições de referência e anotamos os erros encontrados. Classificamos os erros em três categorias:
+
+1. Substituições (S): transcrevemos a **palavra errada**, como "sit" em vez de "sat".
+2. Inserções (I): acrescentamos uma **palavra extra** à previsão.
+3. Exclusões (D): **removemos uma palavra** da previsão.
+
+Essas categorias são iguais em todas as métricas de reconhecimento de fala. O que muda é o nível em que calculamos os erros: por _palavra_ ou por _caractere_.
+
+Usaremos o mesmo exemplo para definir cada métrica. Esta é nossa sequência de texto _verdadeira_, ou _de referência_:
+
+```python
+reference = "the cat sat on the mat"
+```
+
+E esta é a sequência prevista pelo sistema que queremos avaliar:
+
+```python
+prediction = "the cat sit on the"
+```
+
+A previsão está bem próxima, mas algumas palavras estão incorretas. Vamos avaliá-la em relação à referência com as três métricas mais populares de reconhecimento de fala e ver os valores obtidos.
+
+## Taxa de erro de palavras
+
+A *taxa de erro de palavras (WER)* é a métrica de referência para reconhecimento de fala. Ela calcula substituições, inserções e exclusões no *nível das palavras*: os erros são anotados palavra por palavra. Veja nosso exemplo:
+
+| Referência: | the | cat | sat | on | the | mat |
+|-------------|-----|-----|-----|----|-----|-----|
+| Previsão: | the | cat | **sit** | on | the | |
+| Rótulo: | ✅ | ✅ | S | ✅ | ✅ | D |
+
+Temos:
+
+* 1 substituição: "sit" em vez de "sat".
+* 0 inserções.
+* 1 exclusão: "mat" está ausente.
+
+São 2 erros no total. Para obter a taxa, dividimos o número de erros pelo número total de palavras na referência (N), que neste exemplo é 6:
+
+$$
+\begin{aligned}
+WER &= \frac{S + I + D}{N} \\
+&= \frac{1 + 0 + 1}{6} \\
+&= 0.333
+\end{aligned}
+$$
+
+Temos WER de 0,333, ou 33,3%. Embora "sit" tenha apenas um caractere errado, a palavra inteira foi marcada como incorreta. Essa é uma característica da WER: erros de grafia recebem uma penalização alta, por menores que sejam.
+
+Na WER, *quanto menor, melhor*: um valor menor indica menos erros na previsão. Um sistema perfeito teria WER igual a zero, sem erros.
+
+Vamos calculá-la com 🤗 Evaluate. Precisamos de dois pacotes: 🤗 Evaluate para a interface da API e JIWER para realizar o cálculo:
+
+```
+pip install --upgrade evaluate jiwer
+```
+
+Agora podemos carregar a métrica e calcular o valor do exemplo:
+
+```python
+from evaluate import load
+
+wer_metric = load("wer")
+
+wer = wer_metric.compute(references=[reference], predictions=[prediction])
+
+print(wer)
+```
+**Saída impressa:**
+```
+0.3333333333333333
+```
+
+0,33, ou 33,3%, como esperado! Agora sabemos o que acontece internamente nesse cálculo.
+
+Há, porém, algo que pode causar confusão: qual é o limite superior da WER? Você talvez espere 1, ou 100%, mas não é isso! Como ela é a razão entre erros e número de palavras (N), **não há limite superior**. Imagine prever 10 palavras quando a referência só tem 2. Se todas as previsões estiverem erradas, teremos 10 erros e WER de 10 / 2 = 5, ou 500%! Lembre-se disso se treinar um sistema ASR e encontrar WER acima de 100%. Nesse caso, provavelmente algo deu errado... 😅
+
+## Fator de tempo real inverso (RTFx)
+
+Enquanto WER mede a acurácia das transcrições, o *fator de tempo real inverso (RTFx)* mede a velocidade de um sistema ASR. RTFx é o inverso da razão entre tempo de processamento e duração do áudio:
+
+$$
+\text{RTFx} = \frac{\text{Duração do áudio}}{\text{Tempo de processamento}}
+$$
+
+Por exemplo, se transcrever 100 segundos de áudio leva 10 segundos, RTFx é 100/10 = 10. Um valor maior que 1.0 significa que o sistema transcreve mais rápido que o tempo real, algo essencial em aplicações ao vivo como videoconferências e legendagem em tempo real. Um valor igual a 1.0 indica processamento exatamente em tempo real; valores menores que 1.0 indicam processamento mais lento.
+
+Pontos principais sobre RTFx:
+
+* **Quanto maior, melhor**: RTFx maior significa processamento mais rápido.
+* **RTFx > 1.0**: mais rápido que o tempo real, adequado para aplicações de streaming.
+* **RTFx = 1.0**: processamento exatamente em tempo real.
+* **RTFx < 1.0**: mais lento que o tempo real, o que pode ser aceitável no processamento em lotes.
+
+RTFx depende do hardware e varia com fatores como:
+
+- Tamanho do modelo: modelos maiores normalmente têm RTFx menor.
+- Aceleração por hardware: GPU ou CPU.
+- Tamanho do lote.
+- Características do áudio: taxa de amostragem e número de canais.
+
+Ao avaliar sistemas ASR, precisamos considerar WER e RTFx juntos. Um modelo com excelente WER, mas RTFx muito baixo, pode ser inviável em aplicações em tempo real. Outro com WER um pouco maior e RTFx alto pode ser mais adequado a usos sensíveis à latência.
+
+## Acurácia de palavras
+
+Podemos reformular WER para obter uma métrica em que *quanto maior, melhor*. Em vez de medir a taxa de erro de palavras, medimos a *acurácia de palavras (WAcc)*:
+
+$$
+\begin{equation}
+WAcc = 1 - WER \nonumber
+\end{equation}
+$$
+
+WAcc também é medida por palavra: é apenas WER reformulada como uma métrica de acurácia em vez de erro. Ela é pouco citada na literatura de fala. Normalmente pensamos nas previsões em termos de erros de palavras, então preferimos taxas de erro mais diretamente associadas a essas anotações.
+
+## Taxa de erro de caracteres
+
+Parece um pouco injusto marcar toda a palavra "sit" como errada quando apenas uma letra está incorreta. Isso aconteceu porque avaliamos o sistema por palavra. A *taxa de erro de caracteres (CER)* avalia no *nível dos caracteres*: dividimos as palavras em caracteres individuais e anotamos os erros caractere por caractere:
+
+| Referência: | t | h | e | | c | a | t | | s | a | t | | o | n | | t | h | e | | m | a | t |
+|-------------|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Previsão: | t | h | e | | c | a | t | | s | **i** | t | | o | n | | t | h | e | | | | |
+| Rótulo: | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | S | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | D | D | D | D |
+
+Agora, em "sit", "s" e "t" estão corretos. Apenas "i" é rotulado como substituição (S). Assim, recompensamos a previsão parcialmente correta 🤝.
+
+No exemplo, temos 1 substituição de caractere, 0 inserções e 4 exclusões. Há 22 caracteres no total. Portanto, CER é:
+
+$$
+\begin{aligned}
+CER &= \frac{S + I + D}{N} \\
+&= \frac{1 + 0 + 4}{22} \\
+&= 0.227
+\end{aligned}
+$$
+
+Temos CER de 0,227, ou 22,7%. Ela é menor que WER porque penalizamos muito menos o erro de grafia.
+
+## Qual métrica devo usar?
+
+Em geral, WER é muito mais usada que CER para avaliar sistemas de fala, pois exige maior compreensão do contexto das previsões. No exemplo, "sit" está no tempo verbal errado. Um sistema que entende a relação entre verbo e tempo da frase teria previsto "sat". Queremos incentivar esse nível de compreensão. Embora WER seja menos tolerante que CER, favorece mais os sistemas capazes de produzir texto inteligível que queremos desenvolver. Por isso, normalmente usamos WER e recomendamos que você também a use! Há, entretanto, situações em que isso não é possível. Certos idiomas, como mandarim e japonês, não têm a noção de "palavras", tornando WER sem sentido. Nesses casos, usamos CER.
+
+No exemplo, calculamos WER para uma única frase. Ao avaliar um sistema real, normalmente usamos um conjunto de teste com milhares de frases. Agregamos S, I, D e N em todas elas e depois calculamos WER com a fórmula anterior. Isso fornece uma estimativa melhor para dados ainda não vistos.
+
+## Normalização
+
+Se treinarmos um modelo ASR em dados com pontuação e maiúsculas e minúsculas, ele aprenderá a prever esses recursos nas transcrições. Isso é ótimo para aplicações reais, como transcrição de reuniões ou ditado, pois o texto previsto estará totalmente formatado. Esse estilo é chamado de *ortográfico*.
+
+Também podemos *normalizar* o conjunto, removendo a diferenciação entre maiúsculas e minúsculas e a pontuação. Isso simplifica a tarefa: o modelo não precisa distinguir os dois tipos de letras nem prever pontuação apenas pelo áudio. Afinal, que som faz um ponto e vírgula? Por isso, as taxas de erro são naturalmente menores, indicando resultados melhores. O artigo do Whisper demonstra o grande efeito da normalização nas métricas de WER (consulte a seção 4.4 do [artigo do Whisper](https://cdn.openai.com/papers/whisper.pdf)). Apesar da WER menor, o modelo não é necessariamente melhor para produção: a falta de pontuação e maiúsculas e minúsculas dificulta muito a leitura. Veja o exemplo da [seção anterior](asr_models), em que usamos Wav2Vec2 e Whisper na mesma amostra do LibriSpeech. Wav2Vec2 não prevê nenhum desses recursos; Whisper prevê ambos. Comparando as transcrições, a do Whisper é muito mais fácil de ler:
+
+```
+Wav2Vec2:  HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAUS AND ROSE BEEF LOOMING BEFORE US SIMALYIS DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
+Whisper:   He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similarly is drawn from eating and its results occur most readily to the mind.
+```
+
+Sua transcrição é ortográfica e está pronta para uso, formatada como esperamos em uma reunião ou ditado. Já as previsões do Wav2Vec2 exigiriam pós-processamento adicional para restaurar pontuação e maiúsculas e minúsculas antes de usá-las em aplicações posteriores.
+
+Há um meio-termo: treinar em transcrições ortográficas e normalizar previsões e referências antes de calcular WER. Assim, o sistema aprende a prever texto totalmente formatado e também obtemos a melhora na WER proporcionada pela normalização.
+
+Whisper foi lançado com um normalizador que trata de forma eficaz maiúsculas e minúsculas, pontuação e formatação de números, entre outros aspectos. Vamos aplicá-lo às transcrições para demonstrar:
+
+```python
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer
+
+normalizer = BasicTextNormalizer()
+
+prediction = " He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similarly is drawn from eating and its results occur most readily to the mind."
+normalized_prediction = normalizer(prediction)
+
+normalized_prediction
+```
+**Saída:**
+```
+' he tells us that at this festive season of the year with christmas and roast beef looming before us similarly is drawn from eating and its results occur most readily to the mind '
+```
+
+Todo o texto foi convertido para minúsculas e a pontuação foi removida. Agora vamos definir a referência e calcular WER normalizada entre ela e a previsão:
+
+```python
+reference = "HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND"
+normalized_referece = normalizer(reference)
+
+wer = wer_metric.compute(
+    references=[normalized_referece], predictions=[normalized_prediction]
+)
+wer
+```
+**Saída:**
+```
+0.0625
+```
+
+6,25%: aproximadamente o esperado do Whisper base na validação do LibriSpeech. Produzimos uma transcrição ortográfica e obtivemos a melhora na WER ao normalizar referência e previsão antes do cálculo.
+
+A escolha da normalização depende de suas necessidades. Recomendamos treinar em texto ortográfico e avaliar em texto normalizado para combinar as vantagens das duas abordagens.
+
+## Combinando tudo
+
+Até aqui, abordamos três temas nesta unidade: modelos pré-treinados, seleção de dados e avaliação. Vamos reuni-los em um exemplo completo 🚀! Para preparar a próxima seção de ajuste fino, avaliaremos Whisper pré-treinado no conjunto de teste em dhivehi do Common Voice 13. Usaremos a WER obtida como _linha de base_, ou seja, um valor que tentaremos superar com o ajuste fino 🥊.
+
+Primeiro, carregamos o modelo com `pipeline()`. Esse processo já deve ser familiar! A única novidade é carregá-lo em meia precisão (float16) quando usarmos uma GPU. Isso acelera a inferência com impacto quase nulo na WER.
+
+```python
+from transformers import pipeline
+import torch
+
+if torch.cuda.is_available():
+    device = "cuda:0"
+    torch_dtype = torch.float16
+else:
+    device = "cpu"
+    torch_dtype = torch.float32
+
+pipe = pipeline(
+    "automatic-speech-recognition",
+    model="openai/whisper-small",
+    torch_dtype=torch_dtype,
+    device=device,
+)
+```
+
+Em seguida, carregamos a divisão de teste em dhivehi. Como vimos, Common Voice 13 tem *acesso restrito*: precisamos aceitar os termos de uso antes de acessá-lo. Podemos vincular a conta Hugging Face ao notebook para acessar os dados na máquina que estamos usando.
+
+Isso é simples: basta inserir seu token de autenticação do Hub quando solicitado. Você pode encontrá-lo [aqui](https://huggingface.co/settings/tokens):
+
+```python
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+Depois de vincular a conta, podemos baixar o Common Voice. O download e o pré-processamento levarão alguns minutos; os dados serão obtidos do Hub e preparados automaticamente no notebook:
+
+```python
+from datasets import load_dataset
+
+common_voice_test = load_dataset(
+    "mozilla-foundation/common_voice_13_0", "dv", split="test"
+)
+```
+
+<Tip>
+    Se houver um problema de autenticação ao carregar os dados, confira se aceitou os termos de uso no Hub pelo link: https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
+</Tip>
+
+Avaliar todo o conjunto é parecido com avaliar um único exemplo: basta **iterar** sobre os áudios em vez de executar inferência em uma só amostra. Primeiro, transformamos o conjunto em `KeyDataset`. Isso seleciona apenas a coluna que queremos passar ao modelo, neste caso `"audio"`, e ignora as demais, como as transcrições de referência, que não devem ser usadas na inferência. Iteramos então sobre o conjunto transformado e acrescentamos as saídas a uma lista para salvar as previsões. A célula abaixo leva aproximadamente cinco minutos em uma GPU com meia precisão, com pico de memória de 12 GB:
+
+```python
+from tqdm import tqdm
+from transformers.pipelines.pt_utils import KeyDataset
+
+all_predictions = []
+
+# run streamed inference
+for prediction in tqdm(
+    pipe(
+        KeyDataset(common_voice_test, "audio"),
+        max_new_tokens=128,
+        generate_kwargs={"task": "transcribe"},
+        batch_size=32,
+    ),
+    total=len(common_voice_test),
+):
+    all_predictions.append(prediction["text"])
+```
+
+<Tip>
+    Se houver um erro CUDA de falta de memória (OOM), reduza <code>batch_size</code> progressivamente pela metade até encontrar um tamanho compatível com o dispositivo.
+</Tip>
+
+Por fim, calculamos WER. Primeiro, a WER ortográfica, sem pós-processamento:
+
+```python
+from evaluate import load
+
+wer_metric = load("wer")
+
+wer_ortho = 100 * wer_metric.compute(
+    references=common_voice_test["sentence"], predictions=all_predictions
+)
+wer_ortho
+```
+**Saída:**
+```
+167.29577268612022
+```
+
+Bem... 167% significa, essencialmente, que o modelo está produzindo resultados sem utilidade 😜. Não se preocupe: nosso objetivo será melhorar isso ajustando o modelo no conjunto de treinamento em dhivehi!
+
+Depois, avaliamos WER normalizada, com pós-processamento de normalização. Precisamos filtrar amostras que ficariam vazias após essa etapa; caso contrário, o número total de palavras na referência (N) seria zero e causaria uma divisão por zero:
+
+```python
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer
+
+normalizer = BasicTextNormalizer()
+
+# compute normalised WER
+all_predictions_norm = [normalizer(pred) for pred in all_predictions]
+all_references_norm = [normalizer(label) for label in common_voice_test["sentence"]]
+
+# filtering step to only evaluate the samples that correspond to non-zero references
+all_predictions_norm = [
+    all_predictions_norm[i]
+    for i in range(len(all_predictions_norm))
+    if len(all_references_norm[i]) > 0
+]
+all_references_norm = [
+    all_references_norm[i]
+    for i in range(len(all_references_norm))
+    if len(all_references_norm[i]) > 0
+]
+
+wer = 100 * wer_metric.compute(
+    references=all_references_norm, predictions=all_predictions_norm
+)
+
+wer
+```
+**Saída:**
+```
+125.69809089960707
+```
+
+Novamente, vemos a grande redução na WER obtida com a normalização: o modelo de base alcança WER ortográfica de 168% no teste, enquanto a normalizada é de 126%.
+
+Esses são os valores que tentaremos superar com o ajuste fino para melhorar Whisper no reconhecimento de fala em dhivehi. Continue para colocar em prática um exemplo de ajuste fino 🚀!

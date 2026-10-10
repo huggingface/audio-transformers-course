@@ -1,0 +1,28 @@
+# O que você aprenderá e construirá
+
+Nesta seção, veremos como usar Transformers para converter fala em texto, uma tarefa conhecida como _reconhecimento de fala_.
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/asr_diagram.png" alt="Diagrama de conversão de fala em texto">
+</div>
+
+O reconhecimento de fala, também chamado de reconhecimento automático de fala (ASR) ou conversão de fala em texto (STT), é uma das tarefas mais populares e empolgantes do processamento da linguagem falada. Ele é usado em muitas aplicações, como ditado, assistentes de voz, legendagem de vídeos e transcrição de reuniões.
+
+Você provavelmente já usou um sistema de reconhecimento de fala muitas vezes sem perceber! Pense no assistente digital de seu smartphone, como Siri, Google Assistant ou Alexa. Quando você usa um desses assistentes, a primeira coisa que ele faz é transcrever sua fala em texto escrito, pronto para as tarefas seguintes, como consultar a previsão do tempo 🌤️.
+
+Experimente a demonstração abaixo. Você pode gravar sua voz com o microfone ou arrastar e soltar uma amostra de áudio para transcrevê-la:
+
+<iframe src="https://course-demos-whisper-small.hf.space" frameborder="0" width="850" height="450"> </iframe>
+
+O reconhecimento de fala é uma tarefa difícil, pois exige conhecimento tanto de áudio quanto de texto. A entrada pode ter muito ruído de fundo e conter falantes com diferentes sotaques, dificultando a identificação da fala. O texto escrito pode incluir caracteres sem um som correspondente, como sinais de pontuação, difíceis de inferir apenas pelo áudio. Precisamos superar todos esses obstáculos para construir sistemas eficazes de reconhecimento de fala!
+
+Agora que definimos a tarefa, podemos examiná-la com mais detalhes. Ao final desta unidade, você terá uma boa compreensão dos fundamentos dos diferentes modelos pré-treinados disponíveis para reconhecimento de fala e de como usá-los com 🤗 Transformers. Também conhecerá o procedimento para ajustar um modelo ASR a um domínio ou idioma de sua escolha, permitindo criar um sistema de bom desempenho para a tarefa que encontrar. Você poderá mostrar seu modelo a amigos e familiares criando uma demonstração ao vivo que recebe fala e a converte em texto!
+
+Especificamente, abordaremos:
+
+* [Modelos pré-treinados para reconhecimento de fala](asr_models)
+* [Escolha de um conjunto de dados](choosing_dataset)
+* [Avaliação e métricas para reconhecimento de fala](evaluation)
+* [Como ajustar um sistema ASR com a API Trainer](fine-tuning)
+* [Criação de uma demonstração](demo)
+* [Exercício prático](hands_on)

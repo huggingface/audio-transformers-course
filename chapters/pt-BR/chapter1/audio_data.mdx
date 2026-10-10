@@ -1,54 +1,54 @@
-# Introdução a dados de áudio
+# Introdução aos dados de áudio
 
-Por natureza, uma onda sonora é um sinal contínuo, o que significa que contém um número infinito de valores de sinal em um determinado tempo. Isso traz problemas para dispositivos digitais que esperam arrays finitos. Para ser processada, armazenada e transmitida por dispositivos digitais, a onda sonora contínua precisa ser convertida em uma série de valores discretos, conhecidos como representação digital.
+Por natureza, uma onda sonora é um sinal contínuo: ela contém uma quantidade infinita de valores do sinal em um determinado intervalo de tempo. Isso é um problema para dispositivos digitais, que trabalham com arrays finitos. Para ser processada, armazenada e transmitida por esses dispositivos, a onda sonora contínua precisa ser convertida em uma sequência de valores discretos, conhecida como representação digital.
 
-Se você olhar para qualquer dataset de áudio, encontrará arquivos digitais com trechos de som, como narração de texto ou música. Você pode encontrar diferentes formatos de arquivo, como `.wav` (Waveform Audio File), `.flac` (Free Lossless Audio Codec) e `.mp3` (MPEG-1 Audio Layer 3). Esses formatos diferem principalmente na forma como comprimem a representação digital do sinal de áudio.
+Ao examinar um conjunto de dados de áudio, você encontrará arquivos digitais com trechos de som, como narração de texto ou música. Os arquivos podem ter formatos como `.wav` (Waveform Audio File), `.flac` (Free Lossless Audio Codec) e `.mp3` (MPEG-1 Audio Layer 3). Esses formatos diferem principalmente na maneira como comprimem a representação digital do sinal de áudio.
 
-Vamos dar uma olhada em como saímos de um sinal contínuo para essa representação. O sinal analógico é primeiro capturado por um microfone, que converte as ondas sonoras em um sinal elétrico. O sinal elétrico é então digitalizado por um Conversor Analógico-Digital para obter a representação digital por meio da amostragem.
+Vamos ver como passamos de um sinal contínuo para essa representação. Primeiro, um microfone capta o sinal analógico, convertendo as ondas sonoras em um sinal elétrico. Em seguida, um conversor analógico-digital digitaliza o sinal elétrico, produzindo a representação digital por meio da amostragem.
 
 ## Amostragem e taxa de amostragem
 
-Amostragem (sampling) é o processo de medir o valor de um sinal contínuo em etapas (amostras) que possuem o mesmo tempo. A forma da onda que foi amostrada é _discreta_, pois contém um número finito dos valores do sinal em intervalos uniformes.
+Amostragem é o processo de medir o valor de um sinal contínuo em intervalos fixos de tempo. A forma de onda amostrada é _discreta_, pois contém uma quantidade finita de valores do sinal em intervalos uniformes.
 
 <div class="flex justify-center">
-    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/Signal_Sampling.png" alt="Ilustração de amostragem de sinal">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/Signal_Sampling.png" alt="Ilustração da amostragem de um sinal">
 </div>
 
-*Ilustração deste artigo da Wikipedia: [Amostragem (processamento de sinal)](https://en.wikipedia.org/wiki/Sampling_(signal_processing))*
+*Ilustração do artigo da Wikipédia: [Amostragem (processamento de sinais)](https://en.wikipedia.org/wiki/Sampling_(signal_processing))*
 
-A **taxa de amostragem** (também chamada de frequência de amostragem, sampling rate ou sampling frequency) é o número de amostras feitas em um segundo e é medida em hertz (Hz). Para você ter ideia, áudio com qualidade de CD tem uma taxa de amostragem de 44.100 Hz, o que significa que as amostras são feitas 44.100 vezes por segundo. Para comparação, o áudio de alta resolução tem uma taxa de amostragem de 192.000 Hz ou 192 kHz. Uma taxa de amostragem comum usada no treinamento de modelos de fala é de 16.000 Hz ou 16 kHz.
+A **taxa de amostragem**, também chamada de frequência de amostragem, é a quantidade de amostras coletadas em um segundo e é medida em hertz (Hz). Como referência, áudio com qualidade de CD tem taxa de amostragem de 44.100 Hz, ou seja, são coletadas 44.100 amostras por segundo. Em comparação, áudio de alta resolução tem taxa de amostragem de 192.000 Hz, ou 192 kHz. Uma taxa comum no treinamento de modelos de fala é de 16.000 Hz, ou 16 kHz.
 
-A escolha da taxa de amostragem determina, principalmente, a maior frequência que pode ser capturada do sinal. Isso também é conhecido como o limite de Nyquist e é exatamente a metade da taxa de amostragem. As frequências audíveis na fala humana estão abaixo de 8 kHz e, portanto, amostrar a fala a 16 kHz é suficiente. Usar uma taxa de amostragem mais alta não capturará mais informações e apenas leva a um aumento no custo computacional de processar tais arquivos. Por outro lado, amostrar áudio em uma taxa de amostragem muito baixa resultará em perda de informação. A fala amostrada a 8 kHz soará abafada, pois as frequências mais altas não podem ser capturadas nessa taxa.
+A escolha da taxa de amostragem determina principalmente a maior frequência que pode ser capturada do sinal. Esse valor, conhecido como limite de Nyquist, corresponde exatamente à metade da taxa de amostragem. As frequências audíveis da fala humana ficam abaixo de 8 kHz, portanto, amostrar a fala a 16 kHz é suficiente. Usar uma taxa maior não captura mais informações e apenas aumenta o custo computacional do processamento desses arquivos. Por outro lado, usar uma taxa muito baixa causa perda de informação. A fala amostrada a 8 kHz soa abafada, pois as frequências mais altas não podem ser capturadas nessa taxa.
 
-É importante garantir que todos os exemplos de áudio no seu dataset tenham a mesma taxa de amostragem ao trabalhar em qualquer processamento de áudio. Se você planeja usar dados de áudio personalizados para ajustar um modelo pré-treinado, a taxa de amostragem dos seus dados deve corresponder à taxa de amostragem dos dados em que o modelo foi pré-treinado. A taxa de amostragem determina o intervalo de tempo entre amostras de áudio sucessivas, o que impacta a resolução temporal dos dados de áudio. Considere um exemplo: um som de 5 segundos a uma taxa de amostragem de 16.000 Hz será representado como uma série de 80.000 valores (16.000 x 5), enquanto o mesmo som de 5 segundos a uma taxa de amostragem de 8.000 Hz será representado como uma série de 40.000 valores. Modelos Transformers que resolvem tarefas de áudio tratam exemplos como sequências e dependem de mecanismos de atenção para aprender áudio ou representações multimodais. Como as sequências são diferentes para exemplos de áudio em diferentes taxas de amostragem, será desafiador para os modelos generalizarem entre taxas de amostragem. **Reamostragem** (Resampling) é o processo de fazer as taxas de amostragem se igualarem, e faz parte do [pré-processamento](preprocessing#resampling-the-audio-data) dos dados de áudio.
+Em qualquer tarefa de áudio, é importante garantir que todos os exemplos do conjunto de dados tenham a mesma taxa de amostragem. Para usar seus próprios dados de áudio no ajuste fino de um modelo pré-treinado, a taxa de seus dados deve corresponder à dos dados usados no pré-treinamento. A taxa de amostragem determina o intervalo entre amostras sucessivas e afeta a resolução temporal dos dados de áudio. Por exemplo, um som de 5 segundos a 16.000 Hz é representado por uma sequência de 80.000 valores; o mesmo som a 8.000 Hz é representado por 40.000 valores. Modelos transformer para tarefas de áudio tratam os exemplos como sequências e usam mecanismos de atenção para aprender representações de áudio ou multimodais. Como as sequências diferem conforme a taxa de amostragem, é difícil para os modelos generalizar entre taxas distintas. **Reamostragem** é o processo de fazer as taxas de amostragem corresponderem e faz parte do [pré-processamento](preprocessing#reamostragem-dos-dados-de-áudio) dos dados de áudio.
 
-## Amplitude e profundidade de bits (bit depth)
+## Amplitude e profundidade de bits
 
-Enquanto a taxa de amostragem diz com que frequência as amostras são feitas, o que exatamente são os valores em cada amostra?
+A taxa de amostragem informa com que frequência as amostras são coletadas. Mas o que são os valores de cada amostra?
 
-O som é feito por mudanças na pressão do ar em frequências audíveis para humanos. A **amplitude** de um som descreve o nível de pressão sonora em um dado momento e é medida em decibéis (dB). Percebemos a amplitude como volume. Para lhe dar um exemplo, uma voz falando normalmente está abaixo de 60 dB, e um show de rock pode estar em torno de 125 dB, forçando os limites da audição humana.
+O som é produzido por variações na pressão do ar em frequências audíveis para os seres humanos. A **amplitude** de um som descreve o nível de pressão sonora em um determinado instante e é medida em decibéis (dB). Percebemos a amplitude como intensidade sonora. Por exemplo, uma voz em uma conversa normal fica abaixo de 60 dB, enquanto um show de rock pode chegar a cerca de 125 dB, próximo aos limites da audição humana.
 
-No áudio digital, cada amostra do áudio é o valor da amplitude da onda sonora em um ponto no tempo. A **profundidade de bits** (bit depth) da amostra determina o quão preciso esse valor pode ser. Quanto maior a profundidade de bits, mais fiel será a representação digital da onda sonora contínua original.
+No áudio digital, cada amostra registra a amplitude da onda sonora em um instante. A **profundidade de bits** da amostra determina a precisão com que esse valor de amplitude pode ser descrito. Quanto maior a profundidade de bits, mais fielmente a representação digital aproxima a onda sonora contínua original.
 
-As profundidades de bit de áudio mais comuns são 16 bits e 24 bits. Cada uma representa o número máximo de valores distintos que podem ser registrados em cada amostra: 65.536 valores para áudio de 16 bits, impressionantes 16.777.216 valores para áudio de 24 bits. Devido ao fato que essa quantização do valor contínuo para o discreto envolve arredondamento, o processo de amostragem causa ruído. Quanto maior a profundidade de bits, menor esse ruído de quantização. Na prática, o ruído de quantização do áudio de 16 bits já é pequeno o suficiente para ser inaudível, e usar profundidades de bits maiores geralmente não é necessário.
+As profundidades de bits mais comuns são 16 e 24 bits. Cada uma corresponde a uma quantidade de valores binários possíveis para quantizar a amplitude na conversão de contínuo para discreto: 65.536 níveis para áudio de 16 bits e nada menos que 16.777.216 níveis para áudio de 24 bits. Como a quantização arredonda um valor contínuo para um valor discreto, o processo de amostragem introduz ruído. Quanto maior a profundidade de bits, menor o ruído de quantização. Na prática, o ruído de quantização do áudio de 16 bits já é baixo o suficiente para ser inaudível, e geralmente não é necessário usar profundidades maiores.
 
-Você também pode encontrar áudio de 32 bits. Isso armazena as amostras como valores de ponto flutuante (decimal), enquanto o áudio de 16 bits e 24 bits usa amostras inteiras. A precisão de um valor de ponto flutuante de 32 bits é de 24 bits, dando-lhe a mesma profundidade de bits que o áudio de 24 bits. Amostras de áudio de ponto flutuante são esperadas para estar dentro do intervalo [-1.0, 1.0]. Como os modelos de machine learning trabalham naturalmente com dados de ponto flutuante, o áudio deve primeiro ser convertido para o formato de ponto flutuante antes de poder ser usado para treinar o modelo. Veremos como fazer isso na próxima seção sobre [Pré-processamento](preprocessing).
+Você também pode encontrar áudio de 32 bits. Ele armazena as amostras como valores de ponto flutuante, enquanto áudio de 16 e 24 bits usa amostras inteiras. A precisão de um valor de ponto flutuante de 32 bits é de 24 bits, equivalente à profundidade do áudio de 24 bits. Espera-se que as amostras de áudio em ponto flutuante estejam no intervalo [-1.0, 1.0]. Como os modelos de aprendizado de máquina trabalham naturalmente com dados de ponto flutuante, o áudio precisa primeiro ser convertido para esse formato antes de ser usado no treinamento. Veremos como fazer isso na seção de [pré-processamento](preprocessing).
 
-Assim como com sinais de áudio contínuos, a amplitude do áudio digital é tipicamente expressa em decibéis (dB). Como a audição humana é logarítmica por natureza — nossos ouvidos são mais sensíveis a pequenas flutuações em sons silenciosos do que em sons altos — a intensidade de um som é mais fácil de interpretar se as amplitudes estiverem em decibéis, que também são logarítmicos. A escala de decibéis para áudio do mundo real começa em 0 dB, que representa o som mais baixo possível que os humanos podem ouvir, e sons mais altos têm valores maiores. No entanto, para sinais de áudio digitais, 0 dB é a amplitude mais alta possível, enquanto todas as outras amplitudes são negativas. Como uma regra rápida: a cada -6 dB é uma redução pela metade da amplitude, e qualquer coisa abaixo de -60 dB geralmente é inaudível a menos que você realmente aumente o volume.
+Assim como nos sinais contínuos, a amplitude do áudio digital costuma ser expressa em decibéis (dB). A audição humana é logarítmica: nossos ouvidos são mais sensíveis a pequenas variações em sons baixos do que em sons altos. Por isso, é mais fácil interpretar a intensidade sonora quando a amplitude é expressa em decibéis, que também são logarítmicos. A escala de decibéis para o áudio no mundo real começa em 0 dB, o som mais baixo que os seres humanos conseguem ouvir, e sons mais altos têm valores maiores. Nos sinais de áudio digital, porém, 0 dB é a maior amplitude possível, e todas as outras amplitudes são negativas. Como regra prática, cada redução de 6 dB corresponde à metade da amplitude, e valores abaixo de -60 dB geralmente são inaudíveis, a menos que você aumente muito o volume.
 
-## Áudio como uma forma de onda
+## Áudio como forma de onda
 
-Você já pode ter visto sons visualizados como uma **forma de onda**, que traça os valores das amostras ao longo do tempo e ilustra as mudanças na amplitude do som. Isso também é conhecido como a representação do *domínio do tempo* do som.
+Você talvez já tenha visto sons representados como uma **forma de onda**, que mostra os valores das amostras ao longo do tempo e as variações na amplitude do som. Essa também é chamada de representação do som no *domínio do tempo*.
 
-Esse tipo de visualização é útil para identificar características específicas do sinal de áudio, como o momento de eventos sonoros individuais, o volume geral do sinal e quaisquer irregularidades ou ruídos presentes no áudio.
+Essa visualização ajuda a identificar características específicas do sinal de áudio, como os instantes em que ocorrem eventos sonoros, a intensidade geral do sinal e quaisquer irregularidades ou ruídos.
 
-Para traçar a forma de onda de um sinal de áudio, podemos usar uma biblioteca Python chamada `librosa`:
+Para representar a forma de onda de um sinal de áudio, podemos usar uma biblioteca Python chamada `librosa`:
 
 ```bash
 pip install librosa
 ```
 
-Vamos pegar um exemplo de som chamado "trompete" que vem com a biblioteca:
+Vamos usar o som de exemplo chamado "trumpet", incluído na biblioteca:
 
 ```py
 import librosa
@@ -56,7 +56,7 @@ import librosa
 array, sampling_rate = librosa.load(librosa.ex("trumpet"))
 ```
 
-O exemplo é carregado como uma tupla contendo uma sequencia temporal de áudio (aqui chamamos de `array`) e a taxa de amostragem (`sampling_rate`). Vamos dar uma olhada na forma de onda deste som usando a função `waveshow()` da librosa:
+O exemplo é carregado como uma tupla que contém a série temporal do áudio, chamada aqui de `array`, e a taxa de amostragem, `sampling_rate`. Vamos visualizar sua forma de onda com a função `waveshow()` da librosa:
 
 ```py
 import matplotlib.pyplot as plt
@@ -67,34 +67,34 @@ librosa.display.waveshow(array, sr=sampling_rate)
 ```
 
 <div class="flex justify-center">
-    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/waveform_plot.png" alt="Forma de onda">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/waveform_plot.png" alt="Gráfico de forma de onda">
 </div>
 
-Isso coloca a amplitude do sinal no eixo y e o tempo ao longo do eixo x. Em outras palavras, cada ponto corresponde a um único valor de amostra que foi feito quando este som foi amostrado. Também observe que a librosa já retorna o áudio como valores de ponto flutuante e que os valores de amplitude estão de fato dentro do intervalo [-1,0, 1,0].
+O gráfico mostra a amplitude do sinal no eixo y e o tempo no eixo x. Cada ponto corresponde ao valor de uma amostra coletada quando esse som foi amostrado. Observe também que a librosa já retorna o áudio como valores de ponto flutuante e que as amplitudes estão, de fato, no intervalo [-1.0, 1.0].
 
-Visualizar o áudio junto com ouvi-lo pode ser uma ferramenta útil para entender os dados com os quais você está trabalhando. Você pode ver a forma do sinal, observar padrões, aprender a identificar ruídos ou distorção. Se você pré-processar dados de alguma forma, como normalização, reamostragem ou filtragem, você pode confirmar visualmente que as etapas de pré-processamento foram aplicadas conforme esperado. Após treinar um modelo, você também pode visualizar amostras onde ocorrem erros (por exemplo, em tarefa de classificação de áudio) para fazer o debug do problema.
+Visualizar o áudio e ouvi-lo ajuda a entender os dados com que você está trabalhando. Você pode observar a forma do sinal, reconhecer padrões e aprender a identificar ruído ou distorção. Ao pré-processar os dados, por exemplo, com normalização, reamostragem ou filtragem, você pode conferir visualmente se as etapas foram aplicadas como esperado. Depois de treinar um modelo, também pode visualizar exemplos em que ocorreram erros, como em uma tarefa de classificação de áudio, para investigar o problema.
 
 ## O espectro de frequência
 
-Outra maneira de visualizar dados de áudio é plotar o **espectro de frequência** de um sinal de áudio, também conhecido como a representação do *domínio da frequência*. O espectro é calculado usando a transformada de Fourier discreta ou DFT. Ele descreve as frequências individuais que compõem o sinal e quão fortes elas são.
+Outra maneira de visualizar dados de áudio é representar o **espectro de frequência** do sinal, também conhecido como representação no *domínio da frequência*. O espectro é calculado com a transformada discreta de Fourier, ou DFT. Ele descreve as frequências individuais que compõem o sinal e suas intensidades.
 
-Vamos plotar o espectro de frequência para o mesmo som de trompete, fazendo a DFT usando a função `rfft()` do numpy. Embora seja possível plotar o espectro de todo o som, é mais útil olhar para uma pequena região em vez disso. Aqui vamos fazer a DFT sobre as primeiras 4096 amostras, que é aproximadamente o comprimento da primeira nota sendo tocada:
+Vamos representar o espectro de frequência do mesmo som de trompete, calculando a DFT com a função `rfft()` do NumPy. Embora seja possível representar o espectro do som inteiro, é mais útil examinar uma região pequena. Aqui, calcularemos a DFT das primeiras 4096 amostras, que correspondem aproximadamente à duração da primeira nota tocada:
 
 ```py
 import numpy as np
 
 dft_input = array[:4096]
 
-# calcula a DFT
+# calculate the DFT
 window = np.hanning(len(dft_input))
 windowed_input = dft_input * window
 dft = np.fft.rfft(windowed_input)
 
-# obtém as amplitude do espectro, em decibeis
+# get the amplitude spectrum in decibels
 amplitude = np.abs(dft)
 amplitude_db = librosa.amplitude_to_db(amplitude, ref=np.max)
 
-# obtém a frquency bins (faixas de frequencia)
+# get the frequency bins
 frequency = librosa.fft_frequencies(sr=sampling_rate, n_fft=len(dft_input))
 
 plt.figure().set_figwidth(12)
@@ -105,32 +105,32 @@ plt.xscale("log")
 ```
 
 <div class="flex justify-center">
-    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/spectrum_plot.png" alt="Spectrum plot">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/spectrum_plot.png" alt="Gráfico do espectro de frequência">
 </div>
 
-Isso mostra um gráfico com a força de várias frequências que estão presentes neste trecho de áudio. Os valores da frequência estão no eixo x, geralmente plotados em uma escala logarítmica, enquanto suas amplitudes estão no eixo y.
+Esse gráfico mostra a intensidade dos diferentes componentes de frequência presentes no trecho de áudio. As frequências aparecem no eixo x, geralmente em escala logarítmica, e suas amplitudes no eixo y.
 
-O espectro de frequência que plotamos mostra vários picos. Esses picos correspondem aos harmônicos da nota que está sendo tocada, com os harmônicos superiores sendo mais silenciosos. Como o primeiro pico está em torno de 620 Hz, este é o espectro de frequência de uma nota E♭ (Mi bemol).
+O espectro que representamos tem vários picos. Eles correspondem aos harmônicos da nota tocada, com os harmônicos mais altos apresentando menor intensidade. Como o primeiro pico está em torno de 620 Hz, esse é o espectro de frequência de uma nota mi bemol (E♭).
 
-O resultado da DFT é um array de números complexos, compostos de componentes reais e imaginários. Obtendo a magnitude (valor absoluto, sem sinal) com `np.abs(dft)`, extraímos as informação de amplitude do espectrograma. O ângulo entre os componentes reais e imaginários fornece o chamado espectro de fase, mas isso é frequentemente descartado em aplicações de machine learning.
+A saída da DFT é um array de números complexos, com componentes reais e imaginários. Calcular a magnitude com `np.abs(dft)` extrai a informação de amplitude do espectrograma. O ângulo entre os componentes reais e imaginários fornece o chamado espectro de fase, mas ele costuma ser descartado em aplicações de aprendizado de máquina.
 
-Você usou `librosa.amplitude_to_db()` para converter os valores de amplitude para a escala de decibéis, facilitando a visualização dos mínimos detalhes no espectro. Às vezes, as pessoas usam o **espectro de potência**, que mede a energia em vez da amplitude; isso é simplesmente um espectro com os valores de amplitude ao quadrado.
+Usamos `librosa.amplitude_to_db()` para converter as amplitudes para a escala de decibéis e facilitar a visualização dos detalhes do espectro. Às vezes, usa-se o **espectro de potência**, que mede energia em vez de amplitude: basta elevar ao quadrado os valores de amplitude do espectro.
 
 <Tip>
-💡 Na prática, as pessoas usam o termo FFT e DFT como sinônimos, já que a FFT, ou Fast Fouriter Transform (Transformada Rápida de Fourier), é a única maneira eficiente de calcular a DFT em um computador.
+💡 Na prática, os termos FFT e DFT são usados de forma intercambiável, pois a FFT, ou transformada rápida de Fourier, é a única maneira eficiente de calcular a DFT em um computador.
 </Tip>
 
-O espectro de frequência de um sinal de áudio contém exatamente as mesmas informações que sua forma de onda — são simplesmente duas maneiras diferentes de olhar para os mesmos dados (no caso, as primeiras 4096 amostras do som de trompete). Enquanto a forma de onda traça a amplitude do sinal de áudio ao longo do tempo, o espectro visualiza as amplitudes de cada frequência em um ponto fixo no tempo.
+O espectro de frequência de um sinal de áudio contém exatamente as mesmas informações que sua forma de onda: são duas maneiras de observar os mesmos dados, neste caso, as primeiras 4096 amostras do som de trompete. A forma de onda representa a amplitude do sinal ao longo do tempo, enquanto o espectro mostra as amplitudes das frequências individuais em um instante fixo.
 
 ## Espectrograma
 
-E se quisermos ver como as frequências em um sinal de áudio mudam? O trompete toca várias notas e todas elas têm frequências diferentes. O problema é que o espectro mostra apenas "uma foto" das frequências em um dado instante. A solução é fazer várias DFTs, cada uma cobrindo apenas uma pequena fatia de tempo, e empilhar os espectros resultantes formando um **espectrograma**.
+E se quisermos ver como as frequências de um sinal de áudio mudam? O trompete toca várias notas, cada uma com frequências diferentes. O problema é que o espectro mostra apenas uma imagem congelada das frequências em um instante. A solução é calcular várias DFTs, cada uma cobrindo um pequeno intervalo de tempo, e reunir os espectros em um **espectrograma**.
 
-Um espectrograma mostra o conteúdo da frequência de um sinal de áudio à ao longo do tempo. Ele permite que você veja tempo, frequência e amplitude tudo em um único gráfico. O algoritmo que realiza esse cálculo é o STFT (Short Time Fourier Transform) ou Transformada de Fourier de Tempo Curto.
+Um espectrograma mostra como o conteúdo de frequência de um sinal muda ao longo do tempo. Ele permite visualizar tempo, frequência e amplitude em um único gráfico. O algoritmo usado nesse cálculo é a STFT, ou transformada de Fourier de tempo curto.
 
-O espectrograma é uma das ferramentas de áudio mais informativas disponíveis para você. Por exemplo, ao trabalhar com uma gravação de música, você pode ver os vários instrumentos e faixas vocais e como eles contribuem para o som geral. Na fala, você pode identificar diferentes sons de vogais, pois cada vogal é caracterizada por frequências particulares.
+O espectrograma é uma das ferramentas mais informativas para trabalhar com áudio. Em uma gravação musical, por exemplo, você pode visualizar os diferentes instrumentos e as trilhas vocais e entender como contribuem para o som completo. Na fala, é possível identificar diferentes sons de vogais, pois cada vogal se caracteriza por frequências específicas.
 
-Vamos plotar um espectrograma para o mesmo som de trompete, usando as funções `stft()` e `specshow()` da librosa:
+Vamos representar um espectrograma do mesmo som de trompete usando as funções `stft()` e `specshow()` da librosa:
 
 ```py
 import numpy as np
@@ -144,33 +144,28 @@ plt.colorbar()
 ```
 
 <div class="flex justify-center">
-    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/spectrogram_plot.png" alt="Spectrogram plot">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/spectrogram_plot.png" alt="Gráfico de espectrograma">
 </div>
 
-Neste gráfico, o eixo x representa o tempo como na visualização da forma de onda, mas agora o eixo y representa a frequência em Hz. A intensidade da cor dá a amplitude ou potência do componente de frequência em cada ponto no tempo, medida em decibéis (dB).
+Nesse gráfico, o eixo x representa o tempo, como na forma de onda, mas agora o eixo y representa a frequência em Hz. A intensidade da cor indica a amplitude ou potência do componente de frequência em cada instante, medida em decibéis (dB).
 
-O espectrograma é criado obtendo trechos curtos do sinal de áudio, geralmente durando alguns milissegundos, e calculando a transformada de Fourier discreta de cada trecho para obter seu espectro de frequência. Os espectros resultantes são colocados em sequência eixo do tempo para criar o espectrograma. Cada fatia vertical nesta imagem corresponde a um único espectro de frequência, como se o gráfico fosse girado. Por padrão, `librosa.stft()` divide o sinal de áudio em trechos de 2048 amostras, o que dá um bom equilíbrio entre resolução de frequência e resolução de tempo.
+O espectrograma é criado dividindo o sinal em segmentos curtos, geralmente de alguns milissegundos, e calculando a transformada discreta de Fourier de cada segmento para obter seu espectro. Os espectros são então reunidos ao longo do eixo do tempo. Cada faixa vertical da imagem corresponde a um único espectro de frequência visto de cima. Por padrão, `librosa.stft()` divide o sinal em segmentos de 2048 amostras, o que oferece um bom equilíbrio entre resolução de frequência e resolução temporal.
 
-Como o espectrograma e a forma de onda são visualizações diferentes dos mesmos dados, é possível transformar o espectrograma de volta na forma de onda original usando a STFT inversa. No entanto, isso requer a informação de fase, além da amplitude. Se o espectograma foi gerado por um modelo de machine learning, geralmente ele contém só as amplitudes. Neste caso, nós podemos usar um algoritmo de reconstrução de fase como o clássico algoritmo de Griffin-Lim ou usar uma rede neural chamada vocoder, que reconstroi a forma de onda partir do espectograma.
+Como o espectrograma e a forma de onda são diferentes representações dos mesmos dados, é possível recuperar a forma de onda original com a STFT inversa. Isso, porém, exige informações de fase além das de amplitude. Um espectrograma gerado por um modelo de aprendizado de máquina normalmente contém apenas amplitudes. Nesse caso, podemos usar um algoritmo de reconstrução de fase, como o clássico Griffin-Lim, ou uma rede neural chamada vocoder, para reconstruir a forma de onda a partir do espectrograma.
 
-Os espectrogramas não são usados apenas para visualização. Muitos modelos de machine learning utilizam espectrogramas como entrada — ao invés de formas de onda — e produzem espectrogramas como saída.
+Espectrogramas não servem apenas para visualização. Muitos modelos de aprendizado de máquina recebem espectrogramas como entrada, em vez de formas de onda, e também produzem espectrogramas como saída.
 
-Agora que sabemos o que é um espectrograma e como é feito, vamos dar uma olhada em uma variante dele amplamente usada para o processamento de fala: o espectrograma mel.
+Agora que sabemos o que é um espectrograma e como ele é construído, vamos conhecer uma variação muito usada no processamento de fala: o espectrograma mel.
 
-## Espectrograma Mel
+## Espectrograma mel
 
-Um espectrograma mel é uma variação do espectrograma que é comumente usada no processamento de fala e tarefas de machine learning.
-É semelhante a um espectrograma no sentido de que mostra o conteúdo de frequência de um sinal de áudio ao longo do tempo, mas em um eixo de frequência diferente.
+Um espectrograma mel é uma variação do espectrograma muito usada em processamento de fala e tarefas de aprendizado de máquina. Assim como o espectrograma comum, ele mostra o conteúdo de frequência do sinal ao longo do tempo, mas usa um eixo de frequência diferente.
 
-Em um espectrograma padrão, o eixo de frequência é linear e é medido em hertz (Hz). No entanto, o sistema auditivo humano
-é mais sensível a mudanças em frequências mais baixas do que em frequências mais altas, e essa sensibilidade diminui logaritmicamente
-à medida que a frequência aumenta. A escala mel é uma escala perceptual que aproxima a resposta de frequência não linear do ouvido humano.
+No espectrograma convencional, o eixo de frequência é linear e medido em hertz (Hz). O sistema auditivo humano, porém, é mais sensível a mudanças em frequências baixas do que em frequências altas, e essa sensibilidade diminui logaritmicamente conforme a frequência aumenta. A escala mel é uma escala perceptiva que aproxima a resposta não linear do ouvido humano às frequências.
 
-Para criar um espectrograma mel, a STFT é usada como antes, dividindo o áudio em segmentos curtos para obter uma sequência
-de espectros de frequência. Além disso, cada espectro é enviado através de um conjunto de filtros, o chamado banco de filtros mel, para
-transformar as frequências para a escala mel.
+Para criar um espectrograma mel, usamos a STFT como antes: dividimos o áudio em segmentos curtos para obter uma sequência de espectros de frequência. Depois, cada espectro passa por um conjunto de filtros, chamado banco de filtros mel, que transforma as frequências para a escala mel.
 
-Vamos ver como podemos plotar um espectrograma mel usando a função `melspectrogram()` da librosa, que realiza todos esses passos para nós:
+Vamos representar um espectrograma mel com a função `melspectrogram()` da librosa, que realiza todas essas etapas:
 
 ```py
 S = librosa.feature.melspectrogram(y=array, sr=sampling_rate, n_mels=128, fmax=8000)
@@ -185,30 +180,16 @@ plt.colorbar()
     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/mel-spectrogram.png" alt="Gráfico de espectrograma mel">
 </div>
 
+No exemplo, `n_mels` é a quantidade de bandas mel a gerar. Essas bandas definem faixas de frequência que dividem o espectro em componentes perceptivamente relevantes. A forma e o espaçamento dos filtros são escolhidos para imitar a resposta do ouvido humano às diferentes frequências. Valores comuns de `n_mels` são 40 ou 80. O parâmetro `fmax` indica a maior frequência, em Hz, que nos interessa.
 
-No exemplo acima, `n_mels` indica o número de bandas mel a serem geradas. As bandas mel definem um conjunto de
-faixas de frequência que dividem o espectro em componentes perceptualmente significativos, usando um conjunto de filtros cuja forma e espaçamento
-são escolhidos para imitar a forma como o ouvido humano responde a diferentes frequências. Valores comuns para `n_mels` são 40 ou 80. `fmax`
-indica a frequência mais alta (em Hz) com a qual nos preocupamos.
-
-Assim como com um espectrograma regular, é prática comum expressar a intesidade de cada frequência mel em
-decibéis. Isso é comumente referido como um **espectrograma log-mel**, porque a conversão para decibéis envolve uma
-operação logarítmica. O exemplo acima usou `librosa.power_to_db()` já que `librosa.feature.melspectrogram()` cria um espectrograma de potência.
+Assim como em um espectrograma comum, é habitual expressar a intensidade dos componentes de frequência mel em decibéis. O resultado é chamado de **espectrograma log-mel**, pois a conversão para decibéis envolve uma operação logarítmica. O exemplo usa `librosa.power_to_db()`, porque `librosa.feature.melspectrogram()` cria um espectrograma de potência.
 
 <Tip>
-💡 Nem todos os espectrogramas mel são iguais! Existem duas escalas mel diferentes comumente usadas ("htk" e "slaney"),
-e, ao invés do espectrograma de potência, pode ser usado o espectrograma de amplitude.
-
- A conversão para um espectrograma log-mel não
-calcula sempre decibéis reais, mas pode simplesmente calcular `log`. Portanto, se um modelo de aprendizado de máquina espera um espectrograma mel
-como entrada, certifique-se de garantir que você está calculando da mesma maneira.
+💡 Nem todos os espectrogramas mel são iguais! Há duas escalas mel de uso comum, "htk" e "slaney", e é possível usar o espectrograma de amplitude em vez do de potência. A conversão para log-mel nem sempre calcula decibéis de fato: pode simplesmente aplicar <code>log</code>. Portanto, se um modelo de aprendizado de máquina espera um espectrograma mel como entrada, confira se você está calculando-o da mesma maneira.
 </Tip>
 
-Criar um espectrograma mel é uma operação com perda, pois envolve filtragem do sinal. Converter um espectrograma mel de volta
-em uma forma de onda é mais difícil do que fazer isso para um espectrograma regular, pois exige a estimação das frequências
-que foram descartadas. É por isso que modelos de aprendizado de máquina como o vocoder HiFiGAN são necessários para produzir uma forma de onda a partir de um espectrograma mel.
+Criar um espectrograma mel é uma operação com perda de informação, pois envolve filtrar o sinal. Recuperar uma forma de onda a partir dele é mais difícil do que a partir de um espectrograma comum, porque é necessário estimar as frequências descartadas. Por isso, modelos de aprendizado de máquina, como o vocoder HiFiGAN, são necessários para produzir uma forma de onda a partir de um espectrograma mel.
 
-Comparado a um espectrograma padrão, um espectrograma mel pode capturar características mais significativas do sinal de áudio para
-a percepção humana, tornando-o uma escolha popular em tarefas como reconhecimento de fala, identificação de falante e classificação de gênero musical.
+Em comparação com um espectrograma convencional, o espectrograma mel pode capturar características do sinal mais relevantes para a percepção humana. Por isso, é uma escolha comum em tarefas como reconhecimento de fala, identificação de falantes e classificação de gêneros musicais.
 
-Agora que você sabe como visualizar exemplos de dados de áudio, vá em frente e tente ver como seus sons favoritos parecem. :)
+Agora que você sabe visualizar exemplos de dados de áudio, experimente descobrir como são os gráficos de seus sons favoritos. :)

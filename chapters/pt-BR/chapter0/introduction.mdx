@@ -1,12 +1,12 @@
-# Bem vindo ao curso de Áudio do Hugging Face!
+# Boas-vindas ao curso de áudio da Hugging Face!
 
-Caro aluno,
+Olá!
 
-Bem vindo a este curso sobre o uso de transformers para áudio. Cada vez mais os transformers se provam como uma das arquiteturas deep learning mais poderosas e versáteis, capaz de alcançar resultados de ponta em uma variedade de tarefas, incluindo o processamento de linguagem natural, visão computacional, e mais recentemente, processamento de áudio.
+Boas-vindas a este curso sobre o uso de transformers para áudio. Os transformers têm demonstrado repetidamente que estão entre as arquiteturas de aprendizado profundo mais poderosas e versáteis, capazes de alcançar resultados do estado da arte em uma ampla variedade de tarefas, incluindo processamento de linguagem natural, visão computacional e, mais recentemente, processamento de áudio.
 
-Neste curso, nós iremos explorar como os transformers podem ser usados em dados de áudio. Você aprenderá como usá-los para lidar com uma série de tarefas relacionadas ao áudio. Se você está interessado em reconhecimento de fala, classificação de áudio, ou geração de fala a partir do texto, os transformers e este curso vão atender as suas necessidades.
+Neste curso, vamos explorar como aplicar transformers a dados de áudio. Você aprenderá a usá-los para resolver diversas tarefas relacionadas a áudio. Se seu interesse é reconhecimento de fala, classificação de áudio ou geração de fala a partir de texto, os transformers e este curso têm o que você precisa.
 
-Para te dar um gostinho do que esses modelos podem fazer, diga algumas palavras na demo abaixo e veja o modelo transcrevê-las em tempo real!
+Para experimentar o que esses modelos podem fazer, diga algumas palavras na demonstração abaixo e veja o modelo transcrevê-las em tempo real!
 
 <iframe
 	src="https://openai-whisper.hf.space"
@@ -15,71 +15,70 @@ Para te dar um gostinho do que esses modelos podem fazer, diga algumas palavras 
 	height="450">
 </iframe>
 
-Através do curso, você entenderá detalhes do trabalho com dados de áudio, aprenderá sobre as diferentes arquiteturas de transformers e irá treinar seu próprio transformer de áudio aproveitando poderosos modelos pré-treinados.
+Ao longo do curso, você entenderá as particularidades do trabalho com dados de áudio, conhecerá diferentes arquiteturas de transformers e treinará seus próprios transformers para áudio usando modelos pré-treinados poderosos.
 
-Este curso é voltado para estudantes com algum conhecimento prévio em deep learning e transformers. Nenhuma expertise em processamento de áudio é necessária. Se você precisa revisar seu conhecimento de transformers, dê uma olhada no nosso [curso de NLP](https://huggingface.co/course/chapter1/1) que aborda em detalhes os conceitos básicos de transformers.
+Este curso foi elaborado para estudantes que tenham conhecimentos de aprendizado profundo e familiaridade geral com transformers. Não é necessário ter experiência em processamento de dados de áudio. Se precisar revisar seus conhecimentos sobre transformers, confira nosso [curso de processamento de linguagem natural (NLP)](https://huggingface.co/course/chapter1/1), que aborda seus fundamentos em detalhes.
 
 ## Conheça a equipe do curso
 
-**Sanchit Gandhi, Engenheiro de Pesquisa em Machine Learning no Hugging Face**
+**Sanchit Gandhi, engenheiro de pesquisa em aprendizado de máquina na Hugging Face**
 
-Olá! Me chamo Sanchit e sou o engenheiro de pesquisa em machine learning para áudio no time de open-source do Hugging Face 🤗. Meu foco principal é o reconhecimento e a tradução automáticos de fala, com o objetivo atual de tornar os modelos de fala mais rápidos, leves e fáceis de usar!
+Olá! Sou Sanchit, engenheiro de pesquisa em aprendizado de máquina para áudio na equipe de código aberto da Hugging Face 🤗. Meu foco principal é o reconhecimento automático de fala e a tradução, com o objetivo atual de tornar os modelos de fala mais rápidos, leves e fáceis de usar.
 
-**Matthijs Hollemans, Engenheiro de Machine Learning no Hugging Face**
+**Matthijs Hollemans, engenheiro de aprendizado de máquina na Hugging Face**
 
-Me chamo Matthijs, e sou o engenheiro de machine learning para áudio no time de open source do Hugging Face. Eu também sou o autor do livro sobre como escrever um sintetizador de som e crio plugins de áudio no meu tempo livre.
+Sou Matthijs, engenheiro de aprendizado de máquina para áudio na equipe de código aberto da Hugging Face. Também sou autor de um livro sobre como programar sintetizadores de som e crio plugins de áudio no meu tempo livre.
 
-**Maria Khalusova, Cursos & Documentação no Hugging Face**
+**Maria Khalusova, documentação e cursos na Hugging Face**
 
-Eu sou Maria e crio conteúdo educacional e documentação para fazer os Transformers e outras ferramentas open source ainda mais acessíveis. Eu simplifico conceitos técnicos complexos e ajudo as pessoas a iniciarem em tecnologias de ponta.
+Sou Maria e crio conteúdo educacional e documentação para tornar Transformers e outras ferramentas de código aberto ainda mais acessíveis. Explico conceitos técnicos complexos de forma mais simples e ajudo as pessoas a começar a usar tecnologias de ponta.
 
-**Vaibhav Srivastav, ML Developer Advocate Engineer no Hugging Face**
+**Vaibhav Srivastav, engenheiro de relações com desenvolvedores de aprendizado de máquina na Hugging Face**
 
-Me chamo Vaibhav (VB) e sou o Engenheiro Developer Advocate para áudio no time de open source do Hugging Face. Eu estudo soluções de Texto para Fala de baixo recurso e ajudo a levar pesquisas estado da arte em fala para o grande público.
+Sou Vaibhav (VB), engenheiro de relações com desenvolvedores para áudio na equipe de código aberto da Hugging Face. Pesquiso síntese de fala a partir de texto em cenários com poucos recursos e ajudo a tornar as pesquisas de ponta em fala acessíveis a mais pessoas.
 
-## Estrutura do Curso
+## Estrutura do curso
 
-O curso está estruturado em várias unidades que abordam diversos tópicos em detalhes:
+O curso está organizado em várias unidades que abordam diferentes assuntos em profundidade:
 
-* [Unidade 1](https://huggingface.co/learn/audio-course/chapter1): aprenda sobre detalhes do trabalho com dados de áudio, incluindo técnicas de processamento de áudio e preparação de dados.
-* [Unidade 2](https://huggingface.co/learn/audio-course/chapter2): conheça aplicações de áudio e aprenda como usar 🤗 Transformers pipelines para diferentes tarefas, como classificação de áudio e reconhecimento de fala.
-* [Unidade 3](https://huggingface.co/learn/audio-course/chapter3): explore arquiteturas de transformers de áudio, aprenda como eles se diferem e para quais tarefas são mais adequados
-* [Unidade 4](https://huggingface.co/learn/audio-course/chapter4): aprenda como fazer seu próprio classificador de gênero musical
-* [Unidade 5](https://huggingface.co/learn/audio-course/chapter5): mergulhe no reconhecimento de fala e construa um modelo que faça transcrição de reuniões gravadas
-* [Unidade 6](https://huggingface.co/learn/audio-course/chapter6): aprenda como gerar fala a partir do texto
-* [Unidade 7](https://huggingface.co/learn/audio-course/chapter7): aprenda como construir aplicações do mundo real com transformers
+* [Unidade 1](https://huggingface.co/learn/audio-course/chapter1): conheça as particularidades do trabalho com dados de áudio, incluindo técnicas de processamento de áudio e preparação de dados.
+* [Unidade 2](https://huggingface.co/learn/audio-course/chapter2): conheça aplicações de áudio e aprenda a usar pipelines de 🤗 Transformers para diferentes tarefas, como classificação de áudio e reconhecimento de fala.
+* [Unidade 3](https://huggingface.co/learn/audio-course/chapter3): explore arquiteturas de transformers para áudio, entenda suas diferenças e descubra para quais tarefas cada uma é mais adequada.
+* [Unidade 4](https://huggingface.co/learn/audio-course/chapter4): aprenda a criar seu próprio classificador de gêneros musicais.
+* [Unidade 5](https://huggingface.co/learn/audio-course/chapter5): aprofunde-se em reconhecimento de fala e crie um modelo para transcrever gravações de reuniões.
+* [Unidade 6](https://huggingface.co/learn/audio-course/chapter6): aprenda a gerar fala a partir de texto.
+* [Unidade 7](https://huggingface.co/learn/audio-course/chapter7): aprenda a criar aplicações reais de áudio com transformers.
 
-Cada unidade inclui uma parte teórica, onde você irá compreender os conceitos e as técnicas. Ao longo do curso, nós vamos fornecer questionários para te ajudar a testar seu conhecimento e reforçar seu aprendizado. Alguns capítulos incluem exercícios práticos, onde você terá a oportunidade de testar o que você aprendeu.
+Cada unidade inclui uma parte teórica para que você compreenda profundamente os conceitos e as técnicas envolvidos. Ao longo do curso, oferecemos questionários para testar seus conhecimentos e reforçar o aprendizado. Alguns capítulos também incluem exercícios práticos para você aplicar o que aprendeu.
 
-No final do curso, você terá uma base sólida sobre o uso de transformers para os dados de áudio e está pronto para aplicar essas técnicas em uma varidade de tarefas relacionadas à áudio.
+Ao final do curso, você terá uma base sólida no uso de transformers para dados de áudio e estará bem preparado para aplicar essas técnicas a uma ampla variedade de tarefas relacionadas a áudio.
 
-Este curso será lançado em vários blocos consecutivos respeitando o seguinte agendamento:
+As unidades do curso serão lançadas em blocos consecutivos, seguindo este cronograma de publicação:
 
-| Unidades   				  	|Data de Publicação |
-|-------------------------------|-------------------|
-| Unidade 0, 1 e 2  		  	| 14 de Junho 2023  |
-| Unidade 3 e 4  		  		| 21 de Junho 2023  |
-| Unidade 5			  		  	| 28 de Junho 2023  |
-| Unidade 6  		  			| 5 de Julho 2023  	|	
-| Unidade 7 e 8 		  		| 12 de Julho 2023  |
+| Unidades | Data de publicação |
+|---|---|
+| Unidade 0, Unidade 1 e Unidade 2 | 14 de junho de 2023 |
+| Unidade 3 e Unidade 4 | 21 de junho de 2023 |
+| Unidade 5 | 28 de junho de 2023 |
+| Unidade 6 | 5 de julho de 2023 |
+| Unidade 7 e Unidade 8 | 12 de julho de 2023 |
 
 ## Trilhas de aprendizado e certificação
 
-Não existe um jeito certo ou errado de fazer este curso. Todos os materiais nesse curso são 100% gratuitos, públicos e open source.
-Você pode fazer o curso no seu próprio ritmo, contudo, nós recomendamos ir na ordem numérica das unidades.
+Não há uma maneira certa ou errada de fazer este curso. Todos os materiais são 100% gratuitos, públicos e de código aberto. Você pode estudar no seu próprio ritmo, mas recomendamos seguir a ordem das unidades.
 
-Se você quiser obter um certificado ao completar o curso, nós oferecemos duas opções:
+Se quiser receber um certificado ao concluir o curso, oferecemos duas opções:
 
-| Tipo Certificado   | Requisitos                                                       |
-|---|--------------------------------------------------------------------|
-| Certificado de conclusão  | Complete 80% dos exercícios práticos conforme as instruções  |
-| Certificado de honras  | Complete 100% dos exercícios práticos conforme as instruções |
+| Tipo de certificado | Requisitos |
+|---|---|
+| Certificado de conclusão | Concluir 80% dos exercícios práticos conforme as instruções. |
+| Certificado com honras | Concluir 100% dos exercícios práticos conforme as instruções. |
 
-Cada exercício determina seus critérios de conclusão. Quando você concluir exercícios suficiente para se qualificar para algum dos certificados, vá a última unidade para aprender como você pode obtê-lo. Bons estudos!
+Cada exercício prático apresenta seus critérios de conclusão. Quando tiver concluído exercícios suficientes para obter um dos certificados, consulte a última unidade do curso para saber como recebê-lo. Boa sorte!
 
 ## Inscreva-se no curso
 
-As unidades deste curso serão lançadas gradualmente ao longo de algumas semanas. Encorajamos você a se inscrever nas atualizações, assim você fica sabendo das unidades assim que elas forem lançadas. Ao se inscrever nas atualizações do curso, o estudante também ficará sabendo em primeira mão, sobre eventos sociais que nós planejamos realizar.
+As unidades deste curso serão lançadas gradualmente ao longo de algumas semanas. Recomendamos que você se inscreva para receber as atualizações do curso e não perder novas unidades quando forem lançadas. Quem se inscrever também ficará sabendo em primeira mão dos eventos especiais da comunidade que planejamos realizar.
 
 [INSCREVA-SE](http://eepurl.com/insvcI)
 

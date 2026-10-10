@@ -1,0 +1,33 @@
+# Exercício prático
+
+É hora de usar modelos de áudio e aplicar o que você aprendeu. Este é um dos quatro exercícios práticos necessários para obter o certificado de conclusão do curso.
+
+Veja as instruções. Nesta unidade, mostramos como ajustar um modelo HuBERT no conjunto `marsyas/gtzan` para classificar música. Nosso exemplo alcançou 83% de acurácia. Sua tarefa é melhorar essa métrica.
+
+Escolha no [🤗 Hub](https://huggingface.co/models) qualquer modelo que considere adequado para classificação de áudio e use o mesmo conjunto [`marsyas/gtzan`](https://huggingface.co/datasets/marsyas/gtzan) para criar seu classificador.
+
+O objetivo é alcançar 87% de acurácia nesse conjunto. Você pode usar o mesmo modelo e experimentar hiperparâmetros de treinamento ou escolher um modelo completamente diferente. A escolha é sua!
+
+Para que seu resultado conte para o certificado, envie o modelo ao Hub como mostramos nesta unidade, com os seguintes `**kwargs` ao final do treinamento:
+
+```python
+kwargs = {
+    "dataset_tags": "marsyas/gtzan",
+    "dataset": "GTZAN",
+    "model_name": f"{model_name}-finetuned-gtzan",
+    "finetuned_from": model_id,
+    "tasks": "audio-classification",
+}
+
+trainer.push_to_hub(**kwargs)
+```
+
+Estes recursos podem ajudar no exercício:
+
+* [Guia de classificação de áudio na documentação de Transformers](https://huggingface.co/docs/transformers/tasks/audio_classification)
+* [Documentação do modelo HuBERT](https://huggingface.co/docs/transformers/model_doc/hubert)
+* [Documentação do modelo M-CTC-T](https://huggingface.co/docs/transformers/model_doc/mctct)
+* [Documentação de Audio Spectrogram Transformer](https://huggingface.co/docs/transformers/model_doc/audio-spectrogram-transformer)
+* [Documentação de Wav2Vec2](https://huggingface.co/docs/transformers/model_doc/wav2vec2)
+
+Crie uma demonstração de seu modelo e compartilhe-a no Discord! Se tiver dúvidas, publique-as no canal #audio-study-group.

@@ -1,0 +1,87 @@
+# Reconhecimento automático de fala com um pipeline
+
+O reconhecimento automático de fala (ASR) consiste em transcrever gravações de fala para texto. Essa tarefa tem muitas aplicações práticas, desde criar legendas para vídeos até permitir comandos de voz para assistentes virtuais como Siri e Alexa.
+
+Nesta seção, usaremos o pipeline `automatic-speech-recognition` para transcrever a gravação de uma pessoa perguntando sobre o pagamento de uma conta, usando o mesmo conjunto MINDS-14 das seções anteriores.
+
+Se ainda não fez isso, comece carregando o conjunto de dados e aumentando sua taxa de amostragem para 16 kHz, conforme descrito em [Classificação de áudio com um pipeline](audio_classification_pipeline).
+
+Para transcrever uma gravação, podemos usar o pipeline `automatic-speech-recognition` de 🤗 Transformers. Vamos instanciá-lo:
+
+```py
+from transformers import pipeline
+
+asr = pipeline("automatic-speech-recognition")
+```
+
+Em seguida, vamos selecionar um exemplo do conjunto e passar seus dados brutos ao pipeline:
+
+```py
+example = minds[0]
+asr(example["audio"]["array"])
+```
+
+**Saída:**
+```out
+{"text": "I WOULD LIKE TO PAY MY ELECTRICITY BILL USING MY COD CAN YOU PLEASE ASSIST"}
+```
+
+Vamos comparar essa saída com a transcrição real do exemplo:
+
+```py
+example["english_transcription"]
+```
+
+**Saída:**
+```out
+"I would like to pay my electricity bill using my card can you please assist"
+```
+
+O modelo parece ter transcrito muito bem o áudio! Ele errou apenas uma palavra, "card", em relação à transcrição original. É um bom resultado, considerando que o falante tem sotaque australiano, no qual a letra "r" frequentemente não é pronunciada. Ainda assim, não recomendamos tentar pagar sua próxima conta de luz com um peixe!
+
+Por padrão, esse pipeline usa um modelo treinado para reconhecimento automático de fala em inglês, o que serve para este exemplo. Para transcrever outros subconjuntos do MINDS-14 em idiomas diferentes, você pode encontrar um modelo ASR pré-treinado [no 🤗 Hub](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&language=fr&sort=downloads). Filtre a lista primeiro pela tarefa e depois pelo idioma. Quando encontrar um modelo adequado, passe seu nome como argumento `model` ao pipeline.
+
+Vamos experimentar o subconjunto alemão do MINDS-14. Carregue o subconjunto "de-DE":
+
+```py
+from datasets import load_dataset
+from datasets import Audio
+
+minds = load_dataset("PolyAI/minds14", name="de-DE", split="train")
+minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
+```
+
+Selecione um exemplo e confira sua transcrição de referência:
+
+```py
+example = minds[0]
+example["transcription"]
+```
+
+**Saída:**
+```out
+"ich möchte gerne Geld auf mein Konto einzahlen"
+```
+
+Encontre no 🤗 Hub um modelo ASR pré-treinado para alemão, instancie um pipeline e transcreva o exemplo:
+
+```py
+from transformers import pipeline
+
+asr = pipeline("automatic-speech-recognition", model="maxidl/wav2vec2-large-xlsr-german")
+asr(example["audio"]["array"])
+```
+
+**Saída:**
+```out
+{"text": "ich möchte gerne geld auf mein konto einzallen"}
+```
+
+Então, está certo!
+
+Ao trabalhar em sua própria tarefa, começar com um pipeline simples como os desta unidade oferece várias vantagens:
+
+- Pode já existir um modelo pré-treinado que resolva muito bem sua tarefa, economizando bastante tempo.
+- `pipeline()` cuida de todo o pré-processamento e pós-processamento, para que você não precise se preocupar em colocar os dados no formato correto para o modelo.
+- Mesmo que o resultado não seja ideal, ele oferece rapidamente uma referência inicial para um futuro ajuste fino.
+- Depois que você fizer o ajuste fino com seus próprios dados e compartilhar o modelo no Hub, toda a comunidade poderá usá-lo rapidamente e com facilidade por meio de `pipeline()`, tornando a IA mais acessível.
