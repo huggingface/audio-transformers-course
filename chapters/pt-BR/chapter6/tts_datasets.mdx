@@ -1,0 +1,41 @@
+# Conjuntos de dados para síntese de fala a partir de texto
+
+A síntese de fala a partir de texto, também chamada de _síntese de fala_, apresenta diversos desafios.
+
+Primeiro, como no reconhecimento automático de fala que discutimos, o alinhamento entre texto e fala pode ser difícil. Entretanto, ao contrário de ASR, TTS é um problema de mapeamento **de um para muitos**: o mesmo texto pode ser sintetizado de várias maneiras. Pense na diversidade de vozes e estilos que você ouve diariamente. Cada pessoa pronuncia a mesma frase de forma diferente, e todas são válidas e corretas! Até saídas diferentes, como espectrogramas ou formas de onda, podem corresponder à mesma referência. O modelo precisa aprender a duração e o ritmo corretos de cada fonema, palavra ou frase, o que pode ser difícil, especialmente em frases longas e complexas.
+
+Também há o problema das dependências de longa distância: a linguagem tem um aspecto temporal, e entender uma frase frequentemente exige considerar o contexto das palavras ao redor. Garantir que o modelo TTS capture e mantenha informações contextuais ao longo de sequências extensas é fundamental para gerar fala coerente e natural.
+
+Por fim, o treinamento normalmente exige pares de texto e gravações de fala correspondentes. Para gerar fala natural para diferentes falantes e estilos, os dados também precisam incluir amostras diversas e representativas de várias pessoas. Coletá-los é caro, demorado e, em alguns idiomas, inviável. Você talvez pense em usar um conjunto ASR para treinar TTS. Infelizmente, esses conjuntos não são a melhor opção. Características úteis em ASR, como muito ruído de fundo, normalmente são indesejadas em TTS. É ótimo reconhecer fala em uma gravação de rua ruidosa, mas não ouvir o assistente responder com buzinas e obras ao fundo! Ainda assim, alguns conjuntos ASR podem servir para ajuste fino, pois encontrar dados TTS de alta qualidade, multilíngues e com vários falantes é difícil.
+
+Vamos conhecer alguns conjuntos adequados para TTS disponíveis no 🤗 Hub.
+
+## LJSpeech
+
+[LJSpeech](https://huggingface.co/datasets/lj_speech) contém 13.100 trechos de áudio em inglês com suas transcrições. As gravações são de uma única pessoa lendo frases de 7 livros de não ficção em inglês. Ele é frequentemente usado como benchmark para avaliar modelos TTS por sua alta qualidade de áudio e diversidade de conteúdo linguístico.
+
+## Multilingual LibriSpeech
+
+[Multilingual LibriSpeech](https://huggingface.co/datasets/facebook/multilingual_librispeech) é uma extensão multilíngue do LibriSpeech, uma coleção de grande escala de audiolivros lidos em inglês. A extensão inclui idiomas como alemão, neerlandês, espanhol, francês, italiano, português e polonês, com gravações e transcrições alinhadas para cada um. É um recurso valioso para desenvolver sistemas TTS multilíngues e explorar técnicas de síntese entre idiomas.
+
+## VCTK (Voice Cloning Toolkit)
+
+[VCTK](https://huggingface.co/datasets/vctk) foi criado especificamente para pesquisa e desenvolvimento de TTS. Contém gravações de 110 falantes de inglês com vários sotaques. Cada pessoa lê cerca de 400 frases selecionadas de um jornal, da passagem "Rainbow Passage" e de um parágrafo de elicitação usado no arquivo de sotaques da fala. É um recurso valioso para treinar modelos com vozes e sotaques variados, permitindo síntese mais natural e diversa.
+
+## Libri-TTS/ LibriTTS-R
+
+[Libri-TTS/ LibriTTS-R](https://huggingface.co/datasets/cdminix/libritts-r-aligned) é um corpus em inglês com vários falantes e aproximadamente 585 horas de fala lida a 24 kHz. Foi preparado por Heiga Zen com a ajuda de integrantes das equipes Google Speech e Google Brain. Projetado para pesquisa em TTS, deriva dos materiais originais do LibriSpeech: arquivos MP3 do LibriVox e textos do Project Gutenberg. As principais diferenças são:
+
+* Áudios com taxa de amostragem de 24 kHz.
+* Fala dividida nos limites das frases.
+* Inclusão dos textos originais e normalizados.
+* Possibilidade de extrair contexto, como frases vizinhas.
+* Exclusão de enunciados com ruído de fundo significativo.
+
+Montar um bom conjunto TTS é difícil, pois ele precisa ter várias características:
+
+* Gravações diversas e de alta qualidade, abrangendo padrões de fala, sotaques, idiomas e emoções. Devem ser claras, sem ruído de fundo e com características naturais de fala.
+* Transcrições: cada gravação deve ter seu texto correspondente.
+* Variedade de conteúdo linguístico: diferentes tipos de frases, expressões e palavras, cobrindo temas, gêneros e domínios variados para que o modelo lide com diferentes contextos.
+
+A boa notícia é que você provavelmente não precisará treinar um modelo TTS do zero. Na próxima seção, conheceremos modelos pré-treinados disponíveis no 🤗 Hub.

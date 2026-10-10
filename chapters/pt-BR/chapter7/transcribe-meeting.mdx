@@ -1,0 +1,196 @@
+# Transcrição de uma reunião
+
+Nesta última seção, usaremos Whisper para transcrever uma conversa ou reunião com dois ou mais falantes. Depois, combinaremos o resultado com um modelo de *diarização de falantes* para prever "quem falou quando". Alinhando as marcas de tempo das transcrições e da diarização, obteremos uma transcrição completa com início e fim formatados para cada falante. É uma versão básica de serviços como [Otter.ai](https://otter.ai):
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/diarization_transcription.png">
+ </div>
+
+## Diarização de falantes
+
+Diarização é a tarefa de receber áudio não rotulado e prever "quem falou quando". Ela fornece as marcas de início e fim de cada turno, correspondentes ao momento em que cada pessoa começa e termina de falar.
+
+Atualmente, 🤗 Transformers não inclui um modelo de diarização, mas há checkpoints no Hub relativamente fáceis de usar. Usaremos o modelo pré-treinado de [pyannote.audio](https://github.com/pyannote/pyannote-audio). Primeiro, instalamos o pacote:
+
+```bash
+pip install --upgrade pyannote.audio
+```
+
+Seus pesos estão no Hub. Para acessá-los, precisamos aceitar os termos de uso do modelo de diarização, [pyannote/speaker-diarization](https://huggingface.co/pyannote/speaker-diarization), e depois do modelo de segmentação, [pyannote/segmentation](https://huggingface.co/pyannote/segmentation).
+
+Depois, carregamos o pipeline pré-treinado no dispositivo:
+
+```python
+from pyannote.audio import Pipeline
+
+diarization_pipeline = Pipeline.from_pretrained(
+    "pyannote/speaker-diarization@2.1", use_auth_token=True
+)
+```
+
+Vamos testá-lo! Carregaremos uma amostra do [LibriSpeech ASR](https://huggingface.co/datasets/librispeech_asr) com dois falantes diferentes concatenados em um único arquivo:
+
+```python
+from datasets import load_dataset
+
+concatenated_librispeech = load_dataset(
+    "sanchit-gandhi/concatenated_librispeech", split="train", streaming=True
+)
+sample = next(iter(concatenated_librispeech))
+```
+
+Podemos ouvi-la:
+
+```python
+from IPython.display import Audio
+
+Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
+```
+
+As duas vozes são bem distintas, com transição por volta de 15 s. Vamos passar o arquivo ao modelo para obter início e fim de cada falante. pyannote.audio espera um tensor PyTorch de formato `(channels, seq_len)`, então precisamos converter o áudio antes da inferência:
+
+```python
+import torch
+
+input_tensor = torch.from_numpy(sample["audio"]["array"][None, :]).float()
+outputs = diarization_pipeline(
+    {"waveform": input_tensor, "sample_rate": sample["audio"]["sampling_rate"]}
+)
+
+outputs.for_json()["content"]
+```
+
+```text
+[{'segment': {'start': 0.4978125, 'end': 14.520937500000002},
+  'track': 'B',
+  'label': 'SPEAKER_01'},
+ {'segment': {'start': 15.364687500000002, 'end': 21.3721875},
+  'track': 'A',
+  'label': 'SPEAKER_00'}]
+```
+
+Parece bom! A previsão indica o primeiro falante até 14,5 s e o segundo a partir de 15,4 s. Agora falta a transcrição!
+
+## Transcrição da fala
+
+Pela terceira vez nesta unidade, usaremos Whisper, especificamente [Whisper Base](https://huggingface.co/openai/whisper-base), pequeno o bastante para boa velocidade e acurácia razoável. Você pode escolher qualquer checkpoint de reconhecimento [do Hub](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&library=transformers&sort=trending), incluindo Wav2Vec2, MMS ASR ou outro Whisper:
+
+```python
+from transformers import pipeline
+
+asr_pipeline = pipeline(
+    "automatic-speech-recognition",
+    model="openai/whisper-base",
+)
+```
+
+Obteremos a transcrição com marcas de tempo por segmento para conhecer seus inícios e fins. Como vimos na unidade 5, `return_timestamps=True` ativa essa previsão em Whisper:
+
+```python
+asr_pipeline(
+    sample["audio"].copy(),
+    generate_kwargs={"max_new_tokens": 256},
+    return_timestamps=True,
+)
+```
+
+```text
+{
+    "text": " The second and importance is as follows. Sovereignty may be defined to be the right of making laws. In France, the king really exercises a portion of the sovereign power, since the laws have no weight. He was in a favored state of mind, owing to the blight his wife's action threatened to cast upon his entire future.",
+    "chunks": [
+        {"timestamp": (0.0, 3.56), "text": " The second and importance is as follows."},
+        {
+            "timestamp": (3.56, 7.84),
+            "text": " Sovereignty may be defined to be the right of making laws.",
+        },
+        {
+            "timestamp": (7.84, 13.88),
+            "text": " In France, the king really exercises a portion of the sovereign power, since the laws have",
+        },
+        {"timestamp": (13.88, 15.48), "text": " no weight."},
+        {
+            "timestamp": (15.48, 19.44),
+            "text": " He was in a favored state of mind, owing to the blight his wife's action threatened to",
+        },
+        {"timestamp": (19.44, 21.28), "text": " cast upon his entire future."},
+    ],
+}
+```
+
+Cada segmento tem início e fim, com troca de falantes em 15,48 s. Podemos combinar a transcrição às marcas da diarização para obter o resultado final.
+
+## Speechbox
+
+Precisamos alinhar as marcas de tempo dos dois modelos. A diarização previu fim do primeiro falante em 14,5 s e início do segundo em 15,4 s. Whisper previu fronteiras em 13,88, 15,48 e 19,44 s. Como elas não coincidem perfeitamente, encontraremos as fronteiras mais próximas de 14,5 e 15,4 s e dividiremos a transcrição por falante. Faremos isso minimizando a distância absoluta entre as marcas de diarização e transcrição.
+
+Podemos usar 🤗 Speechbox para esse alinhamento. Primeiro, instalamos `speechbox` a partir de `main`:
+
+```bash
+pip install git+https://github.com/huggingface/speechbox
+```
+
+Instanciamos o pipeline combinado passando os modelos de diarização e ASR a [`ASRDiarizationPipeline`](https://github.com/huggingface/speechbox/tree/main#asr-with-speaker-diarization):
+
+```python
+from speechbox import ASRDiarizationPipeline
+
+pipeline = ASRDiarizationPipeline(
+    asr_pipeline=asr_pipeline, diarization_pipeline=diarization_pipeline
+)
+```
+
+<Tip>
+    Você também pode instanciar <code>ASRDiarizationPipeline</code> diretamente de um modelo pré-treinado, especificando o identificador ASR do Hub:
+    <p><code>pipeline = ASRDiarizationPipeline.from_pretrained("openai/whisper-base")</code></p>
+</Tip>
+
+Vamos passar o áudio ao pipeline combinado:
+
+```python
+pipeline(sample["audio"].copy())
+```
+
+```text
+[{'speaker': 'SPEAKER_01',
+  'text': ' The second and importance is as follows. Sovereignty may be defined to be the right of making laws. In France, the king really exercises a portion of the sovereign power, since the laws have no weight.',
+  'timestamp': (0.0, 15.48)},
+ {'speaker': 'SPEAKER_00',
+  'text': " He was in a favored state of mind, owing to the blight his wife's action threatened to cast upon his entire future.",
+  'timestamp': (15.48, 21.28)}]
+```
+
+Excelente! O primeiro falante aparece de 0 a 15,48 s, e o segundo de 15,48 a 21,28 s, com suas respectivas transcrições.
+
+Para melhorar a apresentação das marcas, definimos duas funções auxiliares. A primeira converte uma tupla em string, arredondando para um número definido de casas decimais. A segunda reúne identificador, tempo e texto em uma linha e separa os falantes em linhas próprias para facilitar a leitura:
+
+```python
+def tuple_to_string(start_end_tuple, ndigits=1):
+    return str((round(start_end_tuple[0], ndigits), round(start_end_tuple[1], ndigits)))
+
+
+def format_as_transcription(raw_segments):
+    return "\n\n".join(
+        [
+            chunk["speaker"] + " " + tuple_to_string(chunk["timestamp"]) + chunk["text"]
+            for chunk in raw_segments
+        ]
+    )
+```
+
+Executamos novamente, agora com a formatação:
+
+```python
+outputs = pipeline(sample["audio"].copy())
+
+format_as_transcription(outputs)
+```
+
+```text
+SPEAKER_01 (0.0, 15.5) The second and importance is as follows. Sovereignty may be defined to be the right of making laws.
+In France, the king really exercises a portion of the sovereign power, since the laws have no weight.
+
+SPEAKER_00 (15.5, 21.3) He was in a favored state of mind, owing to the blight his wife's action threatened to cast upon
+his entire future.
+```
+
+Pronto! Fizemos diarização e transcrição do áudio, retornando o texto separado por falante. O algoritmo de distância mínima para alinhar as marcas é simples, mas funciona bem na prática. Para explorar métodos mais avançados, comece pelo código de `ASRDiarizationPipeline`: [speechbox/diarize.py](https://github.com/huggingface/speechbox/blob/96d2d1a180252d92263f862a1cd25a48860f1aed/src/speechbox/diarize.py#L12).

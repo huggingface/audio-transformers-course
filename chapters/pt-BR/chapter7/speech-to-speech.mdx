@@ -1,0 +1,209 @@
+# Tradução de fala para fala
+
+A tradução de fala para fala (STST ou S2ST) é uma tarefa relativamente nova do processamento da linguagem falada. Consiste em traduzir fala de um idioma para fala em um idioma **diferente**:
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/s2st.png" alt="Diagrama de tradução de fala para fala">
+</div>
+
+Podemos vê-la como uma extensão da tradução automática (MT): em vez de traduzir **texto**, traduzimos **fala** de um idioma para outro. Ela tem aplicações na comunicação multilíngue, permitindo que pessoas que falam idiomas diferentes conversem por meio da fala.
+
+Imagine precisar se comunicar com alguém que fala outro idioma. Em vez de escrever a mensagem e traduzi-la para texto no idioma de destino, você pode falar diretamente e usar um sistema STST para convertê-la. A outra pessoa responde falando ao sistema, e você ouve a resposta. É uma maneira mais natural de comunicação que a tradução automática baseada em texto.
+
+Neste capítulo, exploraremos uma abordagem *em cascata*, reunindo o conhecimento das unidades 5 e 6. Usaremos um sistema de *tradução de fala (ST)* para transcrever a fala de origem em texto no idioma de destino, seguido de *síntese de fala a partir de texto (TTS)* para gerar fala nesse idioma:
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/s2st_cascaded.png" alt="Diagrama de tradução de fala para fala em cascata">
+</div>
+
+Também poderíamos usar três etapas: reconhecimento automático de fala (ASR) para transcrever no idioma de origem, tradução automática para converter o texto ao idioma de destino e TTS para gerar fala. Entretanto, mais componentes favorecem a *propagação de erros*: os erros de um sistema se acumulam ao passar pelos demais. Também aumentam a latência, pois precisamos executar inferência em mais modelos.
+
+Apesar de simples, a abordagem em cascata produz sistemas STST muito eficazes. A combinação ASR + MT + TTS foi usada em vários produtos comerciais, como [Google Translate](https://ai.googleblog.com/2019/05/introducing-translatotron-end-to-end.html). Também é eficiente em dados e recursos computacionais: podemos combinar sistemas de reconhecimento e síntese já existentes sem treinamento adicional.
+
+No restante desta unidade, criaremos um sistema que traduz fala de qualquer idioma X para fala em inglês. Os métodos podem ser estendidos à tradução de qualquer idioma X para qualquer idioma Y; deixamos isso como extensão para você, com orientações quando aplicável. Dividiremos a tarefa em ST e TTS e, no fim, reuniremos as partes em uma demonstração com Gradio.
+
+## Tradução de fala
+
+Usaremos Whisper, capaz de traduzir mais de 96 idiomas para inglês. Carregaremos especificamente [Whisper Base](https://huggingface.co/openai/whisper-base), com 74 milhões de parâmetros. Ele não é o Whisper de melhor desempenho: o [maior checkpoint](https://huggingface.co/openai/whisper-large-v2) é mais de 20 vezes maior. Entretanto, como combinaremos dois sistemas autorregressivos, ST + TTS, queremos geração relativamente rápida em cada um para manter uma velocidade de inferência razoável:
+
+```python
+import torch
+from transformers import pipeline
+
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+pipe = pipeline(
+    "automatic-speech-recognition", model="openai/whisper-base", device=device
+)
+```
+
+Para testar, carregaremos áudio em outro idioma: o primeiro exemplo da divisão em italiano (`it`) de [VoxPopuli](https://huggingface.co/datasets/qmeeus/voxpopuli):
+
+```python
+from datasets import load_dataset
+
+dataset = load_dataset("qmeeus/voxpopuli", "it", split="validation", streaming=True)
+sample = next(iter(dataset))
+```
+
+Você pode ouvi-lo no visualizador do Hub: [qmeeus/voxpopuli/viewer](https://huggingface.co/datasets/qmeeus/voxpopuli/viewer/it/validation?row=0).
+
+Ou com o recurso de áudio do notebook ipynb:
+
+```python
+from IPython.display import Audio
+
+Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
+```
+
+Agora definimos uma função que recebe áudio e retorna o texto traduzido. Precisamos passar o argumento nomeado de geração `"task"` como `"translate"` para realizar tradução, em vez de reconhecimento de fala:
+
+```python
+def translate(audio):
+    outputs = pipe(audio, max_new_tokens=256, generate_kwargs={"task": "translate"})
+    return outputs["text"]
+```
+
+<Tip>
+
+    Também podemos "induzir" Whisper a traduzir fala de qualquer idioma X para qualquer idioma Y. Nos argumentos de geração, defina `"task"` como `"transcribe"` e `"language"` como o idioma de destino. Para espanhol, por exemplo:
+
+    `generate_kwargs={"task": "transcribe", "language": "es"&rcub;`
+
+</Tip>
+
+Vamos conferir se o resultado faz sentido:
+
+```python
+translate(sample["audio"].copy())
+```
+```
+' psychological and social. I think that it is a very important step in the construction of a juridical space of freedom, circulation and protection of rights.'
+```
+
+Comparando com o texto de origem:
+
+```python
+sample["text"]
+```
+```
+'Penso che questo sia un passo in avanti importante nella costruzione di uno spazio giuridico di libertà di circolazione e di protezione dei diritti per le persone in Europa.'
+```
+
+A tradução corresponde aproximadamente ao original, o que você pode conferir com Google Translate. Há apenas algumas palavras extras no início, quando o falante estava terminando a frase anterior.
+
+Concluímos a primeira metade do pipeline em cascata, aplicando as habilidades da unidade 5 sobre reconhecimento e tradução com Whisper. Para rever qualquer etapa, consulte [Modelos pré-treinados para ASR](../chapter5/asr_models).
+
+## Síntese de fala a partir de texto
+
+A segunda metade transforma texto em inglês em fala em inglês. Usaremos o modelo pré-treinado [SpeechT5 TTS](https://huggingface.co/microsoft/speecht5_tts). Atualmente, 🤗 Transformers não tem um `pipeline` TTS, então usaremos diretamente o modelo. Isso não será um problema: depois da unidade 6, você já sabe usá-lo para inferência!
+
+Primeiro, carregamos processador, modelo e vocoder:
+
+```python
+from transformers import SpeechT5Processor, SpeechT5ForTextToSpeech, SpeechT5HifiGan
+
+processor = SpeechT5Processor.from_pretrained("microsoft/speecht5_tts")
+
+model = SpeechT5ForTextToSpeech.from_pretrained("microsoft/speecht5_tts")
+vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
+```
+
+<Tip>
+    Este checkpoint foi treinado especificamente para TTS em inglês. Para traduzir a outro idioma, use um SpeechT5 ajustado no idioma desejado ou um checkpoint MMS TTS pré-treinado nele.
+</Tip>
+
+Como fizemos com Whisper, colocaremos SpeechT5 e o vocoder na GPU, se houver uma disponível:
+
+```python
+model.to(device)
+vocoder.to(device)
+```
+
+Carregamos então os embeddings de falante:
+
+```python
+embeddings_dataset = load_dataset("Matthijs/cmu-arctic-xvectors", split="validation")
+speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze(0)
+```
+
+Agora escrevemos uma função que recebe texto e gera fala. Primeiro, usamos o processador SpeechT5 para tokenizar o texto em identificadores de entrada. Passamos esses identificadores e os embeddings ao modelo, movendo-os para o acelerador disponível. Por fim, retornamos a fala gerada à CPU para reproduzi-la no notebook ipynb:
+
+```python
+def synthesise(text):
+    inputs = processor(text=text, return_tensors="pt")
+    speech = model.generate_speech(
+        inputs["input_ids"].to(device), speaker_embeddings.to(device), vocoder=vocoder
+    )
+    return speech.cpu()
+```
+
+Vamos testar com uma entrada de exemplo:
+
+```python
+speech = synthesise("Hey there! This is a test!")
+
+Audio(speech, rate=16000)
+```
+
+Soa bem! Agora vem a parte empolgante: combinar tudo.
+
+## Criação de uma demonstração STST
+
+Antes de criar a demonstração com [Gradio](https://gradio.app), faremos uma verificação rápida para conferir se podemos combinar os modelos, recebendo e retornando áudio. Encadeamos as duas funções anteriores: a primeira recebe o áudio e produz texto traduzido; a segunda sintetiza esse texto em fala. Por fim, convertemos a fala em um array `int16`, o formato de áudio esperado por Gradio. Primeiro, normalizamos o array pela faixa dinâmica do tipo de destino, `int16`, e depois convertemos do tipo padrão de NumPy, `float64`, para `int16`:
+
+```python
+import numpy as np
+
+target_dtype = np.int16
+max_range = np.iinfo(target_dtype).max
+
+
+def speech_to_speech_translation(audio):
+    translated_text = translate(audio)
+    synthesised_speech = synthesise(translated_text)
+    synthesised_speech = (synthesised_speech.numpy() * max_range).astype(np.int16)
+    return 16000, synthesised_speech
+```
+
+Vamos conferir o resultado da função combinada:
+
+```python
+sampling_rate, synthesised_speech = speech_to_speech_translation(sample["audio"])
+
+Audio(synthesised_speech, rate=sampling_rate)
+```
+
+Perfeito! Agora criamos uma demonstração com Gradio para gravar fala pelo microfone ou enviar um arquivo e reproduzir a previsão:
+
+```python
+import gradio as gr
+
+demo = gr.Blocks()
+
+mic_translate = gr.Interface(
+    fn=speech_to_speech_translation,
+    inputs=gr.Audio(source="microphone", type="filepath"),
+    outputs=gr.Audio(label="Generated Speech", type="numpy"),
+)
+
+file_translate = gr.Interface(
+    fn=speech_to_speech_translation,
+    inputs=gr.Audio(source="upload", type="filepath"),
+    outputs=gr.Audio(label="Generated Speech", type="numpy"),
+)
+
+with demo:
+    gr.TabbedInterface([mic_translate, file_translate], ["Microphone", "Audio File"])
+
+demo.launch(debug=True)
+```
+
+Isso inicia uma demonstração semelhante à do Hugging Face Space:
+
+<iframe src="https://course-demos-speech-to-speech-translation.hf.space" frameBorder="0" height="450" title="Aplicação Gradio" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
+Você pode [duplicá-la](https://huggingface.co/spaces/course-demos/speech-to-speech-translation?duplicate=true) e usar outro checkpoint Whisper ou TTS. Também pode remover a restrição de saída em inglês e seguir as dicas para traduzir ao idioma que escolher!
+
+## Próximos caminhos
+
+Embora a abordagem em cascata seja eficiente em dados e recursos computacionais, ela apresenta propagação de erros e latência acumulada. Trabalhos recentes exploram uma abordagem *direta*, que não prevê texto intermediário e mapeia diretamente a fala de origem para a de destino. Esses sistemas também conseguem preservar características da fala original, como prosódia, altura da voz e entonação. Para saber mais, consulte as [leituras adicionais](supplemental_reading).

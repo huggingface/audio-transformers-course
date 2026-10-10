@@ -85,3 +85,47 @@
     title: Exercício prático
   - local: chapter5/supplemental_reading
     title: Leituras e recursos adicionais
+
+- title: Unidade 6. Do texto à fala
+  sections:
+  - local: chapter6/introduction
+    title: O que você aprenderá e construirá
+  - local: chapter6/tts_datasets
+    title: Conjuntos de dados para síntese de fala a partir de texto
+  - local: chapter6/pre-trained_models
+    title: Modelos pré-treinados para síntese de fala a partir de texto
+  - local: chapter6/fine-tuning
+    title: Ajuste fino de SpeechT5
+  - local: chapter6/evaluation
+    title: Avaliação de modelos de síntese de fala a partir de texto
+  - local: chapter6/hands_on
+    title: Exercício prático
+  - local: chapter6/supplemental_reading
+    title: Leituras e recursos adicionais
+
+- title: Unidade 7. Combinando tudo
+  sections:
+  - local: chapter7/introduction
+    title: O que você aprenderá e construirá
+  - local: chapter7/speech-to-speech
+    title: Tradução de fala para fala
+  - local: chapter7/voice-assistant
+    title: Criação de um assistente de voz
+  - local: chapter7/transcribe-meeting
+    title: Transcrição de uma reunião
+  - local: chapter7/hands_on
+    title: Exercício prático
+  - local: chapter7/supplemental_reading
+    title: Leituras e recursos adicionais
+
+- title: Unidade 8. Encerramento
+  sections:
+  - local: chapter8/introduction
+    title: Parabéns!
+  - local: chapter8/certification
+    title: Obtenha seu certificado de conclusão
+
+- title: Eventos ao vivo
+  sections:
+  - local: events/introduction
+    title: Sessões ao vivo e workshops

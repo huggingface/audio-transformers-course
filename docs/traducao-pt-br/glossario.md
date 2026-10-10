@@ -46,6 +46,13 @@ Use português brasileiro, tratamento por “você” e tom didático. Preserve 
 | data collator | agrupador de dados |
 | inverse real-time factor (RTFx) | fator de tempo real inverso (RTFx) |
 | baseline | linha de base |
+| speaker embedding | embedding de falante |
+| speaker diarization | diarização de falantes |
+| wake word | palavra de ativação |
+| mean opinion score (MOS) | pontuação média de opinião (MOS) |
+| codebook | dicionário de códigos (codebook) |
+| pre-net / post-net | pré-rede / pós-rede |
+| large language model (LLM) | grande modelo de linguagem (LLM) |
 | hands-on exercise | exercício prático |
 | quiz | questionário |
 | open-source | de código aberto |

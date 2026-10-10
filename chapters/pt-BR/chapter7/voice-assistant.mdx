@@ -1,0 +1,369 @@
+# Criação de um assistente de voz
+
+Nesta seção, combinaremos três modelos que já experimentamos para criar um assistente de voz completo chamado **Marvin** 🤖. Como Alexa, da Amazon, ou Siri, da Apple, ele responde a uma "palavra de ativação", ouve uma pergunta falada e responde com voz.
+
+Podemos dividir o pipeline em quatro etapas, cada uma com seu próprio modelo:
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/voice_assistant.png">
+ </div>
+
+### 1. Detecção da palavra de ativação
+
+Assistentes ouvem continuamente o áudio do microfone, mas só entram em ação quando uma "palavra de ativação", ou "palavra de gatilho", é pronunciada.
+
+Um pequeno classificador de áudio no dispositivo realiza essa tarefa. Ele é muito menor e mais leve que o modelo de reconhecimento de fala: normalmente tem alguns milhões de parâmetros, contra centenas de milhões no reconhecimento. Pode, portanto, funcionar continuamente sem esgotar a bateria. O modelo maior só é iniciado quando detectamos a palavra de ativação e depois é desligado.
+
+### 2. Transcrição da fala
+
+Depois, transcrevemos a pergunta em texto. Na prática, transferir arquivos de áudio do dispositivo para a nuvem é lento pelo tamanho dos arquivos, então é mais eficiente transcrever diretamente com um modelo ASR local. Ele pode ser menor e menos preciso que o modelo na nuvem, mas a inferência mais rápida compensa: podemos reconhecer fala quase em tempo real, transcrevendo enquanto a pessoa fala.
+
+Esse processo já é familiar e deve ser bem simples!
+
+### 3. Consulta ao modelo de linguagem
+
+Agora que conhecemos a pergunta, precisamos responder. Os melhores candidatos são os *grandes modelos de linguagem (LLMs)*, capazes de compreender o significado do texto e gerar uma resposta adequada.
+
+Como a pergunta é pequena, com poucos tokens, e os modelos são grandes, com bilhões de parâmetros, a maneira mais eficiente é enviar o texto do dispositivo a um LLM na nuvem, gerar uma resposta e devolvê-la ao dispositivo.
+
+### 4. Síntese de fala
+
+Por fim, usamos TTS para sintetizar a resposta em fala. Faremos isso no dispositivo, mas também seria possível gerar o áudio na nuvem e transferi-lo de volta.
+
+Já fizemos isso várias vezes; o procedimento será familiar!
+
+<Tip>
+    Esta seção exige um microfone para gravar a entrada. Como as máquinas do Google Colab não são compatíveis com microfones, recomendamos executar localmente, na CPU ou em uma GPU disponível. Escolhemos checkpoints pequenos o bastante para inferência rápida na CPU, permitindo bom desempenho mesmo sem GPU.
+</Tip>
+
+## Detecção da palavra de ativação
+
+Na primeira etapa, precisamos detectar a palavra de ativação com um modelo pré-treinado adequado. Como vimos em [Modelos pré-treinados para classificação de áudio](../chapter4/classification_models), [Speech Commands](https://huggingface.co/datasets/speech_commands) avalia classificadores em mais de 15 palavras simples, como `"up"`, `"down"`, `"yes"` e `"no"`, além de `"silence"` para ausência de fala. Reserve um minuto para ouvir amostras no [visualizador de dados](https://huggingface.co/datasets/speech_commands/viewer/v0.01/train) e relembrar o conjunto.
+
+Podemos usar um classificador pré-treinado no conjunto e escolher uma das palavras como ativação. Se, entre mais de 15 comandos possíveis, ela receber a maior probabilidade, teremos razoável confiança de que foi pronunciada.
+
+Acesse a aba "Models" no Hub: https://huggingface.co/models
+
+Você verá todos os modelos, ordenados por downloads nos últimos 30 dias:
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/all_models.png">
+ </div>
+
+À esquerda, há abas para filtrar por tarefa, biblioteca, conjunto de dados e outros critérios. Role e selecione "Audio Classification" entre as tarefas de áudio:
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/by_audio_classification.png">
+ </div>
+
+Agora vemos mais de 500 modelos de classificação de áudio. Para refinar, clique em "Datasets" e busque "speech_commands". Enquanto digita, a opção `speech_commands` aparece abaixo da aba de busca. Clique nela para filtrar pelos modelos ajustados nesse conjunto:
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/by_speech_commands.png">
+ </div>
+
+Temos seis modelos para o conjunto e a tarefa, embora outros possam ter sido adicionados quando você ler este texto! O primeiro é o [checkpoint Audio Spectrogram Transformer](https://huggingface.co/MIT/ast-finetuned-speech-commands-v2) usado na unidade 4. Vamos usá-lo novamente.
+
+Carregue-o com `pipeline`:
+
+```python
+from transformers import pipeline
+import torch
+
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+classifier = pipeline(
+    "audio-classification", model="MIT/ast-finetuned-speech-commands-v2", device=device
+)
+```
+
+O atributo `id2label` da configuração mostra os rótulos de treinamento:
+
+```python
+classifier.model.config.id2label
+```
+
+O modelo foi treinado em 35 classes, incluindo os comandos e objetos como `"bed"`, `"house"` e `"cat"`. Há também um nome: o identificador 27 corresponde a **"marvin"**:
+
+```python
+classifier.model.config.id2label[27]
+```
+
+```
+'marvin'
+```
+
+Perfeito! Podemos usar esse nome como ativação, como "Alexa" ou "Hey Siri" nos respectivos assistentes. Se `"marvin"` tiver a maior probabilidade entre os rótulos, teremos razoável confiança de que a palavra foi dita.
+
+Agora precisamos de uma função que ouça continuamente o microfone e passe o áudio ao classificador. Usaremos a função auxiliar [`ffmpeg_microphone_live`](https://github.com/huggingface/transformers/blob/fb78769b9c053876ed7ae152ee995b0439a4462a/src/transformers/pipelines/audio_utils.py#L98), de 🤗 Transformers.
+
+Ela envia pequenos segmentos de duração `chunk_length_s` ao modelo. Para suavizar as fronteiras, usamos uma janela deslizante com passo `chunk_length_s / 6`. Para começar a inferência antes que todo o primeiro segmento seja gravado, também definimos uma duração mínima temporária, `stream_chunk_s`, enviada ao modelo antes de atingir `chunk_length_s`.
+
+`ffmpeg_microphone_live` retorna um objeto *gerador* com uma sequência de segmentos. Podemos passá-lo diretamente a `pipeline`, que retorna uma previsão por segmento. Examinamos as probabilidades das classes e interrompemos o laço ao detectar a palavra de ativação.
+
+Usaremos um critério simples: o rótulo de maior probabilidade deve ser nossa palavra, e sua probabilidade deve exceder `prob_threshold`. Esse limiar evita prever a palavra erroneamente quando a entrada é ruído, situação em que o modelo normalmente tem grande incerteza e todas as probabilidades são baixas. Você pode ajustar o limiar ou explorar métodos mais sofisticados com uma métrica de [*entropia*](https://en.wikipedia.org/wiki/Entropy_(information_theory)), ou incerteza.
+
+```python
+from transformers.pipelines.audio_utils import ffmpeg_microphone_live
+
+
+def launch_fn(
+    wake_word="marvin",
+    prob_threshold=0.5,
+    chunk_length_s=2.0,
+    stream_chunk_s=0.25,
+    debug=False,
+):
+    if wake_word not in classifier.model.config.label2id.keys():
+        raise ValueError(
+            f"Wake word {wake_word} not in set of valid class labels, pick a wake word in the set {classifier.model.config.label2id.keys()}."
+        )
+
+    sampling_rate = classifier.feature_extractor.sampling_rate
+
+    mic = ffmpeg_microphone_live(
+        sampling_rate=sampling_rate,
+        chunk_length_s=chunk_length_s,
+        stream_chunk_s=stream_chunk_s,
+    )
+
+    print("Listening for wake word...")
+    for prediction in classifier(mic):
+        prediction = prediction[0]
+        if debug:
+            print(prediction)
+        if prediction["label"] == wake_word:
+            if prediction["score"] > prob_threshold:
+                return True
+```
+
+Vamos testar com `debug=True` para imprimir a previsão de cada segmento. Deixe o modelo rodar alguns segundos sem fala, observe as previsões e depois diga claramente `"marvin"`. A probabilidade deve subir para perto de 1:
+
+```python
+launch_fn(debug=True)
+```
+
+```text
+Listening for wake word...
+{'score': 0.055326107889413834, 'label': 'one'}
+{'score': 0.05999856814742088, 'label': 'off'}
+{'score': 0.1282748430967331, 'label': 'five'}
+{'score': 0.07310110330581665, 'label': 'follow'}
+{'score': 0.06634809821844101, 'label': 'follow'}
+{'score': 0.05992642417550087, 'label': 'tree'}
+{'score': 0.05992642417550087, 'label': 'tree'}
+{'score': 0.999913215637207, 'label': 'marvin'}
+```
+
+Ótimo! Nos primeiros segundos sem fala, as previsões são quase aleatórias e têm probabilidade muito baixa. Assim que dizemos a palavra, o modelo prevê `"marvin"` com probabilidade próxima de 1 e termina o laço, sinalizando que o sistema ASR deve ser ativado!
+
+## Transcrição da fala
+
+Novamente usaremos Whisper, especificamente [Whisper Base English](https://huggingface.co/openai/whisper-base.en), pequeno o bastante para boa velocidade com acurácia razoável. Para transcrição quase em tempo real, controlaremos como as entradas chegam ao modelo. Você pode usar qualquer checkpoint de reconhecimento [do Hub](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&library=transformers&sort=trending), incluindo Wav2Vec2, MMS ASR ou outro Whisper:
+
+```python
+transcriber = pipeline(
+    "automatic-speech-recognition", model="openai/whisper-base.en", device=device
+)
+```
+
+<Tip>
+    Se usar GPU, você pode escolher <a href="https://huggingface.co/openai/whisper-small.en">Whisper Small English</a>, com maior acurácia e ainda dentro do limiar de latência necessário. Basta trocar o identificador por <code>"openai/whisper-small.en"</code>.
+</Tip>
+
+Agora definimos uma função para gravar o microfone e transcrever. Com `ffmpeg_microphone_live`, controlamos o quanto o reconhecimento ocorre em tempo real. Um `stream_chunk_s` menor divide o áudio em segmentos menores, transcritos sob demanda. Isso aproxima o processamento do tempo real, mas reduz a acurácia, pois há menos contexto para inferir.
+
+Também precisamos saber quando o usuário **para** de falar para encerrar a gravação. Para simplificar, interromperemos após o primeiro `chunk_length_s`, definido como 5 segundos por padrão. Você pode experimentar um modelo de [detecção de atividade de voz (VAD)](https://huggingface.co/models?pipeline_tag=voice-activity-detection&sort=trending) para prever quando a fala termina.
+
+```python
+import sys
+
+
+def transcribe(chunk_length_s=5.0, stream_chunk_s=1.0):
+    sampling_rate = transcriber.feature_extractor.sampling_rate
+
+    mic = ffmpeg_microphone_live(
+        sampling_rate=sampling_rate,
+        chunk_length_s=chunk_length_s,
+        stream_chunk_s=stream_chunk_s,
+    )
+
+    print("Start speaking...")
+    for item in transcriber(mic, generate_kwargs={"max_new_tokens": 128}):
+        sys.stdout.write("\033[K")
+        print(item["text"], end="\r")
+        if not item["partial"][0]:
+            break
+
+        return item["text"]
+```
+
+Vamos testar! Assim que o microfone estiver ativo, fale e observe a transcrição aparecer quase em tempo real:
+
+```python
+transcribe()
+```
+
+```text
+Start speaking...
+ Hey, this is a test with the whisper model.
+```
+
+Ajuste `chunk_length_s` conforme sua velocidade de fala: aumente se faltou tempo ou diminua se ficou esperando ao final. Ajuste `stream_chunk_s` para controlar o fator de tempo real. Basta passar esses argumentos a `transcribe`.
+
+## Consulta ao modelo de linguagem
+
+Com a pergunta transcrita, precisamos gerar uma resposta significativa. Usaremos um LLM na nuvem, escolhido no Hub, e a [Inference API](https://huggingface.co/inference-api) para consultá-lo.
+
+Para encontrá-lo, acesse o [🤗 Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard), um Space que classifica modelos por desempenho em quatro tarefas de geração. Busque "instruct" para filtrar os modelos ajustados com instruções, mais adequados à nossa tarefa:
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/llm_leaderboard.png">
+ </div>
+
+Usaremos [tiiuae/falcon-7b-instruct](https://huggingface.co/tiiuae/falcon-7b-instruct), da [TII](https://www.tii.ae/), um modelo de linguagem com apenas decodificador, 7 bilhões de parâmetros e ajuste fino em uma mistura de dados de conversa e instruções. Você pode usar qualquer LLM do Hub com "Hosted inference API" ativada. Procure o widget à direita na ficha:
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/inference_api.png">
+ </div>
+
+A API permite enviar uma requisição HTTP da máquina local ao LLM hospedado e retorna a resposta como um arquivo `json`. Precisamos fornecer apenas o token do Hub, obtido diretamente de nossa pasta Hugging Face, e o identificador do modelo:
+
+```python
+from huggingface_hub import HfFolder
+import requests
+
+
+def query(text, model_id="tiiuae/falcon-7b-instruct"):
+    api_url = f"https://api-inference.huggingface.co/models/{model_id}"
+    headers = {"Authorization": f"Bearer {HfFolder().get_token()}"}
+    payload = {"inputs": text}
+
+    print(f"Querying...: {text}")
+    response = requests.post(api_url, headers=headers, json=payload)
+    return response.json()[0]["generated_text"][len(text) + 1 :]
+```
+
+Vamos testar com uma entrada:
+
+```python
+query("What does Hugging Face do?")
+```
+
+```
+'Hugging Face is a company that provides natural language processing and machine learning tools for developers. They'
+```
+
+A inferência é rápida: enviamos poucos tokens de texto, com baixo custo de comunicação, e o LLM roda em GPUs aceleradoras. A resposta também retorna à máquina local com pouca sobrecarga de comunicação.
+
+## Síntese de fala
+
+Agora podemos gerar a saída falada! Usaremos novamente [SpeechT5 TTS](https://huggingface.co/microsoft/speecht5_tts), da Microsoft, para inglês, mas você pode escolher outro modelo. Carregamos processador e modelo:
+
+```python
+from transformers import SpeechT5Processor, SpeechT5ForTextToSpeech, SpeechT5HifiGan
+
+processor = SpeechT5Processor.from_pretrained("microsoft/speecht5_tts")
+
+model = SpeechT5ForTextToSpeech.from_pretrained("microsoft/speecht5_tts").to(device)
+vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan").to(device)
+```
+
+Também carregamos os embeddings de falante:
+
+```python
+from datasets import load_dataset
+
+embeddings_dataset = load_dataset("Matthijs/cmu-arctic-xvectors", split="validation")
+speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze(0)
+```
+
+Reutilizaremos `synthesise`, definida em [Tradução de fala para fala](speech-to-speech):
+
+```python
+def synthesise(text):
+    inputs = processor(text=text, return_tensors="pt")
+    speech = model.generate_speech(
+        inputs["input_ids"].to(device), speaker_embeddings.to(device), vocoder=vocoder
+    )
+    return speech.cpu()
+```
+
+Vamos conferir seu funcionamento:
+
+```python
+from IPython.display import Audio
+
+audio = synthesise(
+    "Hugging Face is a company that provides natural language processing and machine learning tools for developers."
+)
+
+Audio(audio, rate=16000)
+```
+
+Bom trabalho 👍!
+
+## Marvin 🤖
+
+Com uma função para cada etapa, basta reuni-las no assistente completo. Encadeamos detecção da palavra de ativação (`launch_fn`), transcrição, consulta ao LLM e síntese de fala:
+
+```python
+launch_fn()
+transcription = transcribe()
+response = query(transcription)
+audio = synthesise(response)
+
+Audio(audio, rate=16000, autoplay=True)
+```
+
+Experimente algumas perguntas. Para começar:
+
+* *What is the hottest country in the world?*
+* *How do Transformer models work?*
+* *Do you know Spanish?*
+
+Temos um assistente completo, construído com as ferramentas de áudio 🤗 do curso e um pouco da capacidade dos LLMs ao final. Podemos aprimorá-lo de várias formas. Primeiro, o classificador prevê 35 rótulos; poderíamos usar um modelo binário menor e mais leve que só indique se a palavra de ativação foi pronunciada. Segundo, carregamos todos os modelos antecipadamente e os mantemos no dispositivo. Para economizar energia, poderíamos carregar cada um apenas quando necessário e descarregá-lo depois. Terceiro, falta detecção de atividade de voz: a gravação tem duração fixa, longa demais em alguns casos e curta demais em outros.
+
+## Generalização para qualquer tarefa 🪄
+
+Até aqui, Marvin gera saídas de fala. Por fim, veremos como ampliar as saídas para texto, áudio e imagem.
+
+Usaremos [Transformers Agents](https://huggingface.co/docs/transformers/transformers_agents), que oferece uma API de linguagem natural sobre 🤗 Transformers e Diffusers. Ela interpreta a entrada com um LLM e prompts cuidadosamente elaborados e usa um conjunto selecionado de ferramentas para produzir saídas multimodais.
+
+Vamos instanciar um agente. Há [três LLMs disponíveis](https://huggingface.co/docs/transformers/transformers_agents#quickstart): dois são de código aberto e gratuitos no Hub; o terceiro é da OpenAI e exige uma chave de API. Usaremos o modelo gratuito [Bigcode Starcoder](https://huggingface.co/bigcode/starcoder), mas você pode experimentar os demais:
+
+```python
+from transformers import HfAgent
+
+agent = HfAgent(
+    url_endpoint="https://api-inference.huggingface.co/models/bigcode/starcoder"
+)
+```
+
+Para usar o agente, chamamos `agent.run` com o texto. Por exemplo, pediremos uma imagem de gato 🐈, que esperamos ficar melhor que este emoji:
+
+```python
+agent.run("Generate an image of a cat")
+```
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/generated_cat.png">
+ </div>
+
+<Tip>
+    A primeira chamada baixa os pesos do modelo, o que pode demorar conforme a velocidade de download do Hub.
+</Tip>
+
+Simples assim! O agente interpretou o pedido e usou [Stable Diffusion](https://huggingface.co/docs/diffusers/using-diffusers/conditional_image_generation) internamente para gerar a imagem, sem precisarmos carregar o modelo, escrever a função ou executar o código.
+
+Podemos substituir a consulta ao LLM e a síntese de texto pelo Transformers Agent, que cuidará das duas etapas:
+
+```python
+launch_fn()
+transcription = transcribe()
+agent.run(transcription)
+```
+
+Diga o mesmo pedido, "Generate an image of a cat", e observe o resultado. Em uma pergunta simples, o agente responde com texto. Você pode pedir saídas multimodais solicitando imagem ou fala, por exemplo: "Generate an image of a cat, caption it, and speak the caption".
+
+Embora seja mais flexível que a primeira versão de Marvin 🤖, essa generalização pode reduzir o desempenho em consultas convencionais de assistente de voz. Para recuperá-lo, experimente um LLM de melhor desempenho, como o da OpenAI, ou defina [ferramentas personalizadas](https://huggingface.co/docs/transformers/transformers_agents#custom-tools) específicas para a tarefa.
