@@ -93,5 +93,16 @@
     "english_and_other_languages": "unchanged",
     "course_dependencies_and_lockfiles": "unchanged",
     "goal_file_during_continuation": "unchanged"
+  },
+  "git_diff_check": {
+    "status": "inherited_whitespace",
+    "path": "chapters/pt-BR/chapter6/fine-tuning.mdx",
+    "lines": [
+      406,
+      422,
+      498,
+      505
+    ],
+    "matches_english_fences": true
   }
 }

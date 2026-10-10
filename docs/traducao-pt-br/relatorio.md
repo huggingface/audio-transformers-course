@@ -31,7 +31,7 @@ Evidências locais: `/workspace/.onboarding/audio-transformers-course/validation
 
 ## Renderização e configuração do ambiente
 
-Os tokens `<UNK>`, `<pad>` e `<unk>` foram escapados fora de código para aparecerem como texto; a ênfase do quiz da unidade 1 foi adaptada ao HTML aceito pelo componente. Os títulos de incorporações Gradio foram localizados. A tabela de WER teve uma célula vazia excedente removida para alinhar os mesmos seis tokens. Lógica dos quizzes, identificadores e blocos de código foram preservados. As âncoras que dependem de títulos traduzidos foram conferidas no DOM.
+Os tokens `<UNK>`, `<pad>` e `<unk>` foram escapados fora de código para aparecerem como texto; a ênfase do quiz da unidade 1 foi adaptada ao HTML aceito pelo componente. Os títulos de incorporações Gradio foram localizados. A tabela de WER teve uma célula vazia excedente removida para alinhar os mesmos seis tokens. Lógica dos quizzes, identificadores e blocos de código foram preservados. `git diff --check` aponta quatro espaços finais nos delimitadores de código da unidade 6 (linhas 406, 422, 498 e 505); são idênticos aos delimitadores ingleses e foram mantidos para preservar os blocos integralmente. `make quality` aprova esses exemplos. As âncoras que dependem de títulos traduzidos foram conferidas no DOM.
 
 A prévia duplicava fórmulas porque o kit instalado não importava o CSS do KaTeX. Foi acrescentada a importação de `katex/dist/katex.min.css` no kit local, fora do checkout, usando o pacote já instalado. A correção idempotente foi incorporada ao script de instalação. A prévia foi reiniciada a partir desse kit para conferir sua persistência. Isso não altera nem valida o renderer publicado do curso.
 
