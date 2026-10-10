@@ -143,5 +143,18 @@
     "remote_ci_verified": false,
     "upstream_issue_coordination_verified": false,
     "report": "conformidade-repo.md"
+  },
+  "upstream_submission": {
+    "repository": "huggingface/audio-transformers-course",
+    "issue": 173,
+    "issue_url": "https://github.com/huggingface/audio-transformers-course/issues/173",
+    "issue_read": "public_github_html",
+    "base_sha": "56b6e8334aef7e0efa0137574f068c968f3f6e1c",
+    "head": "prof-ramos:codex/traducao-pt-br-unidades-0-3",
+    "body_file": "descricao-upstream.md",
+    "created": false,
+    "create_error": "Post https://api.github.com/graphql: Forbidden",
+    "required_followup": "Authorized GitHub connector: recheck duplicate head, then create draft PR using prepared body",
+    "media_scope": "External media are owned upstream; blocked inspection remains a documented limitation, not a requirement to modify their services"
   }
 }

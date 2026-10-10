@@ -66,3 +66,11 @@ Nenhuma seção está pendente de tradução ou revisão textual. A verificaçã
 ## Conferência das orientações do repositório
 
 Veja `conformidade-repo.md` para fontes, requisitos, resultados e limites. Não há `AGENTS.md` aplicável; os demais campos do índice são idênticos ao inglês e `pt-BR` já está habilitado nos workflows. A formatação com a função de `make style`, limitada aos 50 arquivos portugueses conforme o objetivo, não alterou nenhum hash. Dependências, `make quality`, invariantes completos e saída do validador foram conferidos novamente. Não houve mudança na referência inglesa, nem necessidade de retradução. CI remoto e coordenação de issue upstream não foram confirmados.
+
+## Preparação do envio ao Hugging Face
+
+O usuário autorizou enviar a tradução para revisão no repositório oficial. A leitura pública identificou a issue aberta [Translation to Portuguese-Brazil #173](https://github.com/huggingface/audio-transformers-course/issues/173), que lista o curso de áudio. O `main` oficial permanece na referência `56b6e8334aef7e0efa0137574f068c968f3f6e1c`. A busca pública por PR com a branch `prof-ramos:codex/traducao-pt-br-unidades-0-3` não retornou links de PR; isso não é uma consulta autenticada.
+
+A descrição para revisão oficial está em `descricao-upstream.md`, com vínculo à issue e identificação do uso de Codex. A tentativa real com `gh pr create --repo huggingface/audio-transformers-course --base main --head prof-ramos:codex/traducao-pt-br-unidades-0-3 --draft` falhou com `Post "https://api.github.com/graphql": Forbidden`. Nenhum PR oficial foi criado. O PR #1 continua sendo a entrega no fork. Para completar o envio, o acompanhamento precisa usar o conector GitHub autorizado, conferindo novamente a ausência de PR oficial com essa head. Não foram alteradas credenciais ou rede, nem enviados comentários à issue.
+
+O escopo de entrega é a documentação. Conforme o esclarecimento posterior do usuário, o bloqueio das mídias externas é uma limitação registrada da conferência, sem exigir modificação ou garantia de funcionamento dos serviços do Hugging Face.
