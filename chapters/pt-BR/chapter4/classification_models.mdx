@@ -1,0 +1,224 @@
+# Modelos pré-treinados e conjuntos de dados para classificação de áudio
+
+O Hugging Face Hub reúne mais de 500 modelos pré-treinados para classificação de áudio. Nesta seção, conheceremos algumas das tarefas mais comuns e sugeriremos modelos adequados para cada uma. Com a classe `pipeline()`, é fácil trocar de modelo ou tarefa: depois de aprender a usá-la com um modelo, você poderá usá-la com qualquer modelo do Hub sem modificar o código! Isso torna a experimentação muito rápida e ajuda a selecionar o melhor modelo pré-treinado para suas necessidades.
+
+Antes de explorar os problemas de classificação de áudio, vamos revisar as arquiteturas transformer normalmente usadas. A arquitetura convencional é motivada pela natureza da tarefa: queremos transformar uma sequência de entradas de áudio, nosso array de áudio, em uma única previsão de rótulo de classe. Modelos com apenas codificador primeiro passam essa sequência pelo bloco transformer para produzir uma sequência de estados ocultos. Em seguida, calculam a média desses estados e passam o vetor resultante por uma camada linear de classificação para obter o rótulo de saída. Por isso, há preferência por modelos _com apenas codificador_ na classificação de áudio.
+
+Modelos com apenas decodificador acrescentam complexidade desnecessária, pois pressupõem que a saída também pode ser uma _sequência_ de previsões, em vez de um único rótulo, e geram várias saídas. Assim, sua inferência é mais lenta, e eles geralmente não são usados nessa tarefa. Modelos codificador-decodificador costumam ser deixados de lado pelo mesmo motivo. Essas escolhas são análogas às de NLP: modelos com apenas codificador, como [BERT](https://huggingface.co/blog/bert-101), são preferidos para classificação de sequências, enquanto modelos com apenas decodificador, como GPT, são reservados à geração de sequências.
+
+Agora que revisamos a arquitetura convencional, vamos explorar as diferentes modalidades de classificação de áudio e seus modelos mais populares!
+
+## Instalação de 🤗 Transformers
+
+No momento em que este texto foi escrito, as atualizações necessárias ao pipeline de classificação de áudio estavam disponíveis apenas na versão `main` do repositório de 🤗 Transformers, e não na versão mais recente do PyPI. Para ter essas atualizações no ambiente local, instalaremos Transformers a partir da branch `main` com o comando:
+
+```
+pip install git+https://github.com/huggingface/transformers
+```
+
+## Detecção de palavras-chave
+
+A detecção de palavras-chave, ou keyword spotting (KWS), identifica uma palavra-chave em uma fala. As palavras-chave possíveis formam o conjunto de rótulos de classe previstos. Para usar um modelo pré-treinado nessa tarefa, confira se suas palavras-chave correspondem às usadas no pré-treinamento. A seguir, apresentaremos dois conjuntos de dados e modelos para essa tarefa.
+
+### Minds-14
+
+Usaremos o mesmo conjunto [MINDS-14](https://huggingface.co/datasets/PolyAI/minds14) explorado na unidade anterior. Ele contém gravações de pessoas fazendo perguntas a um sistema de banco eletrônico em vários idiomas e dialetos, com um campo `intent_class` para cada gravação. Podemos classificá-las pela intenção da chamada.
+
+```python
+from datasets import load_dataset
+
+minds = load_dataset("PolyAI/minds14", name="en-AU", split="train")
+```
+
+Carregaremos o checkpoint [`"anton-l/xtreme_s_xlsr_300m_minds14"`](https://huggingface.co/anton-l/xtreme_s_xlsr_300m_minds14), um modelo XLS-R com ajuste fino no MINDS-14 por aproximadamente 50 épocas. Ele alcança 90% de acurácia no conjunto de avaliação, considerando todos os idiomas do MINDS-14.
+
+```python
+from transformers import pipeline
+
+classifier = pipeline(
+    "audio-classification",
+    model="anton-l/xtreme_s_xlsr_300m_minds14",
+)
+```
+
+Por fim, podemos passar uma amostra ao pipeline de classificação para fazer uma previsão:
+```python
+classifier(minds[0]["audio"])
+```
+**Saída:**
+```
+[
+    {"score": 0.9631525278091431, "label": "pay_bill"},
+    {"score": 0.02819698303937912, "label": "freeze"},
+    {"score": 0.0032787492964416742, "label": "card_issues"},
+    {"score": 0.0019414445850998163, "label": "abroad"},
+    {"score": 0.0008378693601116538, "label": "high_value_payment"},
+]
+```
+
+Ótimo! Identificamos que a intenção da chamada era pagar uma conta, com probabilidade de 96%. Imagine esse sistema de detecção de palavras-chave como a primeira etapa de uma central de atendimento automatizada: ele categoriza as chamadas dos clientes com base na pergunta e oferece suporte adequado ao contexto.
+
+### Speech Commands
+
+Speech Commands é um conjunto de dados de palavras faladas, projetado para avaliar modelos de classificação de áudio em palavras simples de comando. Ele contém 15 classes de palavras-chave, uma classe de silêncio e uma classe desconhecida para incluir falsos positivos. As 15 palavras-chave são palavras únicas normalmente usadas em dispositivos para controlar tarefas básicas ou iniciar outros processos.
+
+Um modelo semelhante funciona continuamente em seu celular. Em vez de palavras únicas de comando, ele usa palavras de ativação específicas do dispositivo, como "Hey Google" ou "Hey Siri". Quando o classificador detecta essas palavras, aciona o celular para ouvir o microfone e transcrever sua fala com um modelo de reconhecimento de fala.
+
+O classificador de áudio é muito menor e mais leve que o modelo de reconhecimento de fala: geralmente tem apenas alguns milhões de parâmetros, em comparação com centenas de milhões no reconhecimento de fala. Por isso, pode funcionar continuamente sem esgotar a bateria! O modelo maior só é iniciado quando a palavra de ativação é detectada e depois é desligado novamente. Estudaremos transformers para reconhecimento de fala na próxima unidade; ao final do curso, você deverá ter as ferramentas necessárias para criar seu próprio assistente ativado por voz!
+
+Como em qualquer conjunto do Hugging Face Hub, podemos conhecer os dados de áudio sem baixá-los ou carregá-los na memória. Na [ficha do Speech Commands](https://huggingface.co/datasets/speech_commands), o visualizador de conjuntos de dados permite percorrer as primeiras 100 amostras, ouvir os arquivos de áudio e conferir os demais metadados:
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/speech_commands.png" alt="Ilustração do visualizador de conjuntos de dados.">
+ </div>
+
+A prévia é uma excelente maneira de conhecer um conjunto antes de decidir usá-lo. Você pode escolher qualquer conjunto no Hub, percorrer as amostras e ouvir áudios dos diferentes subconjuntos e divisões para avaliar se atende às suas necessidades. Depois de escolher, é simples carregar os dados e começar a usá-los.
+
+Vamos fazer isso com uma amostra do Speech Commands em modo de streaming:
+
+```python
+speech_commands = load_dataset(
+    "speech_commands", "v0.02", split="validation", streaming=True
+)
+sample = next(iter(speech_commands))
+```
+
+Carregaremos um checkpoint oficial de [Audio Spectrogram Transformer](https://huggingface.co/docs/transformers/model_doc/audio-spectrogram-transformer) com ajuste fino no Speech Commands, disponível como [`"MIT/ast-finetuned-speech-commands-v2"`](https://huggingface.co/MIT/ast-finetuned-speech-commands-v2):
+
+```python
+classifier = pipeline(
+    "audio-classification", model="MIT/ast-finetuned-speech-commands-v2"
+)
+classifier(sample["audio"].copy())
+```
+**Saída:**
+```
+[{'score': 0.9999892711639404, 'label': 'backward'},
+ {'score': 1.7504888774055871e-06, 'label': 'happy'},
+ {'score': 6.703040185129794e-07, 'label': 'follow'},
+ {'score': 5.805884484288981e-07, 'label': 'stop'},
+ {'score': 5.614546694232558e-07, 'label': 'up'}]
+```
+
+Ótimo! O exemplo parece conter a palavra "backward", com alta probabilidade. Podemos ouvir a amostra para conferir:
+```
+from IPython.display import Audio
+
+Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
+```
+
+Você talvez queira saber como escolhemos os modelos pré-treinados desses exemplos. Encontrar modelos para seu conjunto e sua tarefa é muito simples! Primeiro, acesse a aba "Models" no Hugging Face Hub: https://huggingface.co/models
+
+Ela mostra todos os modelos, ordenados pela quantidade de downloads nos últimos 30 dias:
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/all_models.png">
+ </div>
+
+À esquerda, há abas para filtrar modelos por tarefa, biblioteca, conjunto de dados e outros critérios. Role a lista de tarefas de áudio e selecione "Audio Classification":
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/by_audio_classification.png">
+ </div>
+
+Agora vemos o subconjunto de mais de 500 modelos de classificação de áudio. Para refinar a seleção, filtre pelo conjunto de dados. Clique na aba "Datasets" e digite "speech_commands" na busca. Enquanto digita, a opção `speech_commands` aparece abaixo da aba de busca. Clique nela para selecionar os classificadores de áudio com ajuste fino no Speech Commands:
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/by_speech_commands.png">
+ </div>
+
+Ótimo! Temos 6 modelos pré-treinados para esse conjunto e essa tarefa. O primeiro é o checkpoint de Audio Spectrogram Transformer usado no exemplo anterior. Foi exatamente com esse processo de filtragem que selecionamos o checkpoint!
+
+## Identificação de idioma
+
+A identificação de idioma (LID) identifica qual idioma é falado em uma amostra, a partir de uma lista de idiomas candidatos. Ela pode ser uma etapa importante em muitos pipelines de fala. Por exemplo, para um áudio em idioma desconhecido, um modelo LID identifica o idioma ou os idiomas falados e permite selecionar um modelo de reconhecimento de fala treinado no idioma adequado para transcrevê-lo.
+
+### FLEURS
+
+FLEURS (Few-shot Learning Evaluation of Universal Representations of Speech) é um conjunto para avaliar sistemas de reconhecimento de fala em 102 idiomas, muitos deles classificados como idiomas com poucos recursos. Confira sua ficha no Hub e explore os idiomas disponíveis: [google/fleurs](https://huggingface.co/datasets/google/fleurs). Seu idioma nativo está na lista? Se não estiver, qual é o idioma mais próximo?
+
+Vamos carregar uma amostra da divisão de validação do FLEURS em modo de streaming:
+
+```python
+fleurs = load_dataset("google/fleurs", "all", split="validation", streaming=True)
+sample = next(iter(fleurs))
+```
+
+Agora podemos carregar o classificador de áudio. Usaremos uma versão do [Whisper](https://arxiv.org/pdf/2212.04356.pdf) com ajuste fino no FLEURS, atualmente o modelo LID de melhor desempenho no Hub:
+
+```python
+classifier = pipeline(
+    "audio-classification", model="sanchit-gandhi/whisper-medium-fleurs-lang-id"
+)
+```
+
+Depois, passamos o áudio ao classificador e geramos uma previsão:
+```python
+classifier(sample["audio"])
+```
+**Saída:**
+```
+[{'score': 0.9999330043792725, 'label': 'Afrikaans'},
+ {'score': 7.093023668858223e-06, 'label': 'Northern-Sotho'},
+ {'score': 4.269149485480739e-06, 'label': 'Icelandic'},
+ {'score': 3.2661141631251667e-06, 'label': 'Danish'},
+ {'score': 3.2580724109720904e-06, 'label': 'Cantonese Chinese'}]
+```
+
+O modelo previu que o áudio está em africâner, com probabilidade muito alta, próxima de 1. O FLEURS contém áudio de muitos idiomas: os rótulos possíveis incluem sotho do norte, islandês, dinamarquês e chinês cantonês, entre outros. A lista completa está na ficha do conjunto: [google/fleurs](https://huggingface.co/datasets/google/fleurs).
+
+Sua vez! Quais outros checkpoints de LID para FLEURS você encontra no Hub? Que modelos transformer eles usam internamente?
+
+## Classificação de áudio zero-shot
+
+Na abordagem tradicional, o classificador prevê um rótulo de um conjunto _predefinido_ de classes. Isso dificulta o uso de modelos pré-treinados, pois seus rótulos precisam corresponder aos da tarefa de destino. No exemplo de LID, o modelo precisa prever uma das 102 classes de idiomas com que foi treinado. Se a tarefa exigir 110 idiomas, ele não poderá prever 8 deles e precisará ser treinado novamente para cobrir todos. Isso limita a eficácia da transferência de aprendizado na classificação de áudio.
+
+A classificação de áudio zero-shot permite que um modelo pré-treinado com exemplos rotulados classifique novos exemplos de classes que não havia visto. Vamos entender como!
+
+Atualmente, 🤗 Transformers oferece um tipo de modelo para classificação de áudio zero-shot: o [modelo CLAP](https://huggingface.co/docs/transformers/model_doc/clap). CLAP é baseado em transformers, recebe áudio e texto e calcula a _similaridade_ entre eles. Um texto fortemente relacionado ao áudio produz uma pontuação alta; um texto sem relação com ele produz uma pontuação baixa.
+
+Podemos usar essa previsão de similaridade para classificação zero-shot passando um áudio e vários rótulos candidatos ao modelo. Ele retorna uma pontuação para cada candidato, e escolhemos o de maior pontuação como previsão.
+
+Veja um exemplo com uma entrada do conjunto [Environmental Speech Challenge (ESC)](https://huggingface.co/datasets/ashraq/esc50):
+
+```python
+dataset = load_dataset("ashraq/esc50", split="train", streaming=True)
+audio_sample = next(iter(dataset))["audio"]["array"]
+```
+
+Definimos então os rótulos candidatos, que formam o conjunto de classes possíveis. O modelo retorna uma probabilidade de classificação para cada rótulo. Precisamos, portanto, conhecer _de antemão_ os rótulos possíveis de nosso problema para incluir o correto no conjunto e atribuir a ele uma probabilidade válida. Podemos passar todos os rótulos ou um subconjunto escolhido que acreditamos conter o correto. Passar todos é mais abrangente, mas reduz a acurácia porque o espaço de classificação é maior, supondo que o rótulo correto esteja no subconjunto escolhido:
+
+```python
+candidate_labels = ["Sound of a dog", "Sound of vacuum cleaner"]
+```
+
+Podemos passar áudio e rótulos ao modelo para encontrar o candidato _mais semelhante_ à entrada:
+
+```python
+classifier = pipeline(
+    task="zero-shot-audio-classification", model="laion/clap-htsat-unfused"
+)
+classifier(audio_sample, candidate_labels=candidate_labels)
+```
+**Saída:**
+```
+[{'score': 0.9997242093086243, 'label': 'Sound of a dog'}, {'score': 0.0002758323971647769, 'label': 'Sound of vacuum cleaner'}]
+```
+
+O modelo está bastante confiante de que ouvimos um cachorro: a probabilidade é de 99,96%, então essa será nossa previsão. Vamos confirmá-la ouvindo a amostra. Não aumente muito o volume para não levar um susto!
+
+```python
+Audio(audio_sample, rate=16000)
+```
+
+Perfeito! O som é de um cachorro latindo 🐕, de acordo com a previsão. Experimente outros áudios e rótulos candidatos: você consegue definir rótulos que generalizem bem no ESC? Pense em onde encontrar informações sobre seus sons possíveis e construa os rótulos com base nisso!
+
+Por que não usar o pipeline zero-shot em **todas** as tarefas de classificação de áudio? Parece possível prever qualquer problema definindo rótulos adequados _de antemão_, sem precisar que eles coincidam com os rótulos do pré-treinamento. A limitação vem da natureza do CLAP: ele é pré-treinado com dados _genéricos_ de classificação de áudio, semelhantes aos sons ambientais do ESC, e não especificamente com fala, como na tarefa LID. Se receber fala em inglês e em espanhol, CLAP reconhecerá ambos como fala 🗣️, mas não distinguirá os idiomas como um modelo dedicado a LID.
+
+## O que vem a seguir?
+
+Conhecemos diferentes tarefas de classificação de áudio e os conjuntos e modelos mais relevantes que você pode baixar do Hugging Face Hub e usar com poucas linhas de `pipeline()`. As tarefas incluíram detecção de palavras-chave, identificação de idioma e classificação zero-shot.
+
+E se quisermos fazer algo **novo**? Trabalhamos bastante com fala, mas isso é apenas um aspecto da classificação de áudio. Outro campo popular do processamento de áudio é a **música**. Embora suas características sejam diferentes das da fala, muitos dos princípios já aprendidos também se aplicam à música.
+
+Na próxima seção, veremos passo a passo como fazer o ajuste fino de um transformer com 🤗 Transformers para classificação de música. Ao final, você terá um checkpoint ajustado que pode usar em `pipeline()` para classificar músicas da mesma maneira que classificamos fala aqui!

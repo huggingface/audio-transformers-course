@@ -93,7 +93,7 @@ BRION SAW SOMETHING CLOSE TO PANIC ON HIS OPPONENT'S FACE WHEN THE MAN FINALLY R
 O modelo prevê um token, um caractere, para cada 20 ms de áudio parcialmente sobreposto da forma de onda de entrada. Isso gera muitas repetições. Graças ao token em branco do CTC, podemos removê-las sem destruir a grafia correta das palavras. É uma maneira simples e prática de resolver o problema de alinhar o texto de saída com o áudio de entrada.
 
 <Tip>
-💡 No Wav2Vec2, o token em branco do CTC é o mesmo token de preenchimento, `<pad>`. O modelo prevê muitos desses tokens, por exemplo, quando não há um caractere claro para os 20 ms atuais de áudio. Usar o mesmo token para preenchimento e para o branco do CTC simplifica a decodificação e ajuda a manter o vocabulário pequeno.
+💡 No Wav2Vec2, o token em branco do CTC é o mesmo token de preenchimento, `&lt;pad&gt;`. O modelo prevê muitos desses tokens, por exemplo, quando não há um caractere claro para os 20 ms atuais de áudio. Usar o mesmo token para preenchimento e para o branco do CTC simplifica a decodificação e ajuda a manter o vocabulário pequeno.
 </Tip>
 
 É fácil adicionar CTC a um codificador transformer: sua sequência de saída passa por uma camada linear que projeta as características acústicas no vocabulário. O modelo é treinado com uma função de perda CTC específica.

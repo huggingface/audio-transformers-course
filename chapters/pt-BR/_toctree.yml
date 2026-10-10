@@ -53,3 +53,35 @@
     quiz: 3
   - local: chapter3/supplemental_reading
     title: Leituras e recursos adicionais
+
+- title: Unidade 4. Crie um classificador de gêneros musicais
+  sections:
+  - local: chapter4/introduction
+    title: O que você aprenderá e construirá
+  - local: chapter4/classification_models
+    title: Modelos pré-treinados para classificação de áudio
+  - local: chapter4/fine-tuning
+    title: Ajuste fino de um modelo para classificação de música
+  - local: chapter4/demo
+    title: Crie uma demonstração com Gradio
+  - local: chapter4/hands_on
+    title: Exercício prático
+
+- title: Unidade 5. Reconhecimento de fala
+  sections:
+  - local: chapter5/introduction
+    title: O que você aprenderá e construirá
+  - local: chapter5/asr_models
+    title: Modelos pré-treinados para reconhecimento automático de fala
+  - local: chapter5/choosing_dataset
+    title: Escolha de um conjunto de dados
+  - local: chapter5/evaluation
+    title: Métricas de avaliação para ASR
+  - local: chapter5/fine-tuning
+    title: Ajuste fino do modelo ASR
+  - local: chapter5/demo
+    title: Crie uma demonstração com Gradio
+  - local: chapter5/hands_on
+    title: Exercício prático
+  - local: chapter5/supplemental_reading
+    title: Leituras e recursos adicionais

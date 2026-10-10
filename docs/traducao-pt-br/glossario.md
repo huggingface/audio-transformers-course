@@ -36,6 +36,16 @@ Use português brasileiro, tratamento por “você” e tom didático. Preserve 
 | word error rate (WER) | taxa de erro de palavras (WER) |
 | character error rate (CER) | taxa de erro de caracteres (CER) |
 | vocoder | vocoder |
+| accuracy | acurácia |
+| keyword spotting (KWS) | detecção de palavras-chave (KWS) |
+| language identification (LID) | identificação de idioma (LID) |
+| zero-shot | zero-shot |
+| low-resource language | idioma com poucos recursos |
+| chunking | divisão em segmentos |
+| timestamp | marca de tempo |
+| data collator | agrupador de dados |
+| inverse real-time factor (RTFx) | fator de tempo real inverso (RTFx) |
+| baseline | linha de base |
 | hands-on exercise | exercício prático |
 | quiz | questionário |
 | open-source | de código aberto |

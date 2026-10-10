@@ -1,0 +1,301 @@
+# Modelos pré-treinados para reconhecimento automático de fala
+
+Nesta seção, veremos como usar `pipeline()` para aproveitar modelos pré-treinados de reconhecimento de fala. Na [unidade 2](../chapter2/asr_pipeline), apresentamos `pipeline()` como uma maneira simples de executar essa tarefa, com todo o pré-processamento e pós-processamento realizado internamente e flexibilidade para experimentar rapidamente qualquer checkpoint pré-treinado do Hugging Face Hub. Aqui, aprofundaremos o assunto e exploraremos as diferentes características desses modelos e como usá-los para resolver diversas tarefas.
+
+Como detalhado na unidade 3, os modelos de reconhecimento de fala se dividem, em geral, em duas categorias:
+
+1. Classificação temporal conexionista (CTC): modelos _com apenas codificador_, com uma cabeça de classificação linear (CTC) no topo.
+2. Sequência a sequência (Seq2Seq): modelos _codificador-decodificador_, com um mecanismo de atenção cruzada entre codificador e decodificador.
+
+Antes de 2022, CTC era a mais popular das duas arquiteturas. Modelos com apenas codificador, como Wav2Vec2, HuBERT e XLSR, trouxeram avanços no paradigma de pré-treinamento e ajuste fino para fala. Grandes empresas, como Meta e Microsoft, pré-treinavam o codificador em enormes quantidades de áudio não rotulado durante dias ou semanas. Os usuários podiam então usar um checkpoint pré-treinado e ajustá-lo com uma cabeça CTC usando apenas **10 minutos** de fala rotulada para obter bom desempenho em uma tarefa posterior de reconhecimento de fala.
+
+Entretanto, modelos CTC têm limitações. Acrescentar uma camada linear simples ao codificador produz um modelo pequeno e rápido, mas sujeito a erros de grafia fonética. Veremos isso com Wav2Vec2 a seguir.
+
+## Explorando modelos CTC
+
+Vamos carregar uma pequena parte do conjunto [LibriSpeech ASR](hf-internal-testing/librispeech_asr_dummy) para demonstrar a capacidade de transcrição do Wav2Vec2:
+
+```python
+from datasets import load_dataset
+
+dataset = load_dataset(
+    "hf-internal-testing/librispeech_asr_dummy", "clean", split="validation"
+)
+dataset
+```
+
+**Saída:**
+```
+Dataset({
+    features: ['file', 'audio', 'text', 'speaker_id', 'chapter_id', 'id'],
+    num_rows: 73
+})
+```
+
+Podemos escolher uma das 73 amostras e examinar tanto o áudio quanto sua transcrição:
+
+```python
+from IPython.display import Audio
+
+sample = dataset[2]
+
+print(sample["text"])
+Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
+```
+**Saída:**
+```
+HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
+```
+
+Natal e rosbife: parece ótimo! 🎄 Depois de escolher a amostra, carregamos um checkpoint ajustado em `pipeline()`. Usaremos o checkpoint oficial [Wav2Vec2 base](facebook/wav2vec2-base-100h), ajustado em 100 horas de dados do LibriSpeech:
+
+```python
+from transformers import pipeline
+
+pipe = pipeline("automatic-speech-recognition", model="facebook/wav2vec2-base-100h")
+```
+
+Em seguida, passamos os dados brutos de um exemplo ao pipeline. Como `pipeline` *consome* qualquer dicionário recebido, impedindo sua reutilização, passaremos uma cópia dos dados. Assim, poderemos reutilizar a mesma amostra com segurança nos próximos exemplos:
+
+```python
+pipe(sample["audio"].copy())
+```
+**Saída:**
+```
+{"text": "HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAUS AND ROSE BEEF LOOMING BEFORE US SIMALYIS DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND"}
+```
+
+Wav2Vec2 transcreve essa amostra razoavelmente bem: à primeira vista, o resultado parece correto. Vamos colocar a referência e a previsão lado a lado e destacar as diferenças:
+
+```
+Target:      HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
+Prediction:  HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH **CHRISTMAUS** AND **ROSE** BEEF LOOMING BEFORE US **SIMALYIS** DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
+```
+
+Comparando o texto de referência com a transcrição prevista, vemos que todas as palavras _soam_ corretas, mas algumas não estão grafadas corretamente. Por exemplo:
+
+* _CHRISTMAUS_ em vez de _CHRISTMAS_
+* _ROSE_ em vez de _ROAST_
+* _SIMALYIS_ em vez de _SIMILES_
+
+Isso evidencia a limitação de um modelo CTC. Ele é essencialmente um modelo "apenas acústico": consiste em um codificador que produz representações de estados ocultos a partir das entradas de áudio e uma camada linear que mapeia esses estados para caracteres:
+
+<!--- A unidade 3 precisa ser integrada antes que esta figura esteja disponível:
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/wav2vec2-ctc.png" alt="Codificador transformer com uma cabeça CTC no topo">
+</div>
+
+--->
+
+O sistema baseia sua previsão quase inteiramente na entrada acústica, ou seja, nos sons fonéticos do áudio. Por isso, tende a transcrever de maneira fonética, como em _CHRISTMAUS_. Dá menos importância ao contexto de modelagem de linguagem das letras anteriores e posteriores, ficando sujeito a erros de grafia fonética. Um modelo mais sofisticado identificaria que _CHRISTMAUS_ não é uma palavra válida do vocabulário inglês e a corrigiria para _CHRISTMAS_ ao fazer a previsão. Também faltam dois recursos importantes: diferenciação entre maiúsculas e minúsculas e pontuação. Isso limita a utilidade das transcrições em aplicações reais.
+
+## Avançando para Seq2Seq
+
+É aí que entram os modelos Seq2Seq! Como vimos na unidade 3, eles são formados por codificador e decodificador ligados por atenção cruzada. O codificador mantém seu papel de calcular representações de estados ocultos das entradas de áudio, enquanto o decodificador funciona como um **modelo de linguagem**. Ele processa toda a sequência de estados ocultos do codificador e gera as transcrições correspondentes. Com o contexto global da entrada de áudio, pode usar o contexto de modelagem de linguagem nas previsões, corrigir erros de grafia durante a geração e contornar o problema das previsões fonéticas.
+
+Há duas desvantagens nos modelos Seq2Seq:
+
+1. Sua decodificação é inerentemente mais lenta, pois acontece uma etapa por vez, em vez de toda de uma só vez.
+2. Exigem significativamente mais dados de treinamento para alcançar a convergência.
+
+Em particular, a necessidade de grandes quantidades de dados de treinamento limitou o avanço das arquiteturas Seq2Seq para fala. Dados de fala rotulados são difíceis de obter: os maiores conjuntos anotados da época tinham apenas 10.000 horas. Isso mudou em 2022 com o lançamento do **Whisper**. Whisper é um modelo pré-treinado para reconhecimento de fala publicado em [setembro de 2022](https://openai.com/blog/whisper/) por Alec Radford e outros autores da OpenAI. Diferentemente dos predecessores CTC, pré-treinados exclusivamente em áudio **não rotulado**, Whisper é pré-treinado em uma enorme quantidade de pares **rotulados** de áudio e transcrição: precisamente 680.000 horas.
+
+Isso representa uma ordem de grandeza a mais de dados que o áudio não rotulado usado para treinar Wav2Vec 2.0, com 60.000 horas. Além disso, 117.000 horas desses dados de pré-treinamento são multilíngues, ou "não inglesas". O resultado são checkpoints aplicáveis a mais de 96 idiomas, muitos deles considerados _idiomas com poucos recursos_, ou seja, sem um grande corpus de dados adequado para treinamento.
+
+Com o pré-treinamento ampliado para 680.000 horas de dados rotulados, os modelos Whisper demonstram grande capacidade de generalizar para diversos conjuntos de dados e domínios. Os checkpoints pré-treinados alcançam resultados competitivos em relação a sistemas pipeline do estado da arte, com taxa de erro de palavras (WER) próxima de 3% no subconjunto test-clean do pipeline LibriSpeech e um novo estado da arte no TED-LIUM, com WER de 4,7% (consulte a tabela 8 do [artigo do Whisper](https://cdn.openai.com/papers/whisper.pdf)).
+
+Destacam-se sua capacidade de processar áudios longos, sua robustez ao ruído de entrada e sua capacidade de prever transcrições com maiúsculas, minúsculas e pontuação. Isso o torna um candidato viável para sistemas reais de reconhecimento de fala.
+
+No restante desta seção, veremos como usar os modelos Whisper pré-treinados com 🤗 Transformers. Em muitas situações, seus checkpoints têm excelente desempenho e bons resultados. Por isso, recomendamos experimentá-los como primeira etapa para resolver qualquer problema de reconhecimento de fala. Com ajuste fino, podem ser adaptados a conjuntos de dados e idiomas específicos para melhorar ainda mais os resultados. Mostraremos como na subseção de [ajuste fino](fine-tuning).
+
+Os checkpoints Whisper têm cinco configurações de diferentes tamanhos. As quatro menores são treinadas em dados exclusivamente em inglês ou multilíngues; a maior é apenas multilíngue. Os nove checkpoints pré-treinados estão disponíveis no [Hugging Face Hub](https://huggingface.co/models?search=openai/whisper). A tabela abaixo os resume e traz links para os modelos. "VRAM" indica a memória de GPU necessária para executar o modelo com tamanho mínimo de lote igual a 1. "Velocidade relativa" compara a velocidade do checkpoint à do maior modelo. Com essas informações, você pode escolher o mais adequado ao seu hardware.
+
+| Tamanho | Parâmetros | VRAM / GB | Velocidade relativa | Apenas inglês | Multilíngue |
+|---------|------------|-----------|---------------------|---------------|-------------|
+| tiny | 39 M | 1.4 | 32 | [✓](https://huggingface.co/openai/whisper-tiny.en) | [✓](https://huggingface.co/openai/whisper-tiny) |
+| base | 74 M | 1.5 | 16 | [✓](https://huggingface.co/openai/whisper-base.en) | [✓](https://huggingface.co/openai/whisper-base) |
+| small | 244 M | 2.3 | 6 | [✓](https://huggingface.co/openai/whisper-small.en) | [✓](https://huggingface.co/openai/whisper-small) |
+| medium | 769 M | 4.2 | 2 | [✓](https://huggingface.co/openai/whisper-medium.en) | [✓](https://huggingface.co/openai/whisper-medium) |
+| large | 1550 M | 7.5 | 1 | x | [✓](https://huggingface.co/openai/whisper-large-v2) |
+
+Vamos carregar o checkpoint [Whisper Base](https://huggingface.co/openai/whisper-base), de tamanho comparável ao Wav2Vec2 usado anteriormente. Antecipando nossa passagem para reconhecimento de fala multilíngue, carregaremos sua variante multilíngue. Também carregaremos o modelo na GPU, se houver uma disponível, ou na CPU caso contrário. Depois, `pipeline()` cuidará de mover as entradas e saídas entre CPU e GPU conforme necessário:
+
+```python
+import torch
+from transformers import pipeline
+
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+pipe = pipeline(
+    "automatic-speech-recognition", model="openai/whisper-base", device=device
+)
+```
+
+Agora vamos transcrever o áudio como antes. A única mudança é passar o argumento adicional `max_new_tokens`, que informa o número máximo de tokens que o modelo pode gerar na previsão:
+
+```python
+pipe(sample["audio"], max_new_tokens=256)
+```
+**Saída:**
+```
+{'text': ' He tells us that at this festive season of the year, with Christmas and roast beef looming before us, similarly is drawn from eating and its results occur most readily to the mind.'}
+```
+
+Simples! A primeira diferença que você notará é a presença de maiúsculas, minúsculas e pontuação. Isso torna a transcrição imediatamente mais fácil de ler que a saída do Wav2Vec2. Vamos colocá-la ao lado da referência:
+
+```
+Target:     HE TELLS US THAT AT THIS FESTIVE SEASON OF THE YEAR WITH CHRISTMAS AND ROAST BEEF LOOMING BEFORE US SIMILES DRAWN FROM EATING AND ITS RESULTS OCCUR MOST READILY TO THE MIND
+Prediction: He tells us that at this festive season of the year, with **Christmas** and **roast** beef looming before us, **similarly** is drawn from eating and its results occur most readily to the mind.
+```
+
+Whisper corrigiu muito bem os erros fonéticos do Wav2Vec2: _Christmas_ e _roast_ estão grafadas corretamente. O modelo ainda tem dificuldade com _SIMILES_, transcrita incorretamente como _similarly_, mas desta vez a previsão é uma palavra válida do vocabulário inglês. Usar um checkpoint Whisper maior pode reduzir ainda mais os erros, à custa de mais recursos computacionais e mais tempo de transcrição.
+
+Como o modelo promete trabalhar com 96 idiomas, vamos deixar o inglês de lado e explorar o mundo 🌎! O conjunto [Multilingual LibriSpeech](https://huggingface.co/datasets/facebook/multilingual_librispeech) (MLS) é o equivalente multilíngue do LibriSpeech, com áudio rotulado em seis idiomas. Carregaremos uma amostra de sua divisão em espanhol em modo de _streaming_, para evitar baixar todo o conjunto:
+
+```python
+dataset = load_dataset(
+    "facebook/multilingual_librispeech", "spanish", split="validation", streaming=True
+)
+sample = next(iter(dataset))
+```
+
+Novamente, vamos examinar a transcrição e ouvir o trecho:
+
+```python
+print(sample["text"])
+Audio(sample["audio"]["array"], rate=sample["audio"]["sampling_rate"])
+```
+**Saída:**
+```
+entonces te delelitarás en jehová y yo te haré subir sobre las alturas de la tierra y te daré á comer la heredad de jacob tu padre porque la boca de jehová lo ha hablado
+```
+
+Esse é o texto de referência que buscamos reproduzir com Whisper. Já sabemos, porém, que o modelo provavelmente pode produzir algo melhor, pois também prevê maiúsculas, minúsculas e pontuação, ausentes na referência. Vamos passar a amostra ao pipeline para obter a previsão. Lembre-se de que o pipeline _consome_ o dicionário de entradas de áudio, impedindo sua reutilização. Para contornar isso, passaremos uma _cópia_, permitindo usar a mesma amostra nos próximos exemplos:
+
+```python
+pipe(sample["audio"].copy(), max_new_tokens=256, generate_kwargs={"task": "transcribe"})
+```
+**Saída:**
+```
+{'text': ' Entonces te deleitarás en Jehová y yo te haré subir sobre las alturas de la tierra y te daré a comer la heredad de Jacob tu padre porque la boca de Jehová lo ha hablado.'}
+```
+
+Ótimo! O resultado é muito semelhante à referência e, possivelmente, melhor por incluir maiúsculas, minúsculas e pontuação. Passamos `"task"` como um _argumento nomeado de geração_, ou generate kwarg. Defini-lo como `"transcribe"` força Whisper a realizar _reconhecimento de fala_, transcrevendo o áudio no mesmo idioma em que a fala foi produzida. Whisper também realiza a tarefa relacionada de _tradução de fala_: o áudio em espanhol pode ser traduzido para texto em inglês. Para isso, definimos `"task"` como `"translate"`:
+
+```python
+pipe(sample["audio"], max_new_tokens=256, generate_kwargs={"task": "translate"})
+```
+**Saída:**
+```
+{'text': ' So you will choose in Jehovah and I will raise you on the heights of the earth and I will give you the honor of Jacob to your father because the voice of Jehovah has spoken to you.'}
+```
+
+Agora que sabemos alternar entre reconhecimento e tradução de fala, podemos escolher conforme nossas necessidades. Podemos reconhecer áudio no idioma X e produzir texto no mesmo idioma X, como áudio em espanhol para texto em espanhol, ou traduzir áudio de qualquer idioma X para texto em inglês, como áudio em espanhol para texto em inglês.
+
+Para saber mais sobre o argumento `"task"` e seu controle sobre o texto gerado, consulte a [ficha do modelo](https://huggingface.co/openai/whisper-base#usage) Whisper base.
+
+## Transcrição de áudios longos e marcas de tempo
+
+Até aqui, transcrevemos amostras curtas, com menos de 30 segundos. Uma das vantagens do Whisper é trabalhar com áudios longos. Vamos explorar essa tarefa!
+
+Criaremos um arquivo longo concatenando amostras consecutivas do MLS. Como esse conjunto foi organizado dividindo gravações longas de audiolivros em segmentos curtos, concatenar amostras é uma maneira de reconstruir passagens mais longas. Assim, o áudio resultante deve ser coerente em toda sua extensão.
+
+Definiremos a duração desejada como 5 minutos e interromperemos a concatenação ao atingir esse valor:
+
+```python
+import numpy as np
+
+target_length_in_m = 5
+
+# convert from minutes to seconds (* 60) to num samples (* sampling rate)
+sampling_rate = pipe.feature_extractor.sampling_rate
+target_length_in_samples = target_length_in_m * 60 * sampling_rate
+
+# iterate over our streaming dataset, concatenating samples until we hit our target
+long_audio = []
+for sample in dataset:
+    long_audio.extend(sample["audio"]["array"])
+    if len(long_audio) > target_length_in_samples:
+        break
+
+long_audio = np.asarray(long_audio)
+
+# how did we do?
+seconds = len(long_audio) / 16000
+minutes, seconds = divmod(seconds, 60)
+print(f"Length of audio sample is {minutes} minutes {seconds:.2f} seconds")
+```
+**Saída:**
+```
+Length of audio sample is 5.0 minutes 17.22 seconds
+```
+
+Temos 5 minutos e 17 segundos para transcrever. Há dois problemas em passar diretamente essa amostra longa ao modelo:
+
+1. Whisper foi projetado para amostras de 30 segundos: as mais curtas recebem preenchimento com silêncio até 30 s, e as mais longas são truncadas para 30 s, cortando o áudio excedente. Se passarmos a amostra diretamente, teremos apenas a transcrição dos primeiros 30 s.
+2. O uso de memória de uma rede transformer cresce com o quadrado do comprimento da sequência. Dobrar o comprimento da entrada quadruplica a memória necessária; portanto, passar arquivos muito longos tende a causar um erro de falta de memória (OOM).
+
+Em 🤗 Transformers, a transcrição de áudios longos funciona _dividindo_ a entrada em segmentos menores e mais fáceis de processar, um processo chamado _chunking_. Cada segmento tem uma pequena sobreposição com o anterior. Isso permite reuni-los com precisão nas fronteiras, encontrando a sobreposição e combinando as transcrições:
+
+<div class="flex justify-center">
+     <img src="https://huggingface.co/blog/assets/49_asr_chunking/Striding.png" alt="Algoritmo de divisão em segmentos de 🤗 Transformers. Fonte: https://huggingface.co/blog/asr-chunking.">
+</div>
+
+A vantagem dessa divisão é que não precisamos do resultado do segmento \\( i \\) para transcrever o seguinte, \\( i + 1 \\). A junção nas fronteiras ocorre depois de transcrever todos os segmentos, então a ordem da transcrição não importa. O algoritmo é inteiramente **sem estado**: podemos até processar o segmento \\( i + 1 \\) ao mesmo tempo que o segmento \\( i \\)! Isso permite agrupar segmentos em _lotes_ e passá-los em paralelo pelo modelo, com grande ganho de velocidade em relação à transcrição sequencial. Para saber mais sobre essa divisão em 🤗 Transformers, consulte este [artigo do blog](https://huggingface.co/blog/asr-chunking).
+
+Para ativar a transcrição de áudios longos, acrescentamos um argumento à chamada do pipeline: `chunk_length_s`, que controla a duração dos segmentos em segundos. Para Whisper, segmentos de 30 segundos são ideais, pois correspondem ao comprimento de entrada esperado.
+
+Para ativar o processamento em lotes, passamos `batch_size` ao pipeline. Combinando tudo, podemos transcrever a amostra longa com divisão em segmentos e processamento em lotes:
+
+```python
+pipe(
+    long_audio,
+    max_new_tokens=256,
+    generate_kwargs={"task": "transcribe"},
+    chunk_length_s=30,
+    batch_size=8,
+)
+```
+**Saída:**
+```
+{'text': ' Entonces te deleitarás en Jehová, y yo te haré subir sobre las alturas de la tierra, y te daré a comer la
+heredad de Jacob tu padre, porque la boca de Jehová lo ha hablado. nosotros curados. Todos nosotros nos descarriamos
+como bejas, cada cual se apartó por su camino, mas Jehová cargó en él el pecado de todos nosotros...
+```
+
+Não imprimiremos toda a saída, pois é longa: 312 palavras! Em uma GPU V100 de 16 GB, a linha acima deve levar aproximadamente 3,45 segundos, um bom resultado para uma amostra de 317 segundos. Em uma CPU, espere algo mais próximo de 30 segundos.
+
+Whisper também prevê _marcas de tempo_ para os segmentos de áudio. Elas indicam o início e o fim de uma passagem curta e são especialmente úteis para alinhar a transcrição à entrada. Para fornecer legendas fechadas de um vídeo, por exemplo, precisamos dessas marcas para saber qual parte da transcrição corresponde a cada segmento e exibir o texto correto naquele momento.
+
+Ativar essa previsão é simples: basta definir `return_timestamps=True`. As marcas de tempo são compatíveis com a divisão em segmentos e o processamento em lotes anteriores, então podemos acrescentar o argumento à mesma chamada:
+
+```python
+pipe(
+    long_audio,
+    max_new_tokens=256,
+    generate_kwargs={"task": "transcribe"},
+    chunk_length_s=30,
+    batch_size=8,
+    return_timestamps=True,
+)["chunks"]
+```
+**Saída:**
+```
+[{'timestamp': (0.0, 26.4),
+  'text': ' Entonces te deleitarás en Jehová, y yo te haré subir sobre las alturas de la tierra, y te daré a comer la heredad de Jacob tu padre, porque la boca de Jehová lo ha hablado. nosotros curados. Todos nosotros nos descarriamos como bejas, cada cual se apartó por su camino,'},
+ {'timestamp': (26.4, 32.48),
+  'text': ' mas Jehová cargó en él el pecado de todos nosotros. No es que partas tu pan con el'},
+ {'timestamp': (32.48, 38.4),
+  'text': ' hambriento y a los hombres herrantes metas en casa, que cuando vieres al desnudo lo cubras y no'},
+ ...
+```
+
+Pronto! Temos o texto previsto e suas marcas de tempo correspondentes.
+
+## Resumo
+
+Whisper é um modelo pré-treinado de bom desempenho para reconhecimento e tradução de fala. Em comparação com Wav2Vec2, oferece maior acurácia de transcrição, com saídas que incluem pontuação e maiúsculas e minúsculas. Pode transcrever fala em inglês e em outros 96 idiomas, tanto em segmentos curtos quanto em áudios longos por meio de _divisão em segmentos_. Essas características o tornam viável para muitas tarefas de reconhecimento e tradução sem ajuste fino. `pipeline()` oferece uma maneira simples de executar inferência com chamadas de API de uma linha e controlar as previsões geradas.
+
+Embora Whisper tenha excelente desempenho em muitos idiomas com muitos recursos, sua acurácia de transcrição e tradução é menor nos idiomas com poucos recursos, ou seja, com menos dados de treinamento disponíveis. O desempenho também varia entre sotaques e dialetos de certos idiomas, incluindo menor acurácia para falantes de diferentes gêneros, raças, idades ou outros critérios demográficos (consulte o [artigo do Whisper](https://arxiv.org/pdf/2212.04356.pdf)).
+
+Para melhorar o desempenho em idiomas, sotaques ou dialetos com poucos recursos, podemos treinar o modelo pré-treinado em um pequeno corpus de dados selecionados adequadamente, um processo chamado _ajuste fino_. Mostraremos que, com apenas dez horas de dados adicionais, podemos melhorar o desempenho do Whisper em mais de 100% em um idioma com poucos recursos. Na próxima seção, veremos o processo de seleção de um conjunto de dados para ajuste fino.
