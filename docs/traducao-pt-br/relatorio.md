@@ -51,3 +51,11 @@ Há 29 seções ainda não traduzidas, das unidades 4–8 e eventos. As 21 dispo
 A criação de PR está bloqueada: `gh api repos/prof-ramos/audio-transformers-course` retornou `Forbidden`, e uma requisição HTTPS confirmou 403 no túnel do proxy para `api.github.com`. Não foram criados tokens, credenciais ou permissões persistentes, nem alterada a política de rede. O acesso de leitura Git por `origin` funcionou.
 
 O próximo lote de tradução é a unidade 4. O registro distingue tradução/revisão textual concluída de validação final pendente, para evitar duplicar trabalho ou apresentar a meta como completa.
+
+## Entrega do lote
+
+O commit de tradução `015c39e9a2dae7776c04aa58a02914ee076ccb01` foi enviado à branch `codex/traducao-pt-br-unidades-0-3`. O SHA remoto foi confirmado com `git ls-remote`. Não foi criado PR; a descrição está preparada em `/workspace/.onboarding/audio-transformers-course/PR_DESCRIPTION.md`. Não houve merge ou deploy.
+
+Após reiniciar a prévia para atualizar o índice, os seis links da unidade 3 apareceram no menu. A âncora em português de reamostragem também foi confirmada no DOM.
+
+O checkout tinha um refspec de fetch limitado a main. Foi acrescentado somente o mapeamento da nova branch e buscada sua referência para permitir o acompanhamento do upstream, preservando o mapeamento anterior e a autenticação existente.
