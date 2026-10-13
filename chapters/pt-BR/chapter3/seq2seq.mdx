@@ -1,0 +1,68 @@
+# Arquiteturas Seq2Seq
+
+Os modelos CTC da seção anterior usam apenas o codificador da arquitetura transformer. Quando adicionamos o decodificador para criar um modelo codificador-decodificador, temos um modelo de **sequência para sequência**, ou seq2seq. Ele transforma uma sequência de um tipo de dado em uma sequência de outro tipo.
+
+Nos transformers com apenas codificador, havia uma previsão para cada elemento da sequência de entrada. Portanto, as sequências de entrada e saída sempre têm o mesmo comprimento. Em modelos CTC como Wav2Vec2, a forma de onda era primeiro subamostrada, mas ainda havia uma previsão para cada 20 ms de áudio.
+
+Em um modelo seq2seq, não há essa correspondência de um para um, e as sequências podem ter comprimentos diferentes. Por isso, esses modelos são adequados para tarefas de NLP, como resumo de texto ou tradução entre idiomas, e para tarefas de áudio, como reconhecimento de fala.
+
+A arquitetura do decodificador é muito semelhante à do codificador. Ambos usam camadas parecidas, com autoatenção como principal característica. No entanto, realizam tarefas diferentes. Para entender esse funcionamento, vejamos como um modelo seq2seq pode reconhecer fala automaticamente.
+
+## Reconhecimento automático de fala
+
+Esta é a arquitetura do **Whisper**, em uma figura cedida pelo [blog da OpenAI sobre Whisper](https://openai.com/blog/whisper/):
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/blog/assets/111_fine_tune_whisper/whisper_architecture.svg" alt="Whisper é um modelo transformer com codificador e decodificador">
+</div>
+
+A estrutura deve parecer familiar. À esquerda está o **codificador transformer**. Ele recebe um espectrograma log-mel e o codifica em uma sequência de estados ocultos que extraem características importantes da fala. Esse tensor representa a sequência de entrada como um todo e codifica efetivamente o "significado" da fala.
+
+<Tip>
+💡 É comum que modelos seq2seq recebam espectrogramas, mas também é possível projetá-los para trabalhar diretamente com formas de onda.
+</Tip>
+
+A saída do codificador é enviada ao **decodificador transformer**, à direita, por um mecanismo chamado **atenção cruzada**. Ele se assemelha à autoatenção, mas presta atenção à saída do codificador. A partir desse ponto, o codificador não precisa mais ser executado.
+
+O decodificador prevê tokens de texto de forma **autorregressiva**, um por vez, começando por uma sequência inicial que contém apenas um token de início, `SOT` no Whisper. Em cada etapa seguinte, a sequência de saída anterior retorna ao decodificador como nova entrada. Assim, ele produz um novo token por vez, ampliando a sequência até prever um token de fim ou atingir o número máximo de etapas.
+
+Embora sua arquitetura seja quase igual à do codificador, há duas diferenças importantes:
+
+1. O decodificador tem um mecanismo de atenção cruzada para consultar a representação da entrada produzida pelo codificador.
+2. A atenção do decodificador é causal: ele não pode olhar para o futuro.
+
+Nesse projeto, o decodificador atua como um **modelo de linguagem**, processando os estados ocultos do codificador e gerando as transcrições correspondentes. Essa abordagem é mais poderosa que CTC, mesmo quando CTC é combinado com um modelo de linguagem externo. O sistema seq2seq pode ser treinado de ponta a ponta com os mesmos dados e função de perda, oferecendo maior flexibilidade e, geralmente, desempenho superior.
+
+<Tip>
+💡 Enquanto um modelo CTC produz caracteres individuais, os tokens previstos pelo Whisper são palavras inteiras ou partes de palavras. Ele usa o tokenizador do GPT-2 e tem mais de 50 mil tokens únicos. Assim, um modelo seq2seq pode produzir uma sequência muito mais curta que um modelo CTC para a mesma transcrição.
+</Tip>
+
+Uma função de perda típica para ASR seq2seq é a entropia cruzada, pois a última camada prevê uma distribuição de probabilidades sobre os tokens possíveis. Ela geralmente é combinada com técnicas como [busca em feixe para gerar a sequência final](https://huggingface.co/blog/how-to-generate). A métrica de reconhecimento de fala é WER, a taxa de erro de palavras, que mede quantas substituições, inserções e exclusões são necessárias para transformar o texto previsto no texto de referência. Quanto menos operações, melhor o resultado.
+
+## Síntese de fala a partir de texto
+
+Talvez não seja surpresa: um modelo seq2seq para TTS funciona basicamente da mesma maneira, mas com as entradas e saídas invertidas! O codificador transformer recebe tokens de texto e extrai uma sequência de estados ocultos que representa o texto. O decodificador aplica atenção cruzada à saída do codificador e prevê um espectrograma.
+
+<Tip>
+💡 Um espectrograma é formado pelos espectros de frequência de intervalos sucessivos de uma forma de onda, reunidos em sequência. Assim, seus elementos são espectros de frequência log-mel, um por etapa de tempo.
+</Tip>
+
+No modelo ASR, o decodificador começava com uma sequência contendo apenas o token especial de início. Para TTS, podemos iniciar a decodificação com um espectrograma de comprimento um, formado apenas por zeros, que funciona como token de início. Com esse espectrograma inicial e a atenção cruzada sobre os estados ocultos do codificador, o decodificador prevê o próximo intervalo de tempo, ampliando o espectrograma uma etapa por vez.
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/speecht5_decoding.png" alt="A forma de onda é transformada em uma sequência mais curta de estados ocultos">
+</div>
+
+Como o decodificador sabe quando parar? No **SpeechT5**, ele prevê uma segunda sequência, que contém a probabilidade de a etapa atual ser a última. Ao gerar áudio na inferência, se essa probabilidade superar um limite, como 0,5, o decodificador indica que o espectrograma está completo e que o ciclo de geração deve terminar.
+
+Depois de concluir a decodificação, o SpeechT5 usa uma **post-net**, uma rede de pós-processamento formada por várias camadas convolucionais, para refinar o espectrograma de saída.
+
+Durante o treinamento de TTS, os alvos também são espectrogramas, e a função de perda é L1 ou MSE. Na inferência, queremos converter o espectrograma em uma forma de onda para poder ouvi-lo. Para isso, usamos um modelo externo, o **vocoder**, que não faz parte da arquitetura seq2seq e é treinado separadamente.
+
+TTS é difícil porque é um mapeamento de um para muitos. Na conversão de fala para texto, há apenas um texto correto para a fala de entrada. Na síntese de fala, o mesmo texto pode gerar muitos sons de fala possíveis. Falantes diferentes podem enfatizar partes diferentes da frase, por exemplo. Isso dificulta a avaliação dos modelos TTS. Por esse motivo, o valor da perda L1 ou MSE não é muito informativo: há várias maneiras de representar o mesmo texto como espectrograma. Por isso, modelos TTS geralmente são avaliados por ouvintes humanos com a métrica MOS, ou pontuação média de opinião.
+
+## Conclusão
+
+A abordagem seq2seq é mais poderosa que um modelo com apenas codificador. Separar a codificação da entrada da decodificação da saída reduz o problema do alinhamento entre áudio e texto. <!-- O modelo aprende a realizar esse alinhamento pelo mecanismo de atenção. -->
+
+Porém, um modelo codificador-decodificador também é mais lento, pois a decodificação ocorre uma etapa por vez, em vez de toda de uma vez. Quanto maior a sequência, mais lenta a previsão. Modelos autorregressivos também podem ficar presos em repetições ou pular palavras. Técnicas como busca em feixe podem melhorar a qualidade das previsões, mas deixam a decodificação ainda mais lenta.

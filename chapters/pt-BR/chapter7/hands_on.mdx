@@ -1,0 +1,18 @@
+# Exercício prático
+
+Nesta unidade, consolidamos o material das seis anteriores para construir três aplicações integradas de áudio. Como você viu, as habilidades fundamentais do curso permitem criar ferramentas mais elaboradas.
+
+O exercício amplia uma dessas aplicações com adaptações multilíngues 🌍. Seu objetivo é modificar a [demonstração de tradução de fala para fala em cascata com Gradio](https://huggingface.co/spaces/course-demos/speech-to-speech-translation) para traduzir a qualquer idioma **diferente do inglês**. Ela deve receber fala no idioma X e produzir fala no idioma Y, sendo Y outro idioma que não inglês. Comece [duplicando](https://huggingface.co/spaces/course-demos/speech-to-speech-translation?duplicate=true) o modelo em seu namespace Hugging Face. Não é necessário usar GPU: a versão gratuita com CPU funciona bem 🤗. Defina a visibilidade como **pública**, para que possamos acessar e avaliar a demonstração.
+
+A seção de [tradução de fala para fala](speech-to-speech) traz dicas para modificar a função de tradução. Seguindo-as, você poderá converter fala em X para texto em Y, concluindo metade da tarefa!
+
+Para sintetizar texto em Y em fala no mesmo idioma, você precisará de um checkpoint TTS multilíngue. Use o SpeechT5 ajustado no exercício anterior ou um checkpoint multilíngue pré-treinado. Para a segunda opção, há [sanchit-gandhi/speecht5_tts_vox_nl](https://huggingface.co/sanchit-gandhi/speecht5_tts_vox_nl), ajustado na divisão em neerlandês de [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli), ou um checkpoint MMS TTS, apresentado em [Modelos pré-treinados para TTS](../chapter6/pre-trained_models).
+
+<Tip>
+    Em nossos testes com neerlandês, MMS TTS teve desempenho melhor que SpeechT5 ajustado. Entretanto, seu checkpoint pode ser preferível no idioma escolhido. Para usar MMS, atualize <a href="https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/a03175878f522df7445290d5508bfb5c5178f787/requirements.txt#L2">requirements.txt</a> na demonstração para instalar <code>transformers</code> a partir da branch do PR:
+    <p><code>git+https://github.com/hollance/transformers.git@6900e8ba6532162a8613d2270ec2286c3f58f57b</code></p>
+</Tip>
+
+A demonstração deve receber um arquivo de áudio e retornar outro, mantendo a assinatura de [`speech_to_speech_translation`](https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/3946ba6705a6632a63de8672ac52a482ab74b3fc/app.py#L35). Recomendamos manter essa função principal e modificar apenas [`translate`](https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/a03175878f522df7445290d5508bfb5c5178f787/app.py#L24) e [`synthesise`](https://huggingface.co/spaces/course-demos/speech-to-speech-translation/blob/a03175878f522df7445290d5508bfb5c5178f787/app.py#L29) conforme necessário.
+
+Depois de construir a demonstração Gradio no Hub, envie-a para avaliação. Acesse [audio-course-u7-assessment](https://huggingface.co/spaces/huggingface-course/audio-course-u7-assessment) e informe o identificador do repositório quando solicitado. O Space enviará uma amostra e verificará se o áudio retornado realmente está em outro idioma que não inglês. Se funcionar corretamente, aparecerá uma marca verde ao lado de seu nome no [Space de progresso](https://huggingface.co/spaces/MariaK/Check-my-progress-Audio-Course) ✅.

@@ -1,0 +1,88 @@
+# Escolha de um conjunto de dados
+
+Como em qualquer problema de aprendizado de máquina, a qualidade do modelo depende dos dados usados para treiná-lo. Os conjuntos de reconhecimento de fala variam bastante quanto à forma de curadoria e aos domínios cobertos. Para escolher o conjunto certo, precisamos comparar nossos critérios às características que ele oferece.
+
+Antes da escolha, vamos entender suas principais características.
+
+## Características dos conjuntos de fala
+
+### 1. Número de horas
+
+O número de horas de treinamento indica, de forma simples, o tamanho do conjunto. É análogo ao número de exemplos de treinamento em um conjunto de NLP. Entretanto, conjuntos maiores não são necessariamente melhores. Para um modelo que generalize bem, queremos dados **diversos**, com muitos falantes, domínios e estilos de fala diferentes.
+
+### 2. Domínio
+
+O domínio indica de onde os dados vieram: audiolivros, podcasts, YouTube, reuniões financeiras ou outras fontes. Cada domínio tem uma distribuição diferente. Audiolivros, por exemplo, são gravados em estúdios de alta qualidade, sem ruído de fundo, e usam textos de obras literárias. Já o áudio do YouTube provavelmente tem mais ruído de fundo e um estilo de fala mais informal.
+
+Precisamos escolher um domínio compatível com as condições esperadas na inferência. Por exemplo, se treinarmos o modelo em audiolivros, não podemos esperar bom desempenho em ambientes ruidosos.
+
+### 3. Estilo de fala
+
+O estilo de fala se divide em duas categorias:
+
+* Narrada: leitura de um roteiro.
+* Espontânea: fala de conversa, sem roteiro.
+
+Os dados de áudio e texto refletem esse estilo. Como o texto narrado segue um roteiro, tende a ser pronunciado com clareza e sem erros:
+
+```
+“Consider the task of training a model on a speech recognition dataset”
+```
+
+Na fala espontânea, podemos esperar um estilo mais coloquial, com repetições, hesitações e inícios de frases abandonados:
+
+```
+“Let’s uhh let's take a look at how you'd go about training a model on uhm a sp- speech recognition dataset”
+```
+
+### 4. Estilo de transcrição
+
+O estilo de transcrição indica se o texto de referência inclui pontuação, maiúsculas e minúsculas, ou ambos. Se queremos gerar texto totalmente formatado para publicação ou transcrição de reuniões, precisamos de dados de treinamento com pontuação e maiúsculas e minúsculas. Se só precisamos das palavras faladas, em uma estrutura sem formatação, nenhum desses recursos é necessário. Nesse caso, podemos escolher um conjunto sem eles ou removê-los do texto de referência durante o pré-processamento.
+
+## Resumo dos conjuntos de dados no Hub
+
+Veja um resumo dos conjuntos de reconhecimento de fala em inglês mais populares no Hugging Face Hub:
+
+| Conjunto de dados | Horas de treinamento | Domínio | Estilo de fala | Maiúsculas e minúsculas | Pontuação | Licença | Uso recomendado |
+|-------------------|----------------------|---------|----------------|------------------------|-----------|---------|-----------------|
+| [LibriSpeech](https://huggingface.co/datasets/librispeech_asr) | 960 | Audiolivros | Narrada | ❌ | ❌ | CC-BY-4.0 | Benchmarks acadêmicos |
+| [Common Voice 11](https://huggingface.co/datasets/mozilla-foundation/common_voice_11_0) | 3000 | Wikipédia | Narrada | ✅ | ✅ | CC0-1.0 | Falantes não nativos |
+| [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli) | 540 | Parlamento Europeu | Discurso público | ❌ | ✅ | CC0 | Falantes não nativos |
+| [TED-LIUM](https://huggingface.co/datasets/LIUM/tedlium) | 450 | Palestras TED | Discurso público | ❌ | ❌ | CC-BY-NC-ND 3.0 | Tópicos técnicos |
+| [GigaSpeech](https://huggingface.co/datasets/speechcolab/gigaspeech) | 10000 | Audiolivros, podcasts, YouTube | Narrada, espontânea | ❌ | ✅ | apache-2.0 | Robustez em vários domínios |
+| [SPGISpeech](https://huggingface.co/datasets/kensho/spgispeech) | 5000 | Reuniões financeiras | Discurso público, espontânea | ✅ | ✅ | Acordo do usuário | Transcrições totalmente formatadas |
+| [Earnings-22](https://huggingface.co/datasets/revdotcom/earnings22) | 119 | Reuniões financeiras | Discurso público, espontânea | ✅ | ✅ | CC-BY-SA-4.0 | Diversidade de sotaques |
+| [AMI](https://huggingface.co/datasets/edinburghcstr/ami) | 100 | Reuniões | Espontânea | ✅ | ✅ | CC-BY-4.0 | Fala em condições ruidosas |
+
+Essa tabela serve de referência para escolher um conjunto conforme seus critérios. A seguir, temos uma tabela equivalente para reconhecimento de fala multilíngue. Omitimos as horas de treinamento, pois variam conforme o idioma em cada conjunto, e as substituímos pelo número de idiomas:
+
+| Conjunto de dados | Idiomas | Domínio | Estilo de fala | Maiúsculas e minúsculas | Pontuação | Licença | Uso recomendado |
+|-------------------|---------|---------|----------------|------------------------|-----------|---------|-----------------|
+| [Multilingual LibriSpeech](https://huggingface.co/datasets/facebook/multilingual_librispeech) | 6 | Audiolivros | Narrada | ❌ | ❌ | CC-BY-4.0 | Benchmarks acadêmicos |
+| [Common Voice 13](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0) | 108 | Texto da Wikipédia e fala de colaboradores | Narrada | ✅ | ✅ | CC0-1.0 | Conjunto diverso de falantes |
+| [VoxPopuli](https://huggingface.co/datasets/facebook/voxpopuli) | 15 | Gravações do Parlamento Europeu | Espontânea | ❌ | ✅ | CC0 | Idiomas europeus |
+| [FLEURS](https://huggingface.co/datasets/google/fleurs) | 101 | Gravações do Parlamento Europeu | Espontânea | ❌ | ❌ | CC-BY-4.0 | Avaliação multilíngue |
+
+Para uma descrição detalhada dos conjuntos das duas tabelas, consulte o artigo [Um guia completo de conjuntos de dados de áudio](https://huggingface.co/blog/audio-datasets#a-tour-of-audio-datasets-on-the-hub). Embora o Hub tenha mais de 180 conjuntos de reconhecimento de fala, pode não haver um que atenda às suas necessidades. Nesse caso, você também pode usar seus próprios dados com 🤗 Datasets. Para criar um conjunto personalizado, consulte o guia [Crie um conjunto de dados de áudio](https://huggingface.co/docs/datasets/audio_dataset). Considere compartilhar o resultado no Hub para que a comunidade também se beneficie de seu trabalho. A comunidade de áudio é inclusiva e diversa, e outras pessoas apreciarão seu esforço assim como você aprecia o delas.
+
+Agora que conhecemos os critérios de seleção de um conjunto ASR, vamos escolher um para este tutorial. Whisper já transcreve bem dados de idiomas com muitos recursos, como inglês e espanhol, então vamos nos concentrar na transcrição multilíngue em idiomas com poucos recursos. Queremos preservar a capacidade de prever pontuação e maiúsculas e minúsculas; pela segunda tabela, Common Voice 13 parece uma excelente opção!
+
+## Common Voice 13
+
+Common Voice 13 é um conjunto construído colaborativamente, no qual falantes gravam textos da Wikipédia em vários idiomas. Ele faz parte da série Common Voice, publicada pela Mozilla Foundation. No momento em que este texto foi escrito, Common Voice 13 era a edição mais recente, com mais idiomas e mais horas por idioma que qualquer versão anterior.
+
+Você pode consultar a lista completa de idiomas na página do conjunto no Hub: [mozilla-foundation/common_voice_13_0](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0). Na primeira visita, será solicitado que aceite os termos de uso. Depois, terá acesso completo ao conjunto.
+
+Após a autenticação para usá-lo, veremos a prévia dos dados. Ela mostra as primeiras 100 amostras de cada idioma e oferece áudios prontos para ouvir em tempo real. Nesta unidade, escolheremos [_dhivehi_](https://en.wikipedia.org/wiki/Maldivian_language), ou _maldivo_, um idioma indo-ariano falado nas Maldivas, um país insular do sul da Ásia. Embora o tutorial use dhivehi, as etapas se aplicam a qualquer um dos 108 idiomas do Common Voice 13 e, de forma mais ampla, a qualquer um dos mais de 180 conjuntos de áudio do Hub. Não há restrição de idioma ou dialeto.
+
+Para selecionar o subconjunto em dhivehi do Common Voice 13, escolha `dv` no menu suspenso. Esse é o código de identificação do idioma:
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/cv_13_dv_selection.png" alt="Seleção da divisão em dhivehi na prévia do conjunto de dados">
+</div>
+
+Ao clicar no botão de reprodução da primeira amostra, podemos ouvir o áudio e ver o texto correspondente. Percorra as amostras de treinamento e teste para conhecer melhor os dados com que trabalharemos. A entonação e o estilo mostram que as gravações são de fala narrada. Você provavelmente também notará grande variação entre falantes e na qualidade das gravações, uma característica comum de dados coletados colaborativamente.
+
+A prévia é uma ótima maneira de conhecer conjuntos de áudio antes de decidir usá-los. Você pode escolher qualquer conjunto no Hub, percorrer as amostras e ouvir áudios de diferentes subconjuntos e divisões para avaliar se atende às suas necessidades. Depois de escolher, é simples carregar os dados e começar a usá-los.
+
+Eu não falo dhivehi e imagino que a maioria dos leitores também não! Para saber se o modelo ajustado é bom, precisaremos de uma maneira rigorosa de _avaliá-lo_ em dados ainda não vistos e medir sua acurácia de transcrição. É exatamente o que veremos na próxima seção!

@@ -1,0 +1,35 @@
+# Arquiteturas de classificação de áudio
+
+A classificação de áudio busca prever um rótulo de classe para uma entrada de áudio. O modelo pode prever um único rótulo para toda a sequência ou um rótulo para cada quadro de áudio, geralmente a cada 20 milissegundos. Nesse segundo caso, a saída é uma sequência de probabilidades dos rótulos de classe. Um exemplo do primeiro caso é identificar qual pássaro emite determinado som. Um exemplo do segundo é a diarização de falantes, em que o modelo prevê quem está falando em cada instante.
+
+## Classificação com espectrogramas
+
+Uma das maneiras mais simples de classificar áudio é tratar a tarefa como um problema de classificação de imagens!
+
+Um espectrograma é um tensor bidimensional com formato `(frequências, comprimento da sequência)`. No [capítulo sobre dados de áudio](../chapter1/audio_data), representamos espectrogramas como imagens. Podemos literalmente tratá-los como imagens e passá-los a um classificador convolucional convencional, como ResNet, obtendo previsões muito boas. Melhor ainda: podemos usar um transformer para imagens, como ViT.
+
+É isso que o **Audio Spectrogram Transformer** faz. Ele usa ViT, ou Vision Transformer, e recebe espectrogramas em vez de imagens convencionais. Graças às camadas de autoatenção, consegue capturar melhor o contexto global do que uma CNN.
+
+Assim como ViT, o modelo AST divide o espectrograma em uma sequência de recortes de imagem parcialmente sobrepostos, com 16×16 pixels. Essa sequência é projetada em embeddings, enviados ao codificador transformer como de costume. AST tem apenas codificador e, portanto, produz uma sequência de estados ocultos, um para cada recorte de entrada de 16×16. Uma camada simples de classificação com ativação sigmoide mapeia esses estados para probabilidades de classificação.
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/ast.png" alt="O transformer de espectrograma de áudio trabalha com uma sequência de recortes do espectrograma">
+</div>
+
+Imagem do artigo [AST: Audio Spectrogram Transformer](https://arxiv.org/pdf/2104.01778.pdf)
+
+<Tip>
+💡 Embora tratemos espectrogramas como imagens, há diferenças importantes. Deslocar o conteúdo de uma imagem para cima ou para baixo geralmente não muda seu significado. No espectrograma, esse deslocamento muda as frequências do som e altera completamente suas características. Imagens são invariantes a deslocamentos, mas espectrogramas não são. Tratá-los como imagens pode funcionar muito bem na prática, mas lembre-se de que não são a mesma coisa.
+</Tip>
+
+## Qualquer transformer pode ser um classificador
+
+Em uma [seção anterior](ctc), vimos que CTC é uma técnica eficiente para reconhecimento automático de fala com transformers que têm apenas codificador. Esses modelos já são classificadores: preveem probabilidades de rótulos do vocabulário de um tokenizador. Podemos transformar um modelo CTC em um classificador de áudio de uso geral mudando os rótulos e treinando-o com uma função de perda de entropia cruzada convencional, em vez da perda CTC.
+
+Por exemplo, 🤗 Transformers tem `Wav2Vec2ForCTC`, mas também `Wav2Vec2ForSequenceClassification` e `Wav2Vec2ForAudioFrameClassification`. As únicas diferenças entre suas arquiteturas são o tamanho da camada de classificação e a função de perda usada.
+
+Na verdade, qualquer transformer para áudio com apenas codificador pode virar um classificador de áudio adicionando uma camada de classificação sobre a sequência de estados ocultos. Classificadores normalmente não precisam de um decodificador transformer.
+
+Para prever uma única pontuação de classificação para toda a sequência, como em `Wav2Vec2ForSequenceClassification`, o modelo calcula a média dos estados ocultos e a envia à camada de classificação. A saída é uma única distribuição de probabilidades.
+
+Para classificar separadamente cada quadro de áudio, como em `Wav2Vec2ForAudioFrameClassification`, o classificador processa a sequência de estados ocultos, e sua saída também é uma sequência.

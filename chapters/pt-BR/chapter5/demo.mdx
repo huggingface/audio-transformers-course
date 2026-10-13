@@ -1,0 +1,77 @@
+# Crie uma demonstração com Gradio
+
+Agora que ajustamos Whisper para reconhecimento de fala em dhivehi, vamos criar uma demonstração com [Gradio](https://gradio.app) para apresentá-lo à comunidade!
+
+Primeiro, carregamos o checkpoint ajustado com `pipeline()`, como já vimos na seção de [modelos pré-treinados](asr_models). Você pode trocar `model_id` pelo identificador de seu modelo no Hub ou por um dos [modelos Whisper](https://huggingface.co/models?sort=downloads&search=openai%2Fwhisper-) pré-treinados para realizar reconhecimento de fala zero-shot:
+
+```python
+from transformers import pipeline
+
+model_id = "sanchit-gandhi/whisper-small-dv"  # update with your model id
+pipe = pipeline("automatic-speech-recognition", model=model_id)
+```
+
+Depois, definimos uma função que recebe o caminho de um arquivo de áudio e o passa ao pipeline. Ele cuida automaticamente do carregamento, da reamostragem para a taxa correta e da inferência. Basta retornar o texto transcrito como saída. Para processar entradas de qualquer duração, ativaremos a *divisão em segmentos* descrita na seção de [modelos pré-treinados](asr_models):
+
+```python
+def transcribe_speech(filepath):
+    output = pipe(
+        filepath,
+        max_new_tokens=256,
+        generate_kwargs={
+            "task": "transcribe",
+            "language": "sinhalese",
+        },  # update with the language you've fine-tuned on
+        chunk_length_s=30,
+        batch_size=8,
+    )
+    return output["text"]
+```
+
+Usaremos o recurso [Blocks](https://gradio.app/docs/#blocks) de Gradio para criar duas abas: uma para transcrição pelo microfone e outra para envio de arquivos.
+
+```python
+import gradio as gr
+
+demo = gr.Blocks()
+
+mic_transcribe = gr.Interface(
+    fn=transcribe_speech,
+    inputs=gr.Audio(sources="microphone", type="filepath"),
+    outputs=gr.components.Textbox(),
+)
+
+file_transcribe = gr.Interface(
+    fn=transcribe_speech,
+    inputs=gr.Audio(sources="upload", type="filepath"),
+    outputs=gr.components.Textbox(),
+)
+```
+
+Por fim, iniciamos a demonstração com os dois blocos definidos:
+
+```python
+with demo:
+    gr.TabbedInterface(
+        [mic_transcribe, file_transcribe],
+        ["Transcribe Microphone", "Transcribe Audio File"],
+    )
+
+demo.launch(debug=True)
+```
+
+Isso inicia uma demonstração semelhante à do Hugging Face Space:
+
+<iframe src="https://course-demos-whisper-small.hf.space" frameBorder="0" height="450" title="Aplicação Gradio" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
+Se quiser hospedá-la no Hub, você pode usar esse Space como modelo para seu checkpoint ajustado.
+
+Clique no link para duplicar a demonstração em sua conta: https://huggingface.co/spaces/course-demos/whisper-small?duplicate=true
+
+Recomendamos dar ao Space um nome parecido com o de seu modelo, como whisper-small-dv-demo, e definir a visibilidade como "Public".
+
+Depois de duplicá-lo, clique em "Files and versions" -> "app.py" -> "edit". Troque o identificador pelo de seu modelo ajustado, na linha 6. Role até o fim da página e clique em "Commit changes to main". A demonstração reiniciará usando seu modelo. Você poderá compartilhá-la com amigos e familiares para que usem o modelo que treinou!
+
+Confira nosso tutorial em vídeo para entender melhor como duplicar o Space 👉️ [Vídeo no YouTube](https://www.youtube.com/watch?v=VQYuvl6-9VE).
+
+Queremos ver suas demonstrações no Hub!

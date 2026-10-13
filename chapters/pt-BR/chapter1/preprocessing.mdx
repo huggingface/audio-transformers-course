@@ -1,18 +1,18 @@
-# Pré-processamento de um dataset de áudio
+# Pré-processamento de um conjunto de dados de áudio
 
-Carregar um dataset com 🤗 Datasets é parte da brincadeira. Se você planeja usá-lo para treinar um modelo, ou para executar inferência, você precisará pré-processar os dados primeiro. Geralmente, isso se resume nas seguintes etapas:
+Carregar um conjunto de dados com 🤗 Datasets é só metade da diversão. Para usá-lo no treinamento de um modelo ou na inferência, você precisará primeiro pré-processar os dados. Em geral, isso envolve as seguintes etapas:
 
-* Reamostragem (resampling) dos dados de áudio
-* Filtragem do dataset
-* Conversão dos dados de áudio para a formato esperado pelo modelo
+* Reamostrar os dados de áudio.
+* Filtrar o conjunto de dados.
+* Converter os dados de áudio para a entrada esperada pelo modelo.
 
 ## Reamostragem dos dados de áudio
 
-A função `load_dataset` baixa exemplos de áudio com a taxa de amostragem na qual foram publicados. Esta não é sempre a taxa de amostragem esperada por um modelo que você planeja treinar, ou usar para inferência. Se houver uma diferença entre as taxas de amostragem, você pode reamostrar (resample) o áudio para a taxa de amostragem esperada pelo modelo.
+A função `load_dataset` baixa os exemplos de áudio com a taxa de amostragem com que foram publicados. Essa taxa nem sempre é a esperada pelo modelo que você pretende treinar ou usar na inferência. Se as taxas forem diferentes, você pode reamostrar o áudio para a taxa esperada pelo modelo.
 
-A maioria dos modelos pré-treinados disponíveis foram treinados em datasets de áudio com uma taxa de amostragem de 16 kHz. Quando exploramos o dataset MINDS-14, você pode ter notado que ele é amostrado a 8 kHz, o que significa que provavelmente precisaremos aumentar a amostragem.
+A maioria dos modelos pré-treinados disponíveis foi pré-treinada com conjuntos de dados de áudio a uma taxa de amostragem de 16 kHz. Ao explorar o conjunto MINDS-14, você pode ter notado que sua taxa é de 8 kHz, o que significa que provavelmente precisaremos aumentá-la.
 
-Para fazer isso, use o método `cast_column` de 🤗 Datasets. Esta operação não altera o arquivo de áudio baixado, mas indica aos datasets para reamostrar os exemplos de áudio sob demanda a medida que forem carregados. O seguinte código definirá a taxa de amostragem para 16kHz:
+Para isso, use o método `cast_column` de 🤗 Datasets. Essa operação não modifica o áudio diretamente; em vez disso, instrui a biblioteca a reamostrar os exemplos sob demanda, quando forem carregados. O código a seguir define a taxa de amostragem como 16 kHz:
 
 ```py
 from datasets import Audio
@@ -20,7 +20,7 @@ from datasets import Audio
 minds = minds.cast_column("audio", Audio(sampling_rate=16_000))
 ```
 
-Recarregue o primeiro exemplo de áudio no dataset MINDS-14, e verifique se ele foi reamostrado para a `taxa de amostragem` desejada:
+Carregue novamente o primeiro exemplo de áudio do conjunto MINDS-14 e confira se ele foi reamostrado para a taxa de amostragem desejada, indicada por `sampling_rate`:
 
 ```py
 minds[0]
@@ -51,17 +51,17 @@ minds[0]
 }
 ```
 
-Repare que os valores do array também estão diferentes agora. Isso ocorre porque agora temos o dobro do número de valores de amplitude para cada um que tínhamos antes.
+Você pode notar que os valores do array também mudaram. Isso acontece porque agora temos o dobro de valores de amplitude em relação ao que tínhamos antes.
 
 <Tip>
-💡 Algumas informações sobre a reamostragem (resampling): Se um sinal de áudio foi amostrado a 8 kHz, de modo que possui 8000 amostras coletadas por segundo, sabemos que o áudio não contém frequências acima de 4 kHz. Isso é garantido pelo teorema de Nyquist. Com base nisso, podemos assumir que entre as amostras de um sinal contínuo, especificamente os pontos que existem entre elas, e não foram coletados, devido a amostragem, formam uma curva suave. Então, aumentar a taxa de amostragem para um valor mais alto é apenas uma questão de calcular valores de amostra adicionais que vão entre os existentes, formando essa curva suave. No entanto, diminuir a amostragem (downsampling) requer primeiro filtrar quaisquer frequências que seriam maiores que o novo limite de Nyquist, antes de estimar os novos pontos de amostra (pois diminuindo a amostragem, a frequência máxima também diminuiria). Em outras palavras, você não pode diminuir a amostragem por um fator de 2x simplesmente descartando todas as outras amostras - isso criará distorções no sinal chamadas de alias. Fazer a reamostragem corretamente é complicado e é melhor deixar para bibliotecas bem testadas como librosa ou 🤗 Datasets.
+💡 Um pouco mais sobre reamostragem: se um sinal de áudio foi amostrado a 8 kHz, com 8.000 amostras por segundo, sabemos que o áudio não contém frequências acima de 4 kHz. Isso é garantido pelo teorema de amostragem de Nyquist. Assim, podemos ter certeza de que o sinal contínuo original descreve uma curva suave entre os pontos de amostragem. Aumentar a taxa de amostragem consiste em calcular valores adicionais entre as amostras existentes, aproximando essa curva. Para reduzir a taxa, porém, precisamos primeiro filtrar as frequências que excederiam o novo limite de Nyquist, antes de estimar os novos pontos de amostragem. Em outras palavras, não podemos reduzir a taxa pela metade simplesmente descartando uma amostra a cada duas: isso cria distorções no sinal chamadas de aliases. Reamostrar corretamente é uma tarefa complexa, que é melhor deixar a cargo de bibliotecas bem testadas, como librosa ou 🤗 Datasets.
 </Tip>
 
-## Filtragem do dataset
+## Filtragem do conjunto de dados
 
-Talvez você precise filtrar os dados com base em alguns critérios. Um dos casos comuns envolve limitar os exemplos de áudio a uma certa duração. Por exemplo, podemos querer ignorar quaisquer exemplos mais longos que 20s para prevenir erros de falta de memória ao treinar um modelo.
+Você pode precisar filtrar os dados com base em determinados critérios. Um caso comum é limitar a duração dos exemplos de áudio. Por exemplo, podemos excluir exemplos com mais de 20 s para evitar erros de falta de memória durante o treinamento de um modelo.
 
-Podemos fazer isso usando o método `filter` da 🤗 Datasets e passando uma função com a lógica de filtragem para ele. Vamos começar escrevendo uma função que indica quais exemplos manter e quais descartar. Esta função, `is_audio_length_in_range`, retorna `True` se a duração for menor 20s, e `False` se for maior.
+Podemos fazer isso com o método `filter` de 🤗 Datasets, passando a ele uma função com a lógica de filtragem. Vamos começar escrevendo uma função que indique quais exemplos manter e quais descartar. Essa função, `is_audio_length_in_range`, retorna `True` se a amostra tiver menos de 20 s e `False` se tiver mais de 20 s.
 
 ```py
 MAX_DURATION_IN_SECONDS = 20.0
@@ -71,17 +71,19 @@ def is_audio_length_in_range(input_length):
     return input_length < MAX_DURATION_IN_SECONDS
 ```
 
-A função de filtragem pode ser aplicada a uma coluna do dataset, mas não temos uma coluna com a duração da do áudio neste dataset. No entanto, podemos criar uma, filtrar com base nos valores dessa coluna e, em seguida, removê-la.
+A função de filtragem pode ser aplicada a uma coluna do conjunto de dados, mas esse conjunto não tem uma coluna com a duração dos áudios. Podemos criar essa coluna, filtrar com base em seus valores e depois removê-la.
 
 ```py
-# use librosa para obter a duração do áudio
-new_column = [librosa.get_duration(path=x) for x in minds["path"]]
+# use librosa to get example's duration from the audio file
+new_column = [
+    librosa.get_duration(y=x["array"], sr=x["sampling_rate"]) for x in minds["audio"]
+]
 minds = minds.add_column("duration", new_column)
 
-# use o método `filter` de 🤗 Datasets para aplicar a função de filtragem
+# use 🤗 Datasets' `filter` method to apply the filtering function
 minds = minds.filter(is_audio_length_in_range, input_columns=["duration"])
 
-# remova a coluna auxiliar temporária
+# remove the temporary helper column
 minds = minds.remove_columns(["duration"])
 minds
 ```
@@ -91,40 +93,45 @@ minds
 Dataset({features: ["path", "audio", "transcription", "intent_class"], num_rows: 624})
 ```
 
-Perceba que o dataset foi filtrado de 654 exemplos para 624 (num_rows).
+Podemos conferir que a filtragem reduziu o conjunto de 654 para 624 exemplos.
 
 ## Pré-processamento dos dados de áudio
 
-Um dos aspectos mais desafiadores de trabalhar com datasets de áudio é preparar os dados no formato correto para o treinamento do modelo. Como você viu, os dados de áudio brutos vêm como um array de valores de amostras (do sinal original). No entanto, modelos pré-treinados, seja para usá-los em inferência, seja para ajustá-los (fine tuning) ao seu projeto, esperam que os dados brutos sejam convertidos em características (features) de entrada. Os requisitos para as características de entrada podem variar de um modelo para outro - eles dependem da arquitetura do modelo e dos dados com os quais foi pré-treinado. A boa notícia é que, para cada modelo de áudio suportado, 🤗 Transformers oferece uma classe de extrator de características (feature extractor) que pode converter dados de áudio brutos nas características de entrada que o modelo espera.
+Um dos aspectos mais desafiadores do trabalho com conjuntos de dados de áudio é preparar os dados no formato correto para treinar o modelo. Como vimos, o áudio bruto é representado por um array de valores de amostras. No entanto, modelos pré-treinados, tanto para inferência quanto para ajuste fino em sua tarefa, esperam que esses dados sejam convertidos em características de entrada. Os requisitos dessas características podem variar de um modelo para outro: dependem da arquitetura do modelo e dos dados usados em seu pré-treinamento. A boa notícia é que 🤗 Transformers oferece uma classe de extrator de características para cada modelo de áudio compatível, capaz de converter o áudio bruto nas características de entrada esperadas.
 
-Então, o que um extrator de características faz com os dados de áudio brutos? Vamos dar uma olhada extrator de características chamado [Whisper](https://huggingface.co/papers/2212.04356) para entender algumas transformações comuns de extração de características. Whisper é um modelo pré-treinado para reconhecimento automático de fala (ASR) publicado em setembro de 2022 por Alec Radford et al. da OpenAI.
+O que um extrator de características faz com o áudio bruto? Vamos examinar o extrator de características do [Whisper](https://huggingface.co/papers/2212.04356) para entender algumas transformações comuns na extração de características. Whisper é um modelo pré-treinado para reconhecimento automático de fala (ASR), publicado em setembro de 2022 por Alec Radford e colaboradores, da OpenAI.
 
-Primeiro, o extrator de características do Whisper preenche/corta um grupo (batch) de exemplos de áudio de forma que todos os exemplos tenham uma duração de 30s. Exemplos mais curtos que isso são complementados com zeros no final, até formar 30s de duração (zeros em um sinal de áudio correspondem a silêncio ou nada de sinal). Exemplos que tem mais de 30s são cortados nos 30s. Uma vez que todos os elementos no grupo são padronizados para uma duração fixa, não há necessidade de uma máscara de atenção (attention mask). O Whisper é único neste aspecto, a maioria dos outros modelos de áudio requer uma máscara de atenção que detalha onde as sequências foram preenchidas, e assim onde elas devem ser ignoradas no mecanismo de auto-atenção (self-attention). O Whisper é treinado para operar sem uma máscara de atenção e inferir do próprio sinal onde ele deve ignorar.
+Primeiro, o extrator de características do Whisper preenche ou trunca um lote de exemplos de áudio para que todos tenham 30 s de duração na entrada. Exemplos mais curtos são preenchidos até 30 s com zeros no final da sequência; zeros em um sinal de áudio correspondem à ausência de sinal, ou silêncio. Exemplos com mais de 30 s são truncados para 30 s. Como todos os elementos do lote são preenchidos ou truncados para um comprimento máximo no espaço de entrada, não é necessária uma máscara de atenção. Whisper se diferencia nesse aspecto: a maioria dos outros modelos de áudio exige uma máscara de atenção que indique onde as sequências foram preenchidas e, portanto, onde devem ser ignoradas pelo mecanismo de autoatenção. Whisper é treinado para operar sem máscara de atenção e deduzir diretamente dos sinais de fala quais entradas ignorar.
 
-A segunda operação que o extrator de características do Whisper realiza é converter os arrays de áudio padronizados em espectrogramas log-mel. Lembre que esses espectrogramas descrevem como as frequências de um sinal mudam ao longo do tempo, expressas na escala mel e medidas em decibéis (a parte do log) para tornar as frequências e amplitudes mais representativas da audição humana.
+A segunda operação do extrator de características do Whisper é converter os arrays de áudio preenchidos em espectrogramas log-mel. Como vimos, esses espectrogramas descrevem como as frequências de um sinal mudam ao longo do tempo. Elas são expressas na escala mel, enquanto a intensidade é medida em decibéis — a parte “log” — para que frequências e amplitudes representem melhor a audição humana.
 
-Todas essas transformações podem ser aplicadas aos seus dados de áudio brutos com algumas poucas linhas de código. Vamos colocar a mão na massa e carregar o extrator de características a partir do checkpoint pré-treinado do Whisper e deixá-lo pronto para usar nos nossos dados de áudio:
+Todas essas transformações podem ser aplicadas ao áudio bruto com poucas linhas de código. Vamos carregar o extrator de características de um checkpoint pré-treinado do Whisper para deixá-lo pronto para nossos dados:
 
 ```py
-# Instale com o comando: pip install transformers
-# Você pode acessar a página incial dos Transformers para instruções de instalação!
 from transformers import WhisperFeatureExtractor
 
 feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
 ```
 
-Então, você pode escrever uma função para pré-processar um exemplo de áudio, passando ele para o `feature_extractor`.
+Em seguida, escreva uma função para pré-processar um único exemplo de áudio, passando-o pelo `feature_extractor`.
 
 ```py
 def prepare_dataset(example):
     audio = example["audio"]
+
+    if audio["sampling_rate"] != 16000:
+        audio_array = librosa.resample(
+            audio["array"], orig_sr=audio["sampling_rate"], target_sr=16000
+        )
+        audio = {"array": audio_array, "sampling_rate": 16000}
+
     features = feature_extractor(
         audio["array"], sampling_rate=audio["sampling_rate"], padding=True
     )
     return features
 ```
 
-Podemos aplicar a função de preparação de dados a todos os nossos exemplos de treinamento usando o método `map` de 🤗 Datasets:
+Podemos aplicar a função de preparação de dados a todos os exemplos de treinamento usando o método `map` de 🤗 Datasets:
 
 ```py
 minds = minds.map(prepare_dataset)
@@ -140,9 +147,10 @@ Dataset(
     }
 )
 ```
-Sem muito esforço, agora temos espectrogramas log-mel no campo `input_features` do dataset.
 
-Vamos visualizá-lo em dos exemplos do dataset `minds`:
+Pronto: agora temos espectrogramas log-mel no campo `input_features` do conjunto de dados.
+
+Vamos visualizar um dos exemplos do conjunto `minds`:
 
 ```py
 import numpy as np
@@ -162,14 +170,14 @@ plt.colorbar()
 ```
 
 <div class="flex justify-center">
-    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/log_mel_whisper.png" alt="Gráfico de espectrograma log mel">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/log_mel_whisper.png" alt="Gráfico de espectrograma log-mel">
 </div>
 
-Agora você pode ver como fica um input de áudio para o modelo Whisper após o pré-processamento.
+Agora você pode ver como fica a entrada de áudio do modelo Whisper após o pré-processamento.
 
-A classe de extrator de características do modelo cuida de transformar os dados de áudio brutos para o formato que o modelo espera. No entanto, muitas tarefas envolvendo áudio são multimodais, como, por exemplo, o reconhecimento de fala. Nestes casos, 🤗 Transformers também oferece tokenizadores (tokenizers) específicos do modelo para processar as entradas de texto. Para se aprofundar em tokenizadores, consulte nosso [curso de NLP](https://huggingface.co/course/chapter2/4).
+A classe de extrator de características do modelo transforma o áudio bruto no formato esperado pelo modelo. No entanto, muitas tarefas que envolvem áudio são multimodais, como o reconhecimento de fala. Nesses casos, 🤗 Transformers também oferece tokenizadores específicos de cada modelo para processar as entradas de texto. Para se aprofundar em tokenizadores, consulte nosso [curso de NLP](https://huggingface.co/course/chapter2/4).
 
-Você pode carregar o extrator de características e o tokenizador do Whisper (e outros modelos multimodais) separadamente, ou você pode carregar ambos por meio de algo chamado de processor (processador). Para simplificar ainda mais, use `AutoProcessor` para carregar o extrator de características e processador de um modelo a partir de um checkpoint, assim:
+Você pode carregar o extrator de características e o tokenizador do Whisper e de outros modelos multimodais separadamente, ou carregar ambos por meio de um processador. Para simplificar ainda mais, use `AutoProcessor` para carregar o extrator de características e o processador de um modelo a partir de um checkpoint:
 
 ```py
 from transformers import AutoProcessor
@@ -177,4 +185,4 @@ from transformers import AutoProcessor
 processor = AutoProcessor.from_pretrained("openai/whisper-small")
 ```
 
-Aqui mostramos os passos fundamentais de preparação dos dados. Claro, dados personalizados podem exigir pré-processamento mais complexo. Neste caso, você pode estender a função `prepare_dataset` para realizar qualquer tipo de transformação de dados personalizada. Com 🤗 Datasets, se você pode escrever sua personalização como uma função Python, então você pode [aplicá-la](https://huggingface.co/docs/datasets/audio_process) ao seu dataset!
+Aqui mostramos as etapas fundamentais de preparação de dados. Naturalmente, dados próprios podem exigir pré-processamento mais complexo. Nesse caso, você pode ampliar a função `prepare_dataset` para realizar as transformações necessárias. Com 🤗 Datasets, se você consegue escrever a transformação como uma função Python, pode [aplicá-la](https://huggingface.co/docs/datasets/audio_process) ao seu conjunto de dados!

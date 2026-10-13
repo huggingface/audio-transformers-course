@@ -1,0 +1,36 @@
+# Crie uma demonstração com Gradio
+
+Nesta última seção de classificação de áudio, criaremos uma demonstração com [Gradio](https://gradio.app) para apresentar o modelo que acabamos de treinar no [GTZAN](https://huggingface.co/datasets/marsyas/gtzan). Primeiro, carregamos o checkpoint ajustado com `pipeline()`, como já vimos na seção de [modelos pré-treinados](classification_models). Você pode trocar `model_id` pelo identificador de seu modelo ajustado no Hugging Face Hub:
+
+```python
+from transformers import pipeline
+
+model_id = "sanchit-gandhi/distilhubert-finetuned-gtzan"
+pipe = pipeline("audio-classification", model=model_id)
+```
+
+Depois, definimos uma função que recebe o caminho de um arquivo de áudio e o passa ao pipeline. Ele carrega o arquivo, reamostra o áudio para a taxa correta e realiza a inferência automaticamente. Organizamos as previsões `preds` em um dicionário para exibi-las na saída:
+
+```python
+def classify_audio(filepath):
+    preds = pipe(filepath)
+    outputs = {}
+    for p in preds:
+        outputs[p["label"]] = p["score"]
+    return outputs
+```
+
+Por fim, iniciamos a demonstração com a função definida:
+
+```python
+import gradio as gr
+
+demo = gr.Interface(
+    fn=classify_audio, inputs=gr.Audio(type="filepath"), outputs=gr.outputs.Label()
+)
+demo.launch(debug=True)
+```
+
+Isso inicia uma demonstração semelhante à que está no Hugging Face Space:
+
+<iframe src="https://course-demos-song-classifier.hf.space" frameBorder="0" height="450" title="Aplicação Gradio" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>

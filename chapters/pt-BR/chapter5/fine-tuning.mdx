@@ -1,0 +1,471 @@
+# Ajuste fino do modelo ASR
+
+Nesta seção, veremos passo a passo como ajustar Whisper para reconhecimento de fala no Common Voice 13. Usaremos a versão `small` e um conjunto relativamente leve, permitindo executar o ajuste fino rapidamente em qualquer GPU com 16 GB ou mais e com pouco espaço em disco. Um exemplo é a T4 de 16 GB da versão gratuita do Google Colab.
+
+Se sua GPU for menor ou houver problemas de memória no treinamento, siga as sugestões para reduzir o uso de memória. Se tiver uma GPU maior, você pode alterar os argumentos de treinamento para aumentar a quantidade de dados processados por unidade de tempo. Assim, o guia é acessível independentemente das especificações de sua GPU!
+
+O guia mostra como ajustar Whisper para dhivehi. Entretanto, as etapas se aplicam a qualquer idioma do Common Voice e, de forma mais ampla, a qualquer conjunto ASR do Hugging Face Hub. Você pode adaptar o código para trocar rapidamente de idioma e ajustar Whisper em sua língua nativa 🌍.
+
+Agora vamos iniciar nosso pipeline de ajuste fino!
+
+## Preparação do ambiente
+
+Recomendamos fortemente enviar checkpoints diretamente ao [Hugging Face Hub](https://huggingface.co/) durante o treinamento. O Hub oferece:
+
+- Controle de versão integrado, para que nenhum checkpoint se perca durante o treinamento.
+- Logs do TensorBoard, para acompanhar métricas importantes.
+- Fichas de modelos, para documentar sua função e os casos de uso previstos.
+- Comunidade, facilitando o compartilhamento e a colaboração! 🤗
+
+Vincular o notebook ao Hub é simples: basta inserir seu token de autenticação quando solicitado. Você pode encontrá-lo [aqui](https://huggingface.co/settings/tokens):
+
+```python
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+**Saída:**
+```bash
+Login successful
+Your token has been saved to /root/.huggingface/token
+```
+
+## Carregamento do conjunto de dados
+
+[Common Voice 13](https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0) contém aproximadamente dez horas de dados rotulados em dhivehi, das quais três são reservadas para teste. É muito pouco para ajuste fino, então aproveitaremos o amplo conhecimento de ASR multilíngue adquirido por Whisper no pré-treinamento para trabalhar com esse idioma de poucos recursos.
+
+Com 🤗 Datasets, baixar e preparar os dados é muito simples. Podemos obter as divisões do Common Voice 13 com uma única linha de código. Como dhivehi tem pouquíssimos recursos, combinaremos `train` e `validation` para obter aproximadamente sete horas de treinamento. As três horas de `test` serão nosso conjunto de teste reservado:
+
+```python
+from datasets import load_dataset, DatasetDict
+
+common_voice = DatasetDict()
+
+common_voice["train"] = load_dataset(
+    "mozilla-foundation/common_voice_13_0", "dv", split="train+validation"
+)
+common_voice["test"] = load_dataset(
+    "mozilla-foundation/common_voice_13_0", "dv", split="test"
+)
+
+print(common_voice)
+```
+
+**Saída:**
+```
+DatasetDict({
+    train: Dataset({
+        features: ['client_id', 'path', 'audio', 'sentence', 'up_votes', 'down_votes', 'age', 'gender', 'accent', 'locale', 'segment', 'variant'],
+        num_rows: 4904
+    })
+    test: Dataset({
+        features: ['client_id', 'path', 'audio', 'sentence', 'up_votes', 'down_votes', 'age', 'gender', 'accent', 'locale', 'segment', 'variant'],
+        num_rows: 2212
+    })
+})
+```
+
+<Tip>
+    Você pode trocar <code>&#34;dv&#34;</code> pelo identificador do idioma que escolher. Para ver todos os idiomas do Common Voice 13, consulte a ficha no Hub: https://huggingface.co/datasets/mozilla-foundation/common_voice_13_0
+</Tip>
+
+A maioria dos conjuntos ASR fornece apenas amostras de áudio (`audio`) e o texto transcrito correspondente (`sentence`). Common Voice inclui metadados adicionais, como `accent` e `locale`, que podemos desconsiderar para ASR. Para manter o notebook o mais genérico possível, usaremos apenas o áudio e o texto no ajuste fino, descartando esses metadados:
+
+```python
+common_voice = common_voice.select_columns(["audio", "sentence"])
+```
+
+## Extrator de características, tokenizador e processador
+
+O pipeline ASR pode ser dividido em três etapas:
+
+1. O extrator de características pré-processa o áudio bruto em espectrogramas log-mel.
+2. O modelo faz o mapeamento de sequência a sequência.
+3. O tokenizador converte os tokens previstos em texto no pós-processamento.
+
+Em 🤗 Transformers, Whisper tem extrator e tokenizador associados, chamados respectivamente [WhisperFeatureExtractor](https://huggingface.co/docs/transformers/main/model_doc/whisper#transformers.WhisperFeatureExtractor) e [WhisperTokenizer](https://huggingface.co/docs/transformers/main/model_doc/whisper#transformers.WhisperTokenizer). Para simplificar, os dois objetos são reunidos em uma classe, [WhisperProcessor](https://huggingface.co/docs/transformers/model_doc/whisper#transformers.WhisperProcessor). Podemos usá-la tanto para o pré-processamento de áudio quanto para o pós-processamento dos tokens. Assim, só precisamos acompanhar dois objetos durante o treinamento: processador e modelo.
+
+No ajuste fino multilíngue, precisamos definir `"language"` e `"task"` ao instanciar o processador. `"language"` deve indicar o idioma do áudio de origem; a tarefa deve ser `"transcribe"` para reconhecimento de fala ou `"translate"` para tradução de fala. Esses argumentos alteram o comportamento do tokenizador e devem ser definidos corretamente para codificar os rótulos de referência.
+
+Podemos ver todos os idiomas suportados por Whisper importando a lista:
+
+```python
+from transformers.models.whisper.tokenization_whisper import TO_LANGUAGE_CODE
+
+TO_LANGUAGE_CODE
+```
+
+A lista tem muitos idiomas, mas dhivehi é um dos poucos ausentes! Isso significa que Whisper não foi pré-treinado nesse idioma. Ainda assim, podemos ajustá-lo: estaremos ensinando um novo idioma que o checkpoint pré-treinado não suporta. Interessante, não é?
+
+Ao ser ajustado para um novo idioma, Whisper aproveita bem seu conhecimento dos outros 96 idiomas em que foi pré-treinado. Em linhas gerais, todos os idiomas modernos terão semelhança linguística com pelo menos um deles. Assim, usamos o paradigma de representação de conhecimento entre idiomas.
+
+Para ajustar Whisper em um novo idioma, precisamos encontrar o idioma **mais semelhante** em que ele foi pré-treinado. O artigo da Wikipédia sobre dhivehi informa que ele é próximo do cingalês, falado no Sri Lanka. Conferindo os códigos, vemos que cingalês está no conjunto de idiomas do Whisper; portanto, podemos definir o argumento como `"sinhalese"`.
+
+Carregaremos o processador a partir do checkpoint pré-treinado, com idioma `"sinhalese"` e tarefa `"transcribe"`, como explicado:
+
+```python
+from transformers import WhisperProcessor
+
+processor = WhisperProcessor.from_pretrained(
+    "openai/whisper-small", language="sinhalese", task="transcribe"
+)
+```
+
+Na maioria dos casos, o idioma desejado estará no conjunto de pré-treinamento. Nesse caso, basta defini-lo diretamente como o idioma do áudio de origem! No ajuste fino exclusivamente em inglês, ambos os argumentos devem ser omitidos, pois só existe uma opção de idioma, `"English"`, e tarefa, `"transcribe"`.
+
+## Pré-processamento dos dados
+
+Vamos examinar as características do conjunto. Observe especialmente `"audio"`, que informa a taxa de amostragem das entradas:
+
+```python
+common_voice["train"].features
+```
+**Saída:**
+```
+{'audio': Audio(sampling_rate=48000, mono=True, decode=True, id=None),
+ 'sentence': Value(dtype='string', id=None)}
+```
+
+Como o áudio está amostrado a 48 kHz, precisamos _reduzir a taxa_ para 16 kHz antes de passá-lo ao extrator de características, pois essa é a taxa esperada por Whisper.
+
+Usaremos o método [`cast_column`](https://huggingface.co/docs/datasets/main/en/package_reference/main_classes#datasets.Dataset.cast_column) para definir a taxa correta. A operação não altera imediatamente o áudio: informa a Datasets que deve reamostrar as amostras sob demanda, quando forem carregadas:
+
+```python
+from datasets import Audio
+
+sampling_rate = processor.feature_extractor.sampling_rate
+common_voice = common_voice.cast_column("audio", Audio(sampling_rate=sampling_rate))
+```
+
+Agora podemos escrever uma função para preparar os dados:
+
+1. Carregamos e reamostramos o áudio exemplo por exemplo chamando `sample["audio"]`. Como explicado, 🤗 Datasets faz a reamostragem necessária sob demanda.
+2. Usamos o extrator para calcular as características de entrada do espectrograma log-mel a partir do array unidimensional de áudio.
+3. Usamos o tokenizador para codificar as transcrições em identificadores de rótulos.
+
+```python
+def prepare_dataset(example):
+    audio = example["audio"]
+
+    example = processor(
+        audio=audio["array"],
+        sampling_rate=audio["sampling_rate"],
+        text=example["sentence"],
+    )
+
+    # compute input length of audio sample in seconds
+    example["input_length"] = len(audio["array"]) / audio["sampling_rate"]
+
+    return example
+```
+
+Aplicamos essa função a todos os exemplos com `.map` de 🤗 Datasets. Removemos as colunas brutas de áudio e texto, deixando apenas as retornadas por `prepare_dataset`:
+
+```python
+common_voice = common_voice.map(
+    prepare_dataset, remove_columns=common_voice.column_names["train"], num_proc=1
+)
+```
+
+Por fim, filtramos os dados de treinamento com áudios maiores que 30 s. Essas amostras seriam truncadas pelo extrator do Whisper, o que poderia afetar a estabilidade do treinamento. Definimos uma função que retorna `True` para amostras menores que 30 s e `False` para as maiores:
+
+```python
+max_input_length = 30.0
+
+
+def is_audio_in_length_range(length):
+    return length < max_input_length
+```
+
+Aplicamos o filtro a todas as amostras de treinamento com `.filter` de 🤗 Datasets:
+
+```python
+common_voice["train"] = common_voice["train"].filter(
+    is_audio_in_length_range,
+    input_columns=["input_length"],
+)
+```
+
+Vamos conferir quantos exemplos foram removidos:
+
+```python
+common_voice["train"]
+```
+**Saída:**
+```
+Dataset({
+    features: ['input_features', 'labels', 'input_length'],
+    num_rows: 4904
+})
+```
+
+Neste caso, temos o mesmo número de amostras: não havia áudios maiores que 30 s. Isso pode mudar em outros idiomas, então é melhor manter o filtro para maior robustez. Os dados estão prontos! Vamos usá-los para ajustar Whisper.
+
+## Treinamento e avaliação
+
+Com os dados preparados, podemos passar ao pipeline de treinamento. O [🤗 Trainer](https://huggingface.co/transformers/master/main_classes/trainer.html?highlight=trainer) fará boa parte do trabalho. Precisamos apenas:
+
+- Definir um agrupador de dados: ele recebe os dados pré-processados e prepara tensores PyTorch para o modelo.
+- Definir métricas de avaliação: queremos avaliar o modelo pela taxa de erro de palavras (WER), então precisamos de uma função `compute_metrics` para calculá-la.
+- Carregar um checkpoint pré-treinado e configurá-lo corretamente para treinamento.
+- Definir os argumentos de treinamento, usados por 🤗 Trainer para organizar sua execução.
+
+Depois do ajuste fino, avaliaremos o modelo nos dados de teste para conferir se aprendeu a transcrever fala em dhivehi.
+
+### Definição de um agrupador de dados
+
+O agrupador de um modelo de fala de sequência a sequência trata `input_features` e `labels` separadamente: as primeiras são processadas pelo extrator de características e os segundos pelo tokenizador.
+
+As `input_features` já receberam preenchimento até 30 s e foram convertidas em espectrogramas log-mel de dimensão fixa. Basta convertê-las em tensores PyTorch organizados em lotes. Usamos `.pad` do extrator com `return_tensors=pt`. Nenhum preenchimento adicional é aplicado, pois as dimensões já são fixas; apenas fazemos a conversão em tensores.
+
+Já os `labels` não têm preenchimento. Primeiro, usamos `.pad` do tokenizador para preencher as sequências até o comprimento máximo do lote. Depois, substituímos os tokens de preenchimento por `-100`, para que **não** sejam considerados no cálculo da perda. Removemos então o token de início de transcrição do começo da sequência de rótulos, pois ele será acrescentado depois, durante o treinamento.
+
+O `WhisperProcessor` definido antes permite executar as operações do extrator e do tokenizador:
+
+```python
+import torch
+
+from dataclasses import dataclass
+from typing import Any, Dict, List, Union
+
+
+@dataclass
+class DataCollatorSpeechSeq2SeqWithPadding:
+    processor: Any
+
+    def __call__(
+        self, features: List[Dict[str, Union[List[int], torch.Tensor]]]
+    ) -> Dict[str, torch.Tensor]:
+        # split inputs and labels since they have to be of different lengths and need different padding methods
+        # first treat the audio inputs by simply returning torch tensors
+        input_features = [
+            {"input_features": feature["input_features"][0]} for feature in features
+        ]
+        batch = self.processor.feature_extractor.pad(input_features, return_tensors="pt")
+
+        # get the tokenized label sequences
+        label_features = [{"input_ids": feature["labels"]} for feature in features]
+        # pad the labels to max length
+        labels_batch = self.processor.tokenizer.pad(label_features, return_tensors="pt")
+
+        # replace padding with -100 to ignore loss correctly
+        labels = labels_batch["input_ids"].masked_fill(
+            labels_batch.attention_mask.ne(1), -100
+        )
+
+        # if bos token is appended in previous tokenization step,
+        # cut bos token here as it's append later anyways
+        if (labels[:, 0] == self.processor.tokenizer.bos_token_id).all().cpu().item():
+            labels = labels[:, 1:]
+
+        batch["labels"] = labels
+
+        return batch
+```
+
+Agora inicializamos o agrupador que acabamos de definir:
+
+```python
+data_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor)
+```
+
+Vamos em frente!
+
+### Métricas de avaliação
+
+Definiremos a métrica usada no conjunto de avaliação: a taxa de erro de palavras (WER), apresentada na seção de [avaliação](evaluation) e usada como referência para sistemas ASR.
+
+Carregamos a métrica de 🤗 Evaluate:
+
+```python
+import evaluate
+
+metric = evaluate.load("wer")
+```
+
+Depois, definimos uma função que recebe as previsões e retorna WER. `compute_metrics` primeiro substitui `-100` por `pad_token_id` em `label_ids`, desfazendo a etapa aplicada no agrupador para ignorar corretamente o preenchimento na perda. Em seguida, decodifica os identificadores previstos e de referência em strings e calcula WER entre elas. Podemos avaliar usando transcrições e previsões "normalizadas", sem pontuação nem diferenciação entre maiúsculas e minúsculas. Recomendamos essa opção para obter a melhora na WER proporcionada pela normalização.
+
+```python
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer
+
+normalizer = BasicTextNormalizer()
+
+
+def compute_metrics(pred):
+    pred_ids = pred.predictions
+    label_ids = pred.label_ids
+
+    # replace -100 with the pad_token_id
+    label_ids[label_ids == -100] = processor.tokenizer.pad_token_id
+
+    # we do not want to group tokens when computing the metrics
+    pred_str = processor.batch_decode(pred_ids, skip_special_tokens=True)
+    label_str = processor.batch_decode(label_ids, skip_special_tokens=True)
+
+    # compute orthographic wer
+    wer_ortho = 100 * metric.compute(predictions=pred_str, references=label_str)
+
+    # compute normalised WER
+    pred_str_norm = [normalizer(pred) for pred in pred_str]
+    label_str_norm = [normalizer(label) for label in label_str]
+    # filtering step to only evaluate the samples that correspond to non-zero references:
+    pred_str_norm = [
+        pred_str_norm[i] for i in range(len(pred_str_norm)) if len(label_str_norm[i]) > 0
+    ]
+    label_str_norm = [
+        label_str_norm[i]
+        for i in range(len(label_str_norm))
+        if len(label_str_norm[i]) > 0
+    ]
+
+    wer = 100 * metric.compute(predictions=pred_str_norm, references=label_str_norm)
+
+    return {"wer_ortho": wer_ortho, "wer": wer}
+```
+
+### Carregamento de um checkpoint pré-treinado
+
+Vamos carregar o checkpoint Whisper small. Novamente, isso é simples com 🤗 Transformers!
+
+```python
+from transformers import WhisperForConditionalGeneration
+
+model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-small")
+```
+
+Definimos `use_cache=False` no treinamento, pois usamos [gradient checkpointing](https://huggingface.co/docs/transformers/v4.18.0/en/performance#gradient-checkpointing), incompatível com o cache. Também sobrescrevemos dois argumentos de geração para controlar a inferência: forçamos os tokens de idioma e tarefa com `language` e `task` e reativamos o cache na geração para acelerar a inferência:
+
+```python
+from functools import partial
+
+# disable cache during training since it's incompatible with gradient checkpointing
+model.config.use_cache = False
+
+# set language and task for generation and re-enable cache
+model.generate = partial(
+    model.generate, language="sinhalese", task="transcribe", use_cache=True
+)
+```
+
+## Definição da configuração de treinamento
+
+Na última etapa, definimos os parâmetros de treinamento. Usaremos 500 etapas, suficientes para uma grande melhora na WER em relação ao Whisper pré-treinado e para executar o ajuste fino em aproximadamente 45 minutos na versão gratuita do Google Colab. Para mais detalhes, consulte a [documentação](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.Seq2SeqTrainingArguments) de Seq2SeqTrainingArguments.
+
+```python
+from transformers import Seq2SeqTrainingArguments
+
+training_args = Seq2SeqTrainingArguments(
+    output_dir="./whisper-small-dv",  # name on the HF Hub
+    per_device_train_batch_size=16,
+    gradient_accumulation_steps=1,  # increase by 2x for every 2x decrease in batch size
+    learning_rate=1e-5,
+    lr_scheduler_type="constant_with_warmup",
+    warmup_steps=50,
+    max_steps=500,  # increase to 4000 if you have your own GPU or a Colab paid plan
+    gradient_checkpointing=True,
+    fp16=True,
+    fp16_full_eval=True,
+    evaluation_strategy="steps",
+    per_device_eval_batch_size=16,
+    predict_with_generate=True,
+    generation_max_length=225,
+    save_steps=500,
+    eval_steps=500,
+    logging_steps=25,
+    report_to=["tensorboard"],
+    load_best_model_at_end=True,
+    metric_for_best_model="wer",
+    greater_is_better=False,
+    push_to_hub=True,
+)
+```
+
+<Tip>
+    Se não quiser enviar checkpoints ao Hub, defina <code>push_to_hub=False</code>.
+</Tip>
+
+Passamos os argumentos ao 🤗 Trainer com modelo, conjunto de dados, agrupador e função `compute_metrics`:
+
+```python
+from transformers import Seq2SeqTrainer
+
+trainer = Seq2SeqTrainer(
+    args=training_args,
+    model=model,
+    train_dataset=common_voice["train"],
+    eval_dataset=common_voice["test"],
+    data_collator=data_collator,
+    compute_metrics=compute_metrics,
+    tokenizer=processor,
+)
+```
+
+Estamos prontos para treinar!
+
+### Treinamento
+
+Para iniciar, execute:
+
+```python
+trainer.train()
+```
+
+O treinamento levará aproximadamente 45 minutos, dependendo de sua GPU ou da atribuída pelo Google Colab. Você pode encontrar um erro CUDA de falta de memória, `"out-of-memory"`, ao começar. Nesse caso, reduza `per_device_train_batch_size` progressivamente pela metade e use [`gradient_accumulation_steps`](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.Seq2SeqTrainingArguments.gradient_accumulation_steps) para compensar.
+
+**Saída:**
+
+| Perda de treinamento | Época | Etapa | Perda de validação | WER ortográfica | WER |
+|:--------------------:|:-----:|:-----:|:------------------:|:---------------:|:---:|
+| 0.136 | 1.63 | 500 | 0.1727 | 63.8972 | 14.0661 |
+
+Nossa WER final é de 14,1%: um bom resultado com sete horas de dados e apenas 500 etapas! Isso corresponde a uma melhora de 112% em relação ao modelo pré-treinado. Partimos de um modelo sem conhecimento de dhivehi e o ajustamos para reconhecer fala nesse idioma com acurácia adequada em menos de uma hora 🤯.
+
+Como isso se compara a outros sistemas ASR? Podemos consultar o [ranking](https://huggingface.co/spaces/autoevaluate/leaderboards?dataset=mozilla-foundation%2Fcommon_voice_13_0&only_verified=0&task=automatic-speech-recognition&config=dv&split=test&metric=wer) autoevaluate, que categoriza modelos por idioma e conjunto de dados e os ordena por WER.
+
+No ranking, vemos que nosso modelo treinado por 500 etapas supera com folga o checkpoint pré-treinado [Whisper Small](https://huggingface.co/openai/whisper-small) avaliado na seção anterior. Bom trabalho 👏!
+
+Alguns checkpoints têm resultados melhores que o nosso. O Hub é uma plataforma *colaborativa*: se não tivermos tempo ou recursos para um treinamento mais longo, podemos carregar um checkpoint treinado e compartilhado por alguém da comunidade, lembrando de agradecer! Eles podem ser carregados com `pipeline` exatamente como os modelos pré-treinados. Nada impede, portanto, que você escolha o melhor modelo do ranking para sua tarefa!
+
+Podemos enviar automaticamente nosso checkpoint ao ranking ao publicar os resultados no Hub, definindo os argumentos nomeados apropriados, ou kwargs. Ajuste os valores ao conjunto, idioma e nome de modelo usados:
+
+```python
+kwargs = {
+    "dataset_tags": "mozilla-foundation/common_voice_13_0",
+    "dataset": "Common Voice 13",  # a 'pretty' name for the training dataset
+    "language": "dv",
+    "model_name": "Whisper Small Dv - Sanchit Gandhi",  # a 'pretty' name for your model
+    "finetuned_from": "openai/whisper-small",
+    "tasks": "automatic-speech-recognition",
+}
+```
+
+Para enviar os resultados ao Hub, execute `push_to_hub`:
+
+```python
+trainer.push_to_hub(**kwargs)
+```
+
+Isso salva os logs e pesos em `"your-username/the-name-you-picked"`. Para este exemplo, confira `sanchit-gandhi/whisper-small-dv`.
+
+Embora o modelo ajustado produza resultados satisfatórios no teste em dhivehi do Common Voice 13, ainda pode melhorar. O objetivo do guia é demonstrar o ajuste fino de um modelo ASR com 🤗 Trainer para reconhecimento de fala multilíngue.
+
+Se você tiver sua própria GPU ou um plano pago do Colab, pode aumentar `max_steps` para 4000 e melhorar WER com mais treinamento. Isso leva aproximadamente 3–5 horas, dependendo da GPU, e produz WER aproximadamente 3% menor que o treinamento de 500 etapas. Também recomendamos mudar o agendador da taxa de aprendizado para *linear*, com `lr_scheduler_type="linear"`, para obter um ganho adicional em treinamentos longos.
+
+Os resultados provavelmente podem melhorar ainda mais com otimização de hiperparâmetros como _taxa de aprendizado_ e _dropout_, e com um checkpoint maior, `medium` ou `large`. Deixamos isso como exercício.
+
+## Compartilhamento do modelo
+
+Você pode compartilhar o modelo com qualquer pessoa pelo link no Hub. Ela poderá carregá-lo diretamente em `pipeline()` com o identificador `"your-username/the-name-you-picked"`. Por exemplo, para carregar o checkpoint ajustado ["sanchit-gandhi/whisper-small-dv"](https://huggingface.co/sanchit-gandhi/whisper-small-dv):
+
+```python
+from transformers import pipeline
+
+pipe = pipeline("automatic-speech-recognition", model="sanchit-gandhi/whisper-small-dv")
+```
+
+## Conclusão
+
+Nesta seção, vimos passo a passo como ajustar Whisper para reconhecimento de fala com 🤗 Datasets, Transformers e o Hugging Face Hub. Carregamos o subconjunto em dhivehi do Common Voice 13 e o pré-processamos calculando espectrogramas log-mel e tokenizando o texto. Depois, definimos agrupador, métrica e argumentos de treinamento e usamos 🤗 Trainer para treinar e avaliar. Por fim, enviamos o modelo ajustado ao Hub e mostramos como compartilhá-lo e usá-lo com `pipeline()`.
+
+Se você acompanhou até aqui, deve ter um checkpoint ajustado para reconhecimento de fala. Parabéns! 🥳 Você também tem as ferramentas necessárias para ajustar Whisper em qualquer conjunto ou domínio de reconhecimento de fala. Escolha um dos conjuntos da seção [Escolha de um conjunto de dados](choosing_dataset), ou use seu próprio conjunto, e veja se consegue alcançar o estado da arte! O ranking está à sua espera...

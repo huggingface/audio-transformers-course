@@ -1,0 +1,109 @@
+# Unidade 3. Arquiteturas de transformers para áudio
+
+Neste curso, estudaremos principalmente modelos transformer e sua aplicação a tarefas de áudio. Você não precisa conhecer todos os detalhes internos desses modelos, mas é útil compreender os conceitos principais de seu funcionamento. Vamos fazer uma breve revisão. Para se aprofundar em transformers, confira nosso [curso de grandes modelos de linguagem (LLMs)](https://huggingface.co/course/chapter1/1).
+
+## Como funciona um transformer?
+
+O modelo transformer original foi projetado para traduzir textos de um idioma para outro. Sua arquitetura era assim:
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/documentation-images/resolve/main/en/chapter1/transformers.svg" alt="Arquitetura original do transformer">
+</div>
+
+À esquerda está o **codificador** e, à direita, o **decodificador**.
+
+- O codificador recebe uma entrada, neste caso, uma sequência de tokens de texto, e constrói uma representação dela, ou seja, suas características. Essa parte do modelo é treinada para compreender a entrada.
+
+- O decodificador usa a representação produzida pelo codificador, junto com outras entradas, os tokens previstos anteriormente, para gerar uma sequência de destino. Essa parte do modelo é treinada para gerar saídas. No projeto original, a sequência de saída era formada por tokens de texto.
+
+Também existem modelos baseados em transformers que usam apenas o codificador, adequados para tarefas que exigem compreender a entrada, como classificação, ou apenas o decodificador, adequados para tarefas como geração de texto. BERT é um exemplo de modelo com apenas codificador; GPT2 é um exemplo de modelo com apenas decodificador.
+
+Uma característica fundamental dos modelos transformer são as camadas especiais chamadas **camadas de atenção**. Elas orientam o modelo a prestar atenção em determinados elementos da sequência de entrada e ignorar outros ao calcular as representações de características.
+
+## Uso de transformers para áudio
+
+Os modelos de áudio deste curso geralmente têm uma arquitetura transformer convencional, como a mostrada acima, com uma pequena modificação na entrada ou na saída para trabalhar com áudio em vez de texto. Como todos são transformers em sua essência, grande parte de suas arquiteturas é comum; as principais diferenças estão em como são treinados e usados.
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/transformers_blocks.png" alt="Transformer com entrada e saída de áudio">
+</div>
+
+Em tarefas de áudio, as sequências de entrada e/ou de saída podem ser áudio em vez de texto:
+
+- Reconhecimento automático de fala (ASR): a entrada é fala e a saída é texto.
+
+- Síntese de fala (TTS): a entrada é texto e a saída é fala.
+
+- Classificação de áudio: a entrada é áudio e a saída é uma probabilidade de classe, uma para cada elemento da sequência ou uma única probabilidade de classe para a sequência inteira.
+
+- Conversão de voz ou aprimoramento de fala: tanto a entrada quanto a saída são áudio.
+
+Existem algumas maneiras de preparar o áudio para um transformer. A principal decisão é usar o áudio bruto, como forma de onda, ou processá-lo como espectrograma.
+
+## Entradas do modelo
+
+A entrada de um modelo de áudio pode ser texto ou som. O objetivo é convertê-la em um vetor de embedding que a arquitetura transformer possa processar.
+
+### Entrada de texto
+
+Um modelo de síntese de fala recebe texto como entrada. Isso funciona como no transformer original ou em qualquer outro modelo de NLP: primeiro, o texto é tokenizado, produzindo uma sequência de tokens. Essa sequência passa por uma camada de embedding de entrada que converte os tokens em vetores de 512 dimensões. Esses vetores são então enviados ao codificador transformer.
+
+### Entrada de forma de onda
+
+Um modelo de reconhecimento automático de fala recebe áudio como entrada. Para usar um transformer em ASR, primeiro precisamos converter o áudio em uma sequência de vetores de embedding.
+
+Modelos como **Wav2Vec2** e **HuBERT** usam diretamente a forma de onda como entrada. Como vimos no [capítulo sobre dados de áudio](../chapter1/introduction), a forma de onda é uma sequência unidimensional de números de ponto flutuante, em que cada número representa a amplitude amostrada em um instante. Primeiro, essa forma de onda bruta é normalizada para ter média zero e variância unitária, ajudando a padronizar exemplos de áudio com diferentes volumes, ou amplitudes.
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/wav2vec2-input.png" alt="Wav2Vec2 usa uma CNN para criar embeddings da forma de onda de entrada">
+</div>
+
+Depois da normalização, a sequência de amostras é transformada em embeddings por uma pequena rede neural convolucional, conhecida como codificador de características. Cada camada convolucional processa a sequência de entrada e subamostra o áudio para reduzir seu comprimento. A última camada produz um vetor de 512 dimensões com o embedding de cada trecho de 25 ms de áudio. Depois dessa transformação, o transformer processa a sequência de embeddings como de costume.
+
+### Entrada de espectrograma
+
+Uma desvantagem de usar a forma de onda bruta é o comprimento das sequências. Por exemplo, 30 segundos de áudio a 16 kHz produzem uma entrada de comprimento `30 * 16000 = 480000`. Sequências mais longas exigem mais cálculos no transformer e, portanto, mais memória.
+
+Por isso, a forma de onda bruta geralmente não é a representação mais eficiente para uma entrada de áudio. Com um espectrograma, obtemos a mesma quantidade de informação em uma representação mais compacta.
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/whisper-input.png" alt="Whisper usa uma CNN para criar embeddings do espectrograma de entrada">
+</div>
+
+Modelos como **Whisper** primeiro convertem a forma de onda em um espectrograma log-mel. Whisper sempre divide o áudio em segmentos de 30 segundos, e o espectrograma log-mel de cada segmento tem formato `(80, 3000)`: 80 é a quantidade de bandas mel e 3000 é o comprimento da sequência. Essa conversão reduz a quantidade de dados de entrada e, principalmente, produz uma sequência muito mais curta que a forma de onda bruta. Uma pequena CNN processa o espectrograma log-mel e produz uma sequência de embeddings, que entra no transformer como de costume.
+
+Nos dois casos, com forma de onda ou espectrograma, uma pequena rede antes do transformer converte a entrada em embeddings. Depois, o transformer realiza seu processamento.
+
+## Saídas do modelo
+
+A arquitetura transformer produz uma sequência de vetores de estados ocultos, também conhecidos como embeddings de saída. Nosso objetivo é transformar esses vetores em uma saída de texto ou áudio.
+
+### Saída de texto
+
+Um modelo de reconhecimento automático de fala busca prever uma sequência de tokens de texto. Para isso, adicionamos uma cabeça de modelagem de linguagem, geralmente uma única camada linear, seguida de uma softmax sobre a saída do transformer. Isso produz as probabilidades dos tokens de texto do vocabulário.
+
+### Saída de espectrograma
+
+Em modelos que geram áudio, como os de síntese de fala (TTS), precisamos adicionar camadas capazes de produzir uma sequência de áudio. É muito comum gerar um espectrograma e usar uma rede neural adicional, chamada vocoder, para convertê-lo em uma forma de onda.
+
+No modelo TTS **SpeechT5**, por exemplo, a saída da rede transformer é uma sequência de vetores com 768 elementos. Uma camada linear projeta essa sequência em um espectrograma log-mel. Uma rede de pós-processamento, chamada post-net, formada por camadas lineares e convolucionais adicionais, refina o espectrograma reduzindo ruído. O vocoder produz então a forma de onda final.
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface-course/audio-course-images/resolve/main/speecht5.png" alt="SpeechT5 produz um espectrograma e usa um vocoder para criar a forma de onda">
+</div>
+
+<Tip>
+💡 Ao aplicar a transformada de Fourier de tempo curto, ou STFT, a uma forma de onda existente, é possível realizar a operação inversa, a ISTFT, para recuperar a forma de onda original. Isso funciona porque o espectrograma criado pela STFT contém informações de amplitude e fase, ambas necessárias à reconstrução. Modelos de áudio que geram espectrogramas, porém, costumam prever apenas a amplitude. Para converter esse espectrograma em uma forma de onda, precisamos estimar a fase de alguma maneira. É isso que um vocoder faz.
+</Tip>
+
+### Saída de forma de onda
+
+Também é possível que um modelo produza diretamente uma forma de onda, sem o espectrograma como etapa intermediária. Atualmente, porém, não temos modelos em 🤗 Transformers que façam isso.
+
+## Conclusão
+
+A maioria dos transformers para áudio tem mais semelhanças do que diferenças: todos usam a mesma arquitetura transformer e camadas de atenção, embora alguns usem apenas o codificador e outros usem codificador e decodificador.
+
+Você também viu como fornecer áudio aos transformers e obter áudio de suas saídas. Para realizar diferentes tarefas, como ASR e TTS, podemos trocar as camadas que pré-processam as entradas em embeddings e as que pós-processam os embeddings previstos em saídas, mantendo a estrutura principal do transformer.
+
+Agora, vamos conhecer algumas maneiras de treinar esses modelos para reconhecimento automático de fala.

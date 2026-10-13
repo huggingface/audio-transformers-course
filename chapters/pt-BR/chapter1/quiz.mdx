@@ -1,38 +1,37 @@
 <!-- DISABLE-FRONTMATTER-SECTIONS -->
 
-# Avalie seus conhecimentos
+# Confira sua compreensão do conteúdo do curso
 
-### 1. Em que unidades a taxa de amostragem é medida?
+### 1. Em que unidade se mede a taxa de amostragem?
 
 <Question
 	choices={[
 		{
 			text: "dB",
-			explain: "Não, a amplite é que é medida em decibéis (dB)."
+			explain: "Não. A amplitude é medida em decibéis (dB)."
 		},
 		{
 			text: "Hz",
-			explain: "A taxa de amostragem é o número de amostras coletadas em um segundo e é medida em hertz (Hz).",
+			explain: "A taxa de amostragem é a quantidade de amostras coletadas em um segundo e é medida em hertz (Hz).",
 			correct: true
 		},
 		{
 			text: "bit",
-			explain: "Bits são usados para a profundidade de bits (bit depth), a qual se refere ao número de bits usados para representa cada amostra coletada de um sinal de áudio",
+			explain: "Bits descrevem a profundidade de bits, que corresponde à quantidade de bits de informação usada para representar cada amostra de um sinal de áudio.",
 		}
 	]}
 />
 
-### 2. Ao usar o streaming de um grande dataset de áudio, em que momento ele se torna disponível para usá-lo?
-
+### 2. Ao acessar um conjunto grande de dados de áudio por streaming, quando você pode começar a usá-lo?
 
 <Question
 	choices={[
 		{
-			text: "Assim que o download de todo o dataset for concluído",
-			explain: "O objetivo do streaming é a capacidade de trabalhar com os dados sem precisar baixar todo o dataset"
+			text: "Assim que o conjunto inteiro for baixado.",
+			explain: "O objetivo do streaming é permitir o trabalho com os dados sem precisar baixar o conjunto inteiro."
 		},
 		{
-			text: "Assim que os primeiros 16 exemplos forem baixados",
+			text: "Assim que os primeiros 16 exemplos forem baixados.",
 			explain: "Tente novamente!"
 		},
 		{
@@ -48,22 +47,22 @@
 <Question
 	choices={[
 		{
-			text: "Um dispositivo usado para digitalizar o áudio que foi capturado por um microfone, o qual converte ondas sonoras em sinal elétrico.",
-			explain: "O dispositivo usado para digitalizar um sinal elétrico como esse é chamado conversor Analógico-Digital. Tente novamente!"
+			text: "Um dispositivo que digitaliza o áudio captado inicialmente por um microfone, que converte as ondas sonoras em um sinal elétrico.",
+			explain: "O dispositivo que digitaliza esse sinal elétrico é chamado de conversor analógico-digital. Tente novamente!"
 		},
 		{
-			text: "Um gráfico que mostra como a amplitude de um sinal de áudio varia ao longo do tempo. É conhecido também como *domínio do tempo* do som",
-			explain: "A descrição acima se refere a forma de onda, e não o espectograma"
+			text: "Um gráfico que mostra como a amplitude de um sinal de áudio varia ao longo do tempo. Também é chamado de representação do som no <em>domínio do tempo</em>.",
+			explain: "Essa descrição se refere à forma de onda, não ao espectrograma."
 		},
 		{
-			text: "Uma representação visual de como o espectro de frequência de um sinal varia ao longo do tempo",
+			text: "Uma representação visual do espectro de frequência de um sinal conforme ele varia no tempo.",
 			explain: "",
 			correct: true
 		}
 	]}
 />
 
-### 4. Qual é a maneira mais fácil de converter dados de áudio brutos em espectrograma log-mel esperado pelo Whisper?
+### 4. Qual é a maneira mais fácil de converter áudio bruto no espectrograma log-mel esperado pelo Whisper?
 
 A.
 ```python
@@ -85,7 +84,7 @@ dataset.feature(audio["array"], model="whisper")
 	choices={[
 		{
 			text: "A",
-			explain: "`librosa.feature.melspectrogram()` cria um espectograma de potência"
+			explain: "`librosa.feature.melspectrogram()` cria um espectrograma de potência."
 		},
 		{
 			text: "B",
@@ -94,12 +93,12 @@ dataset.feature(audio["array"], model="whisper")
 		},
 		{
 			text: "C",
-			explain: "A Dataset não prepara as características (features) para os modelos Transformer, isso é feito pelo pré-processador do modelo"
+			explain: "Dataset não prepara características para modelos transformer. Isso é feito pelo pré-processador do modelo."
 		}
 	]}
 />
 
-### 5. Como você carrega um conjunto de dados do 🤗 Hub?
+### 5. Como carregar um conjunto de dados do 🤗 Hub?
 
 A.
 ```python
@@ -131,52 +130,50 @@ dataset = load_dataset(DATASET_NAME_ON_HUB)
 		},
 		{
 			text: "B",
-			explain: "Librosa.load é útil para carregar um arquivo de áudio individual a partir do caminho em uma tupla com as amostras de áudio e a taxa de amostragem (sampling rate), mas não um dataset inteiro com muitos exemplos e características"
+			explain: "Librosa.load é útil para carregar um arquivo de áudio individual a partir de seu caminho, obtendo uma tupla com a série temporal do áudio e a taxa de amostragem. Ela não carrega um conjunto inteiro com muitos exemplos e vários campos."
 		},
 		{
 			text: "C",
-			explain: "O método load_dataset vem da biblioteca 🤗 Datasets e não dá 🤗 Transformers."
+			explain: "O método load_dataset pertence à biblioteca 🤗 Datasets, não a 🤗 Transformers."
 		}
 	]}
 />
 
-### 6. Seu dataset personalizado contém áudios de alta qualidade com taxa de amostragem de 32 kHz. Você quer treinar um modelo de reconhecimento de fala que espera que os exemplos de áudio tenham uma taxa de amostragem de 16 kHz. O que você deve fazer?
-
+### 6. Seu conjunto de dados contém áudio de alta qualidade com taxa de amostragem de 32 kHz. Você quer treinar um modelo de reconhecimento de fala que espera exemplos com taxa de 16 kHz. O que deve fazer?
 
 <Question
 	choices={[
 		{
-			text: "Use os exemplos como estão, o modelo generalizará facilmente para exemplos de áudio de maior qualidade.",
-			explain: "Devido à dependência de mecanismos de atenção, é desafiador para os modelos generalizarem entre taxas de amostragem."
+			text: "Usar os exemplos como estão, pois o modelo generalizará facilmente para exemplos de áudio de maior qualidade.",
+			explain: "Como os modelos dependem de mecanismos de atenção, é difícil generalizar entre taxas de amostragem."
 		},
 		{
-			text: "Use o módulo Áudio da biblioteca 🤗 Datasets para reduzir a amostragem dos exemplos no conjunto de dados personalizado",
+			text: "Usar o módulo Audio de 🤗 Datasets para reduzir a taxa de amostragem dos exemplos do conjunto de dados.",
 			explain: "",
 			correct: true
 		},
 		{
-			text: "Reduza a amostragem (downsample) por um fator de 2x descartando cada uma das outras amostra.",
-			explain: "Isso criará distorções no sinal chamadas de aliasing. Fazer a reamostragem (resampling) corretamente é complicado e é melhor deixar para bibliotecas bem testadas, como librosa ou 🤗 Datasets."
+			text: "Reduzir a taxa pela metade descartando uma amostra a cada duas.",
+			explain: "Isso cria distorções no sinal chamadas de aliases. Reamostrar corretamente é uma tarefa complexa, que é melhor deixar a cargo de bibliotecas bem testadas, como librosa ou 🤗 Datasets."
 		}
 	]}
 />
 
-### 7. Como você pode converter um espectrograma gerado por um modelo de machine learning em uma forma de onda?
-
+### 7. Como converter um espectrograma gerado por um modelo de aprendizado de máquina em uma forma de onda?
 
 <Question
 	choices={[
 		{
-			text: "Podemos usar uma rede neural chamada vocoder para reconstruir uma forma de onda a partir do espectrograma.",
-			explain: "Como a informação de fase está ausente neste caso, precisamos usar um vocoder, ou o clássico algoritmo Griffin-Lim para reconstruir a forma de onda.",
+			text: "Podemos usar uma rede neural chamada vocoder para reconstruir a forma de onda a partir do espectrograma.",
+			explain: "Como a informação de fase está ausente nesse caso, precisamos de um vocoder ou do algoritmo clássico Griffin-Lim para reconstruir a forma de onda.",
 			correct: true
 		},
 		{
-			text: "Podemos usar a STFT inversa para converter o espectrograma gerado em uma forma de onda",
-			explain: "Um espectrograma gerado está faltando informação de fase que é necessária para usar a STFT inversa."
+			text: "Podemos usar a STFT inversa para converter o espectrograma gerado em uma forma de onda.",
+			explain: "O espectrograma gerado não contém a informação de fase necessária para usar a STFT inversa."
 		},
 		{
-			text: "Você não pode converter um espectrograma gerado por um modelo de machine learning em uma forma de onda.",
+			text: "Não é possível converter um espectrograma gerado por um modelo de aprendizado de máquina em uma forma de onda.",
 			explain: "Tente novamente!"
 		}
 	]}

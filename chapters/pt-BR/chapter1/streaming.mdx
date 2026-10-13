@@ -1,30 +1,30 @@
 # Streaming de dados de áudio
 
-Um dos maiores desafios enfrentados com datasets de áudio é o seu tamanho imenso. Um único minuto de áudio de qualidade de CD não comprimido (44,1kHz, 16-bit) ocupa um pouco mais de 5 MB de armazenamento. Normalmente, um dataset de áudio contém horas de gravações.
+Um dos maiores desafios dos conjuntos de dados de áudio é seu tamanho. Um único minuto de áudio não comprimido com qualidade de CD, a 44,1 kHz e 16 bits, ocupa um pouco mais de 5 MB de armazenamento. Um conjunto de dados de áudio costuma conter horas de gravações.
 
-Nas seções anteriores, usamos um subconjunto muito pequeno do dataset de áudio MINDS-14, no entanto, datasets de áudio típicos são muito maiores. Por exemplo, a configuração `xs` (a menor) do [GigaSpeech do SpeechColab](https://huggingface.co/datasets/speechcolab/gigaspeech) contém apenas 10 horas de dados de treinamento, mas ocupa mais de 13GB de espaço de armazenamento para download e preparação. Então, o que acontece quando queremos treinar em um conjunto maior? A configuração completa `xl` do mesmo dataset contém 10.000 horas de dados de treinamento, exigindo mais de 1TB de espaço de armazenamento. Para a maioria de nós, isso excede em muito as especificações de um disco comum. Precisamos gastar e comprar armazenamento adicional? Ou existe uma maneira de treinarmos nesses datasets sem restrições de espaço em disco?
+Nas seções anteriores, usamos um subconjunto muito pequeno do MINDS-14, mas os conjuntos de dados de áudio costumam ser muito maiores. Por exemplo, a configuração `xs`, a menor do [GigaSpeech da SpeechColab](https://huggingface.co/datasets/speechcolab/gigaspeech), contém apenas 10 horas de dados de treinamento, mas ocupa mais de 13 GB para download e preparação. E se quisermos treinar com uma divisão maior? A configuração completa `xl` desse conjunto contém 10.000 horas de dados de treinamento e exige mais de 1 TB de armazenamento. Para a maioria de nós, isso supera em muito a capacidade de um disco rígido comum. Precisamos gastar dinheiro com armazenamento adicional? Ou é possível treinar com esses conjuntos sem as restrições de espaço em disco?
 
-🤗 Datasets nos salva oferecendo o [modo de streaming](https://huggingface.co/docs/datasets/stream). O Streaming nos permite carregar os dados progressivamente à medida que iteramos sobre o dataset. Em vez de baixar o dataset inteiro de uma vez, carregamos um exemplo de cada vez. Iteramos sobre o dataset, carregando e preparando exemplos na hora quando são necessários. Desta forma, só carregamos os exemplos que estamos usando, e não os que não estamos! Uma vez que terminamos com uma amostra de exemplo, continuamos iterando sobre o dataset e carregamos o próximo.
+🤗 Datasets oferece o [modo de streaming](https://huggingface.co/docs/datasets/stream) para resolver esse problema. O streaming permite carregar os dados progressivamente à medida que percorremos o conjunto. Em vez de baixar tudo de uma vez, carregamos um exemplo por vez. Percorremos o conjunto, carregando e preparando exemplos sob demanda, quando são necessários. Assim, carregamos apenas os exemplos que estamos usando. Quando terminamos de usar um exemplo, continuamos percorrendo o conjunto e carregamos o próximo.
 
-O modo de streaming tem três vantagens principais sobre o download do dataset inteiro de uma vez:
+O modo de streaming tem três vantagens principais em relação a baixar o conjunto inteiro de uma vez:
 
-* Espaço em disco: os exemplos são carregados na memória um por um à medida que iteramos sobre o dataset. Como os dados não são baixados localmente, não há requisitos de espaço em disco, então você pode usar datasets de tamanho arbitrário.
-* Tempo de download e processamento: datasets de áudio são grandes e precisam de uma quantidade significativa de tempo para serem baixados e processados. Com streaming, o carregamento e processamento é feito na hora, o que significa que você pode começar a usar o dataset assim que o primeiro exemplo estiver pronto.
-* Experimentação fácil: você pode experimentar em um punhado de exemplos para verificar se o seu script funciona sem ter que baixar o dataset inteiro.
+* Espaço em disco: os exemplos são carregados na memória, um por vez, à medida que percorremos o conjunto. Como os dados não são baixados para armazenamento local, não há exigência de espaço em disco, e você pode usar conjuntos de qualquer tamanho.
+* Tempo de download e processamento: conjuntos de áudio são grandes e levam bastante tempo para baixar e processar. Com streaming, o carregamento e o processamento acontecem sob demanda, e você pode começar a usar o conjunto assim que o primeiro exemplo estiver pronto.
+* Facilidade de experimentação: você pode testar seu script com alguns exemplos sem precisar baixar o conjunto inteiro.
 
-Há uma ressalva para o modo de streaming. Ao baixar um dataset completo sem streaming, tanto os dados brutos quanto os dados processados são salvos localmente no disco. Se quisermos reutilizar este dataset, podemos carregar diretamente os dados processados do disco, pulando as etapas de download e processamento. Consequentemente, só temos que realizar as operações de download e processamento uma vez, após o que podemos reutilizar os dados preparados.
+Há uma ressalva. Quando baixamos um conjunto completo sem streaming, tanto os dados brutos quanto os processados são salvos no disco local. Para reutilizá-lo, podemos carregar os dados processados diretamente do disco, sem repetir o download e o processamento. Assim, realizamos essas operações uma única vez e depois reutilizamos os dados preparados.
 
-Com o modo de streaming, os dados não são baixados para o disco. Assim, nem os dados baixados nem os pré-processados são armazenados em cache. Se quisermos reutilizar o dataset, as etapas de streaming devem ser repetidas, com os arquivos de áudio carregados e processados na hora novamente. Por essa razão, é aconselhável baixar datasets que você provavelmente usará várias vezes.
+No modo de streaming, os dados não são baixados para o disco. Portanto, nem os dados baixados nem os pré-processados ficam em cache. Para reutilizar o conjunto, precisamos repetir as etapas de streaming, carregando e processando os arquivos de áudio novamente sob demanda. Por isso, é recomendável baixar os conjuntos que você provavelmente usará várias vezes.
 
-Como você pode habilitar o modo de streaming? Fácil! Basta definir `streaming=True` quando você carregar seu dataset. O resto será cuidado para você:
+Como ativar o modo de streaming? Basta definir `streaming=True` ao carregar o conjunto de dados. A biblioteca cuida do restante:
 
 ```py
 gigaspeech = load_dataset("speechcolab/gigaspeech", "xs", streaming=True)
 ```
 
-Assim como aplicamos etapas de pré-processamento a um subconjunto baixado do MINDS-14, você pode fazer o mesmo pré-processamento com um dataset em streaming exatamente da mesma maneira.
+Você pode aplicar ao conjunto em streaming as mesmas etapas de pré-processamento que aplicamos ao subconjunto baixado do MINDS-14.
 
-A única diferença é que você não pode mais acessar amostras individuais usando indexação do Python (ou seja, `gigaspeech["train"][sample_idx]`). Em vez disso, você tem que iterar sobre o dataset. Aqui está como você pode acessar um exemplo ao transmitir um dataset:
+A única diferença é que não é mais possível acessar amostras individuais pela indexação do Python, como em `gigaspeech["train"][sample_idx]`. Em vez disso, é necessário percorrer o conjunto. Veja como acessar um exemplo em streaming:
 
 ```py
 next(iter(gigaspeech["train"]))
@@ -54,7 +54,7 @@ next(iter(gigaspeech["train"]))
 }
 ```
 
-Se você gostaria de visualizar vários exemplos de um grande dataset, use o `take()` para obter os primeiros n elementos. Vamos pegar os dois primeiros exemplos no dataset gigaspeech:
+Para examinar vários exemplos de um conjunto grande, use `take()` para obter os primeiros n elementos. Vamos pegar os dois primeiros exemplos do GigaSpeech:
 
 ```py
 gigaspeech_head = gigaspeech["train"].take(2)
@@ -123,4 +123,4 @@ list(gigaspeech_head)
 ]
 ```
 
-O modo de streaming pode levar sua pesquisa para o próximo nível: não apenas os maiores datasets estão acessíveis para você, mas você pode facilmente avaliar sistemas através de vários datasets de uma só vez sem se preocupar com o espaço em disco. Comparado à avaliação em um único dataset, a avaliação em vários datasets fornece uma métrica melhor para as habilidades de generalização de um sistema de reconhecimento de fala (c.f. End-to-end Speech Benchmark (ESB)).
+O modo de streaming pode ampliar as possibilidades de sua pesquisa: além de dar acesso aos maiores conjuntos de dados, permite avaliar sistemas em vários conjuntos de uma só vez sem se preocupar com espaço em disco. Em comparação com a avaliação em um único conjunto, a avaliação em vários conjuntos oferece uma medida melhor da capacidade de generalização de um sistema de reconhecimento de fala; veja o End-to-end Speech Benchmark (ESB).

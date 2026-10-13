@@ -1,0 +1,20 @@
+# Leituras e recursos adicionais
+
+Esta unidade reuniu componentes anteriores e apresentou tradução de fala para fala, assistentes de voz e diarização. Para facilitar a consulta, dividimos os recursos nessas três tarefas:
+
+Tradução de fala para fala:
+
+* [STST com unidades discretas](https://ai.facebook.com/blog/advancing-direct-speech-to-speech-modeling-with-discrete-units/), da Meta AI: abordagem direta com modelos codificador-decodificador.
+* [Tradução direta de fala para fala em hokkien](https://ai.facebook.com/blog/ai-translation-hokkien/), da Meta AI: abordagem direta com modelos codificador-decodificador e decodificação em duas etapas.
+* [Uso de dados não supervisionados e fracamente supervisionados para melhorar STST direta](https://arxiv.org/abs/2203.13339), do Google: propõe novas abordagens para aproveitar esses dados no treinamento e uma pequena mudança na arquitetura transformer.
+* [Translatotron-2](https://google-research.github.io/lingvo-lab/translatotron2/), do Google: sistema que preserva características do falante na tradução.
+
+Assistentes de voz:
+
+* [Detecção precisa da palavra de ativação](https://www.amazon.science/publications/accurate-detection-of-wake-word-start-and-end-using-a-cnn), da Amazon: abordagem de baixa latência para aplicações no dispositivo.
+* [Arquitetura RNN-Transducer](https://arxiv.org/pdf/1811.06621.pdf), do Google: modificação de CTC para ASR em streaming no dispositivo.
+
+Transcrição de reuniões:
+
+* [Relatório técnico de pyannote.audio](https://huggingface.co/pyannote/speaker-diarization/blob/main/technical_report_2.1.pdf), de Hervé Bredin: descreve os princípios do pipeline de diarização de `pyannote.audio`.
+* [Whisper X](https://arxiv.org/pdf/2303.00747.pdf), de Max Bain e outros autores: abordagem de melhor desempenho para calcular marcas de tempo por palavra com Whisper.

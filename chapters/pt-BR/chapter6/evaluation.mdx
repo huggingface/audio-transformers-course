@@ -1,0 +1,13 @@
+# Avaliação de modelos de síntese de fala a partir de texto
+
+Durante o treinamento, modelos TTS otimizam a perda de erro quadrático médio (MSE), ou de erro absoluto médio (MAE), entre os valores de espectrograma previstos e os gerados. Ambas incentivam a redução da diferença entre espectrogramas previstos e de referência. Entretanto, TTS é um mapeamento de um para muitos: o espectrograma de saída para um texto pode ter várias representações. Isso torna muito mais difícil avaliar os modelos resultantes.
+
+Diferentemente de muitas tarefas computacionais mensuráveis objetivamente por métricas quantitativas, como acurácia ou precisão, a avaliação de TTS depende bastante da análise humana subjetiva.
+
+Um dos métodos mais usados é a avaliação qualitativa com a pontuação média de opinião (MOS). Trata-se de um sistema subjetivo em que avaliadores humanos classificam a qualidade percebida da fala sintetizada em uma escala de 1 a 5. As pontuações normalmente são coletadas em testes de escuta: os participantes ouvem e avaliam as amostras.
+
+Uma das principais dificuldades de desenvolver métricas objetivas é a natureza subjetiva da percepção da fala. As pessoas têm preferências e sensibilidades diferentes a aspectos como pronúncia, entonação, naturalidade e clareza. Capturar essas nuances em um único número é uma tarefa difícil. Ao mesmo tempo, a subjetividade da avaliação humana dificulta comparar sistemas e estabelecer benchmarks.
+
+Esse tipo de avaliação também pode deixar de considerar aspectos importantes, como naturalidade, expressividade e impacto emocional. São qualidades difíceis de quantificar objetivamente, mas muito relevantes quando a fala sintetizada precisa transmitir características humanas e provocar respostas emocionais adequadas.
+
+Avaliar modelos TTS é, portanto, uma tarefa complexa pela ausência de uma métrica totalmente objetiva. O método mais comum, MOS, depende da análise humana subjetiva. Ele oferece informações valiosas sobre a qualidade da fala sintetizada, mas também introduz variabilidade e subjetividade.

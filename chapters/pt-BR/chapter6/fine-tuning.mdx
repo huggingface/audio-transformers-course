@@ -1,0 +1,536 @@
+# Ajuste fino de SpeechT5
+
+Agora que você conhece a tarefa de síntese de fala e o funcionamento interno de SpeechT5, pré-treinado em inglês, vamos ver como ajustá-lo para outro idioma.
+
+## Preparativos
+
+Para reproduzir este exemplo, você precisará de uma GPU. Em um notebook, confira com:
+
+```bash
+nvidia-smi
+```
+
+<Tip warning={true}>
+
+Usaremos aproximadamente 40 horas de dados de treinamento. Para acompanhar com a GPU gratuita do Google Colab, reduza os dados para cerca de 10–15 horas e diminua o número de etapas de treinamento.
+
+</Tip>
+
+Você também precisará de dependências adicionais:
+
+```bash
+pip install transformers datasets soundfile speechbrain accelerate
+```
+
+Por fim, entre em sua conta Hugging Face para enviar o modelo e compartilhá-lo com a comunidade:
+
+```py
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+## O conjunto de dados
+
+Usaremos o subconjunto em neerlandês (`nl`) de [VoxPopuli](https://huggingface.co/datasets/qmeeus/voxpopuli). [VoxPopuli](https://huggingface.co/datasets/qmeeus/voxpopuli) é um corpus multilíngue de grande escala, obtido de gravações de eventos do Parlamento Europeu entre 2009 e 2020. Contém pares rotulados de áudio e transcrição em 15 idiomas europeus. Você pode escolher outro subconjunto se preferir.
+
+Como já discutimos, um conjunto de reconhecimento automático de fala (ASR) não é a opção mais adequada para treinar TTS. Entretanto, será suficiente para este exercício.
+
+Vamos carregar os dados:
+
+```python
+from datasets import load_dataset, Audio
+
+dataset = load_dataset("qmeeus/voxpopuli", "nl", split="train")
+len(dataset)
+```
+
+**Saída:**
+```out
+20968
+```
+
+20.968 exemplos devem ser suficientes para ajuste fino. SpeechT5 espera áudio a 16 kHz; garanta que os exemplos atendam a esse requisito:
+
+```python
+dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
+```
+
+## Pré-processamento dos dados
+
+Começaremos definindo o checkpoint e carregando o processador adequado, que contém o tokenizador e o extrator de características necessários para preparar os dados:
+
+```py
+from transformers import SpeechT5Processor
+
+checkpoint = "microsoft/speecht5_tts"
+processor = SpeechT5Processor.from_pretrained(checkpoint)
+```
+
+### Limpeza do texto para tokenização de SpeechT5
+
+Primeiro, obtemos o tokenizador do processador para preparar o texto:
+
+```py
+tokenizer = processor.tokenizer
+```
+
+Vamos examinar um exemplo:
+
+```python
+dataset[0]
+```
+
+**Saída:**
+```out
+{'audio_id': '20100210-0900-PLENARY-3-nl_20100210-09:06:43_4',
+ 'language': 9,
+ 'audio': {'path': '/root/.cache/huggingface/datasets/downloads/extracted/02ec6a19d5b97c03e1379250378454dbf3fa2972943504a91c7da5045aa26a89/train_part_0/20100210-0900-PLENARY-3-nl_20100210-09:06:43_4.wav',
+  'array': array([ 4.27246094e-04,  1.31225586e-03,  1.03759766e-03, ...,
+         -9.15527344e-05,  7.62939453e-04, -2.44140625e-04]),
+  'sampling_rate': 16000},
+ 'text': 'dat kan naar mijn gevoel alleen met een brede meerderheid die wij samen zoeken.',
+ 'gender': 'female',
+ 'speaker_id': '1122',
+ 'is_gold_transcript': True,
+ 'accent': 'None'}
+```
+
+Os exemplos têm um campo `text`, usado como entrada. O tokenizador de SpeechT5 não tem tokens para números; se o texto os contiver, talvez seja necessário escrevê-los por extenso.
+
+Como SpeechT5 foi treinado em inglês, pode não reconhecer certos caracteres do conjunto em neerlandês. Sem tratamento, eles serão convertidos em tokens `&lt;unk&gt;`. Em neerlandês, caracteres como `à` são usados para marcar sílabas tônicas. Podemos substituí-lo por `a` para preservar o significado.
+
+Para identificar tokens não suportados, extraímos todos os caracteres únicos com `SpeechT5Tokenizer`, que usa caracteres como tokens. A função de mapeamento `extract_all_chars` concatena as transcrições de todos os exemplos em uma string e a converte em um conjunto de caracteres. Defina `batched=True` e `batch_size=-1` em `dataset.map()` para disponibilizar todas as transcrições de uma vez à função.
+
+```py
+def extract_all_chars(batch):
+    all_text = " ".join(batch["text"])
+    vocab = list(set(all_text))
+    return {"vocab": [vocab], "all_text": [all_text]}
+
+
+vocabs = dataset.map(
+    extract_all_chars,
+    batched=True,
+    batch_size=-1,
+    keep_in_memory=True,
+    remove_columns=dataset.column_names,
+)
+
+dataset_vocab = set(vocabs["vocab"][0])
+tokenizer_vocab = {k for k, _ in tokenizer.get_vocab().items()}
+```
+
+Agora temos dois conjuntos de caracteres: o vocabulário dos dados e o do tokenizador. A diferença entre eles revela os caracteres presentes nos dados e ausentes no tokenizador.
+
+```py
+dataset_vocab - tokenizer_vocab
+```
+
+**Saída:**
+```out
+{' ', 'à', 'ç', 'è', 'ë', 'í', 'ï', 'ö', 'ü'}
+```
+
+Podemos definir uma função que mapeie os caracteres não suportados para tokens válidos. Os espaços já são substituídos por `▁` no tokenizador e não exigem tratamento separado.
+
+```py
+replacements = [
+    ("à", "a"),
+    ("ç", "c"),
+    ("è", "e"),
+    ("ë", "e"),
+    ("í", "i"),
+    ("ï", "i"),
+    ("ö", "o"),
+    ("ü", "u"),
+]
+
+
+def cleanup_text(inputs):
+    for src, dst in replacements:
+        inputs["text"] = inputs["text"].replace(src, dst)
+    return inputs
+
+
+dataset = dataset.map(cleanup_text)
+```
+
+Com os caracteres especiais tratados, passamos ao áudio.
+
+### Falantes
+
+VoxPopuli contém fala de várias pessoas. Quantas estão representadas? Podemos contar falantes únicos e o número de exemplos de cada um. Em um conjunto de 20.968 exemplos, isso ajuda a entender sua distribuição.
+
+```py
+from collections import defaultdict
+
+speaker_counts = defaultdict(int)
+
+for speaker_id in dataset["speaker_id"]:
+    speaker_counts[speaker_id] += 1
+```
+
+Um histograma mostra quanto dado há por falante:
+
+```py
+import matplotlib.pyplot as plt
+
+plt.figure()
+plt.hist(speaker_counts.values(), bins=20)
+plt.ylabel("Speakers")
+plt.xlabel("Examples")
+plt.show()
+```
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/tasks/tts_speakers_histogram.png" alt="Histograma de falantes"/>
+</div>
+
+Aproximadamente um terço dos falantes tem menos de 100 exemplos, enquanto cerca de dez têm mais de 500. Para melhorar a eficiência do treinamento e balancear o conjunto, limitaremos os dados a pessoas com 100 a 400 exemplos.
+
+```py
+def select_speaker(speaker_id):
+    return 100 <= speaker_counts[speaker_id] <= 400
+
+
+dataset = dataset.filter(select_speaker, input_columns=["speaker_id"])
+```
+
+Quantos falantes restaram?
+
+```py
+len(set(dataset["speaker_id"]))
+```
+
+**Saída:**
+```out
+42
+```
+
+E quantos exemplos?
+
+```py
+len(dataset)
+```
+
+**Saída:**
+```out
+9973
+```
+
+Restam pouco menos de 10.000 exemplos de aproximadamente 40 falantes únicos, o que deve ser suficiente.
+
+Uma pessoa com poucos exemplos pode ter mais áudio se os trechos forem longos. Entretanto, calcular a duração total por falante exige percorrer o conjunto e carregar e decodificar cada arquivo, um processo demorado. Por isso, omitimos essa etapa aqui.
+
+### Embeddings de falante
+
+Para o modelo distinguir falantes, criaremos um embedding para cada exemplo. Essa entrada adicional captura as características de uma voz específica. Usaremos o modelo pré-treinado [spkrec-xvect-voxceleb](https://huggingface.co/speechbrain/spkrec-xvect-voxceleb), de SpeechBrain.
+
+Crie `create_speaker_embedding()`, que recebe uma forma de onda e retorna um vetor de 512 elementos com o embedding correspondente:
+
+```py
+import os
+import torch
+from speechbrain.pretrained import EncoderClassifier
+
+spk_model_name = "speechbrain/spkrec-xvect-voxceleb"
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+speaker_model = EncoderClassifier.from_hparams(
+    source=spk_model_name,
+    run_opts={"device": device},
+    savedir=os.path.join("/tmp", spk_model_name),
+)
+
+
+def create_speaker_embedding(waveform):
+    with torch.no_grad():
+        speaker_embeddings = speaker_model.encode_batch(torch.tensor(waveform))
+        speaker_embeddings = torch.nn.functional.normalize(speaker_embeddings, dim=2)
+        speaker_embeddings = speaker_embeddings.squeeze().cpu().numpy()
+    return speaker_embeddings
+```
+
+O modelo `speechbrain/spkrec-xvect-voxceleb` foi treinado em fala inglesa do VoxCeleb, enquanto nossos exemplos são em neerlandês. Acreditamos que ele ainda produza embeddings razoáveis, mas essa suposição pode não valer em todos os casos.
+
+Para resultados ideais, precisaríamos primeiro treinar um modelo X-Vector na fala de destino, permitindo capturar melhor as características das vozes em neerlandês. Para treinar seu próprio modelo, você pode usar [este script](https://huggingface.co/mechanicalsea/speecht5-vc/blob/main/manifest/utils/prep_cmu_arctic_spkemb.py) como exemplo.
+
+### Processamento do conjunto de dados
+
+Por fim, converteremos os dados para o formato esperado. Crie `prepare_dataset`, que recebe um exemplo e usa `SpeechT5Processor` para tokenizar o texto e carregar o áudio de referência como espectrograma log-mel. Ela também acrescenta o embedding de falante como entrada.
+
+```py
+def prepare_dataset(example):
+    audio = example["audio"]
+
+    example = processor(
+        text=example["text"],
+        audio_target=audio["array"],
+        sampling_rate=audio["sampling_rate"],
+        return_attention_mask=False,
+    )
+
+    # strip off the batch dimension
+    example["labels"] = example["labels"][0]
+
+    # use SpeechBrain to obtain x-vector
+    example["speaker_embeddings"] = create_speaker_embedding(audio["array"])
+
+    return example
+```
+
+Confira o processamento em um exemplo:
+
+```py
+processed_example = prepare_dataset(dataset[0])
+list(processed_example.keys())
+```
+
+**Saída:**
+```out
+['input_ids', 'labels', 'stop_labels', 'speaker_embeddings']
+```
+
+O embedding deve ter 512 elementos:
+
+```py
+processed_example["speaker_embeddings"].shape
+```
+
+**Saída:**
+```out
+(512,)
+```
+
+Os rótulos devem ser um espectrograma log-mel de 80 faixas mel:
+
+```py
+import matplotlib.pyplot as plt
+
+plt.figure()
+plt.imshow(processed_example["labels"].T)
+plt.show()
+```
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/tasks/tts_logmelspectrogram_1.png" alt="Espectrograma log-mel de 80 faixas mel"/>
+</div>
+
+Se esse espectrograma parecer estranho, talvez você esteja acostumado a gráficos com frequências baixas embaixo e altas em cima. Ao plotá-lo como imagem em matplotlib, o eixo y é invertido, e o espectrograma aparece de cabeça para baixo.
+
+Aplicaremos a função ao conjunto inteiro. Isso leva entre 5 e 10 minutos.
+
+```py
+dataset = dataset.map(prepare_dataset, remove_columns=dataset.column_names)
+```
+
+Você verá um aviso de que alguns exemplos excedem o comprimento máximo de entrada, de 600 tokens. Remova-os. Para permitir lotes maiores, iremos além e removeremos tudo que tiver mais de 200 tokens.
+
+```py
+def is_not_too_long(input_ids):
+    input_length = len(input_ids)
+    return input_length < 200
+
+
+dataset = dataset.filter(is_not_too_long, input_columns=["input_ids"])
+len(dataset)
+```
+
+**Saída:**
+```out
+8259
+```
+
+Depois, criamos uma divisão simples de treinamento e teste:
+
+```py
+dataset = dataset.train_test_split(test_size=0.1)
+```
+
+### Agrupador de dados
+
+Para reunir vários exemplos em um lote, definimos um agrupador personalizado. Ele preenche sequências curtas com tokens de preenchimento para que todas tenham o mesmo comprimento. Nos rótulos de espectrograma, substitui as partes preenchidas pelo valor especial `-100`, indicando ao modelo que deve ignorá-las ao calcular a perda do espectrograma.
+
+```py
+from dataclasses import dataclass
+from typing import Any, Dict, List, Union
+
+
+@dataclass
+class TTSDataCollatorWithPadding:
+    processor: Any
+
+    def __call__(
+        self, features: List[Dict[str, Union[List[int], torch.Tensor]]]
+    ) -> Dict[str, torch.Tensor]:
+        input_ids = [{"input_ids": feature["input_ids"]} for feature in features]
+        label_features = [{"input_values": feature["labels"]} for feature in features]
+        speaker_features = [feature["speaker_embeddings"] for feature in features]
+
+        # collate the inputs and targets into a batch
+        batch = processor.pad(
+            input_ids=input_ids, labels=label_features, return_tensors="pt"
+        )
+
+        # replace padding with -100 to ignore loss correctly
+        batch["labels"] = batch["labels"].masked_fill(
+            batch.decoder_attention_mask.unsqueeze(-1).ne(1), -100
+        )
+
+        # not used during fine-tuning
+        del batch["decoder_attention_mask"]
+
+        # round down target lengths to multiple of reduction factor
+        if model.config.reduction_factor > 1:
+            target_lengths = torch.tensor(
+                [len(feature["input_values"]) for feature in label_features]
+            )
+            target_lengths = target_lengths.new(
+                [
+                    length - length % model.config.reduction_factor
+                    for length in target_lengths
+                ]
+            )
+            max_length = max(target_lengths)
+            batch["labels"] = batch["labels"][:, :max_length]
+
+        # also add in the speaker embeddings
+        batch["speaker_embeddings"] = torch.tensor(speaker_features)
+
+        return batch
+```
+
+Em SpeechT5, a entrada do decodificador é reduzida por um fator de 2: um instante a cada dois da sequência de referência é descartado. Depois, o decodificador prevê uma sequência com o dobro do comprimento. Como a referência pode ter comprimento ímpar, o agrupador arredonda o comprimento máximo do lote para baixo, garantindo que seja múltiplo de 2.
+
+```py 
+data_collator = TTSDataCollatorWithPadding(processor=processor)
+```
+
+## Treinamento do modelo
+
+Carregue o modelo pré-treinado do mesmo checkpoint usado para o processador:
+
+```py
+from transformers import SpeechT5ForTextToSpeech
+
+model = SpeechT5ForTextToSpeech.from_pretrained(checkpoint)
+```
+
+`use_cache=True` é incompatível com gradient checkpointing. Desative o cache no treinamento e reative-o na geração para acelerar a inferência:
+
+```py 
+from functools import partial
+
+# disable cache during training since it's incompatible with gradient checkpointing
+model.config.use_cache = False
+
+# set language and task for generation and re-enable cache
+model.generate = partial(model.generate, use_cache=True)
+```
+
+Defina os argumentos de treinamento. Não calcularemos métricas de avaliação durante o processo; discutiremos avaliação mais adiante. Aqui, acompanharemos apenas a perda:
+
+```python
+from transformers import Seq2SeqTrainingArguments
+
+training_args = Seq2SeqTrainingArguments(
+    output_dir="speecht5_finetuned_voxpopuli_nl",  # change to a repo name of your choice
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=8,
+    learning_rate=1e-5,
+    warmup_steps=500,
+    max_steps=4000,
+    gradient_checkpointing=True,
+    fp16=True,
+    eval_strategy="steps",
+    per_device_eval_batch_size=2,
+    save_steps=1000,
+    eval_steps=1000,
+    logging_steps=25,
+    report_to=["tensorboard"],
+    load_best_model_at_end=True,
+    greater_is_better=False,
+    label_names=["labels"],
+    push_to_hub=True,
+)
+```
+
+Instancie `Trainer` com modelo, conjunto de dados e agrupador:
+
+```py
+from transformers import Seq2SeqTrainer
+
+trainer = Seq2SeqTrainer(
+    args=training_args,
+    model=model,
+    train_dataset=dataset["train"],
+    eval_dataset=dataset["test"],
+    data_collator=data_collator,
+    tokenizer=processor,
+)
+```
+
+Estamos prontos! O treinamento levará várias horas. Dependendo da GPU, pode haver um erro CUDA de falta de memória ao começar. Nesse caso, reduza `per_device_train_batch_size` progressivamente pela metade e dobre `gradient_accumulation_steps` para compensar.
+
+```py
+trainer.train()
+```
+
+Envie o modelo final ao 🤗 Hub:
+
+```py
+trainer.push_to_hub()
+```
+
+## Inferência
+
+Depois do ajuste fino, você pode usar o modelo para inferência. Carregue-o do 🤗 Hub, usando o nome de sua conta no código:
+
+```py
+model = SpeechT5ForTextToSpeech.from_pretrained(
+    "YOUR_ACCOUNT/speecht5_finetuned_voxpopuli_nl"
+)
+```
+
+Escolha um exemplo, aqui do conjunto de teste, e obtenha seu embedding de falante:
+
+```py 
+example = dataset["test"][304]
+speaker_embeddings = torch.tensor(example["speaker_embeddings"]).unsqueeze(0)
+```
+
+Defina um texto de entrada e o tokenize:
+
+```py 
+text = "hallo allemaal, ik praat nederlands. groetjes aan iedereen!"
+```
+
+Pré-processe o texto:
+
+```py
+inputs = processor(text=text, return_tensors="pt")
+```
+
+Instancie um vocoder e gere fala:
+
+```py
+from transformers import SpeechT5HifiGan
+
+vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
+speech = model.generate_speech(inputs["input_ids"], speaker_embeddings, vocoder=vocoder)
+```
+
+Vamos ouvir o resultado?
+
+```py
+from IPython.display import Audio
+
+Audio(speech.numpy(), rate=16000)
+```
+
+Obter bons resultados em um novo idioma pode ser difícil. A qualidade dos embeddings de falante tem grande influência. Como SpeechT5 foi pré-treinado com X-Vectors em inglês, funciona melhor com embeddings de falantes desse idioma. Se a fala sintetizada soar ruim, tente outro embedding.
+
+Aumentar a duração do treinamento também tende a melhorar os resultados. Mesmo assim, a fala é claramente neerlandesa, não inglesa, e captura características da voz do falante: compare com o áudio original do exemplo. Experimente também a configuração do modelo, por exemplo `config.reduction_factor = 1`, para verificar se melhora o resultado.
+
+Na próxima seção, discutiremos a avaliação de modelos TTS.
