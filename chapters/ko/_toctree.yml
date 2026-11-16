@@ -51,6 +51,19 @@
     quiz: 3
   - local: chapter3/supplemental_reading
     title: 보충자료 및 리소스
+    
+- title: 4단원. 음악장르 분류기
+  sections:
+  - local: chapter4/introduction
+    title: 이 코스에서 배울것과 만들어볼것
+  - local: chapter4/classification_models
+    title: 오디오 분류를 위한 사전학습 모델
+  - local: chapter4/fine-tuning
+    title: 음악 분류를 위한 파인튜닝 모델
+  - local: chapter4/demo
+    title: Gradio를 활용한 데모 만들기
+  - local: chapter4/hands_on
+    title: 실습
 
 - title: 코스 이벤트
   sections:
